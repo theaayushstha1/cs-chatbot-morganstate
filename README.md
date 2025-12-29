@@ -19,33 +19,43 @@ An AI-powered RAG (Retrieval-Augmented Generation) chatbot designed to assist Co
 
 ### 1. Clone the Repository
 ```bash
-git clone [https://github.com/theaayushstha1/cs-chatbot-morganstate.git](https://github.com/theaayushstha1/cs-chatbot-morganstate.git)
+git clone https://github.com/theaayushstha1/cs-chatbot-morganstate.git
 cd cs-chatbot-morganstate
-2. Configure Environment Variables
-Create a .env file in the root directory and add your keys:
 
-Bash
+```
 
+### 2. Configure Environment Variables
+
+Create a `.env` file in the root directory and add your keys:
+
+```bash
 DATABASE_URL=mysql+pymysql://user:password@aws-endpoint...
 OPENAI_API_KEY=your_key_here
 PINECONE_API_KEY=your_key_here
 VITE_API_BASE_URL=http://localhost:5000
-3. Run with Docker
-Bash
 
+```
+
+### 3. Run with Docker
+
+```bash
 docker compose up --build
+
+```
+
 The application will be live at:
 
-Frontend: http://localhost:3000
+* **Frontend:** `http://localhost:3000`
+* **Backend Docs:** `http://localhost:5000/docs`
 
-Backend Docs: http://localhost:5000/docs
+## 👥 Contributors
 
-👥 Contributors
-Aayush Shrestha - Cloud Architecture & Backend Integration
+* **Aayush Shrestha** - Cloud Architecture & Backend Integration
+* **Sakina Shrestha** - Initial Core Development
+* **Computer Science Department** - Morgan State University
 
-Sakina Shrestha - Initial Core Development
+## 📄 License
 
-Computer Science Department - Morgan State University
+This project is licensed under the MIT License - see the [LICENSE](https://www.google.com/search?q=LICENSE) file for details.
 
-📄 License
-This project is licensed under the MIT License - see the LICENSE file for details.
+```
