@@ -1,72 +1,51 @@
+# 🐻 CS Navigator - Morgan State University
 
-An AI-powered Retrieval-Augmented Generation (RAG) chatbot designed to assist students in the Morgan State University Computer Science Department.
+An AI-powered RAG (Retrieval-Augmented Generation) chatbot designed to assist Computer Science students at Morgan State University. This system helps students navigate course requirements, find resources, and get instant answers to academic queries.
 
-#  Chatbot App (Frontend + Backend + MySQL)
+## 🚀 Features
+- **Cloud Database:** Fully integrated with AWS RDS (MySQL) for secure, persistent data storage.
+- **AI Engine:** Uses OpenAI & Pinecone Vector Database for intelligent document retrieval.
+- **Secure Authentication:** JWT-based login and signup system.
+- **Dockerized:** One-command deployment using Docker Compose.
 
-This is a full-stack chatbot application that runs entirely in Docker using Docker Compose.  
-It includes:
+## 🛠️ Tech Stack
+- **Frontend:** React (Vite) + Tailwind CSS
+- **Backend:** Python (FastAPI)
+- **Database:** AWS RDS (MySQL)
+- **Vector DB:** Pinecone
+- **DevOps:** Docker & AWS EC2
 
-- Backend (API server)
-- Frontend (User interface)
-- MySQL Database
+## ⚙️ Installation & Setup
 
-All images are pre-built and stored privately on Docker Hub.
-
----
-
-
-This folder contains everything you need:
-
-- `docker-compose.yml` – defines how to run the app
-- `backend/.env.example` – shows the environment variable format
-- `README.md` – this guide
-
----
-
-##Prerequisites
-
-- Docker installed: [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
-- Docker Hub account (free)
-- You’ve been added as a collaborator to this private Docker Hub repo: `sakina593/chatbot`
-
----
-
-## Step 1: Log in to Docker Hub
-
+### 1. Clone the Repository
 ```bash
-docker login
+git clone [https://github.com/theaayushstha1/cs-chatbot-morganstate.git](https://github.com/theaayushstha1/cs-chatbot-morganstate.git)
+cd cs-chatbot-morganstate
+2. Configure Environment Variables
+Create a .env file in the root directory and add your keys:
 
+Bash
 
-Step 2: Create .env File
+DATABASE_URL=mysql+pymysql://user:password@aws-endpoint...
+OPENAI_API_KEY=your_key_here
+PINECONE_API_KEY=your_key_here
+VITE_API_BASE_URL=http://localhost:5000
+3. Run with Docker
+Bash
 
-Copy and rename the example file:
-cp backend/.env.example backend/.env
+docker compose up --build
+The application will be live at:
 
+Frontend: http://localhost:3000
 
-Step 3: Run the App
-From the folder with docker-compose.yml, run:
+Backend Docs: http://localhost:5000/docs
 
-docker compose up
+👥 Contributors
+Aayush Shrestha - Cloud Architecture & Backend Integration
 
+Sakina Shrestha - Initial Core Development
 
+Computer Science Department - Morgan State University
 
-##########github
-Anytime you add or edit code, you just follow these three steps in your project folder:
-
-1. Stage changes
-git add .
-
-(If you want to stage only one file, replace . with the filename, e.g. git add backend/main.py.)
-
-2. Commit changes
-git commit -m "Your short message about the changes"
-
-
-3. Push to GitHub
-git push
-
-
-=======
-# MSU CS navigator
-It is an AI-powered Retrieval-Augmented Generation (RAG) chatbot designed to assist students in the Morgan State University Computer Science Department.
-
+📄 License
+This project is licensed under the MIT License - see the LICENSE file for details.
