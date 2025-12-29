@@ -2,29 +2,24 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy.engine import URL
-from dotenv import load_dotenv
 
-# Load environment variables from backend/.env
-load_dotenv(os.path.join(os.path.dirname(__file__), ".env"), override=True)
+# 🚨 THE CRITICAL FIX: Read the variable from Docker
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Get values
-DB_USER = os.getenv("DB_USER", "chatuser").strip()
-DB_PASSWORD = os.getenv("DB_PASSWORD", "").strip()
-DB_HOST = os.getenv("DB_HOST", "localhost").strip()
-DB_PORT = int(os.getenv("DB_PORT", "3306").strip())
-DB_NAME = os.getenv("DB_NAME", "chatbot").strip()
+# Debugging: This MUST appear in your logs
+print(f"🔌 CONNECTING TO DATABASE: {SQLALCHEMY_DATABASE_URL}")
 
-# Safe connection string creation
-SQLALCHEMY_DATABASE_URL = URL.create(
-    drivername="mysql+pymysql",
-    username=DB_USER,
-    password=DB_PASSWORD,
-    host=DB_HOST,
-    port=DB_PORT,
-    database=DB_NAME
+if not SQLALCHEMY_DATABASE_URL:
+    # Fallback for safety (prevents "localhost" error)
+    print("❌ ERROR: DATABASE_URL is missing. Checking for fallback...")
+    raise ValueError("DATABASE_URL is missing! Check docker-compose.yml")
+
+# Create Engine
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    pool_pre_ping=True,  # Helps keep AWS connection alive
+    pool_recycle=3600
 )
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

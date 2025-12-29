@@ -10,7 +10,7 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,
-        // 🔧 Removed the rewrite rule to preserve `/api/...` path
+        
       },
       '/chat': {
         target: 'http://localhost:5000',

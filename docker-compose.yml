@@ -1,47 +1,32 @@
 version: "3.8"
 
 services:
-  db:
-    image: mysql:8.0
-    platform: linux/amd64
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: chatbot
-      MYSQL_USER: chatuser
-      MYSQL_PASSWORD: StrongPass!
-    command: >
-      --default-authentication-plugin=mysql_native_password
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-    volumes:
-      - db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -uroot -prootpass || exit 1"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
-    restart: unless-stopped
-
   backend:
     build: ./backend
     image: sakina593/chatbot:backend
     platform: linux/amd64
-    env_file:
-      - ./backend/.env
-    environment:
-      - OPENAI_API_KEY=sk-proj-YOUR_ACTUAL_NEW_KEY_HERE
-      - PINECONE_API_KEY=${PINECONE_API_KEY}
-      - JWT_SECRET=${JWT_SECRET}
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_NAME=chatbot
-      - DB_USER=chatuser
-      - DB_PASSWORD=StrongPass!
-    depends_on:
-      db:
-        condition: service_healthy
     ports:
       - "5000:5000"
+    environment:
+      # --- DATABASE (Loads from .env) ---
+      - DATABASE_URL=${DATABASE_URL}
+      - DB_NAME=${DB_NAME}
+      
+      # --- AI KEYS (Loads from .env) ---
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME}
+      - PINECONE_CLOUD=${PINECONE_CLOUD}
+      - PINECONE_ENV=${PINECONE_ENV}
+      - PINECONE_NAMESPACE=${PINECONE_NAMESPACE}
+      - PINECONE_HOST=${PINECONE_HOST}
+      
+      # --- SECURITY & URLS (Loads from .env) ---
+      - JWT_SECRET=${JWT_SECRET}
+      - ALGORITHM=${ALGORITHM}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+      - VITE_API_URL=${VITE_API_URL}
     restart: unless-stopped
 
   frontend:
@@ -49,13 +34,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: http://18.214.136.155:5000
+        # Passes the URL from your .env to the frontend build
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
     platform: linux/amd64
     ports:
       - "3000:80"
     depends_on:
       - backend
     restart: unless-stopped
-
-volumes:
-  db_data:

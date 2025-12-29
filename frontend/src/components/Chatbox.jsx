@@ -1,6 +1,6 @@
 // src/components/Chatbox.jsx
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { FaMicrophone } from "@react-icons/all-files/fa/FaMicrophone";
 import { FaPaperPlane } from "@react-icons/all-files/fa/FaPaperPlane";
 import { FaUserCircle } from "@react-icons/all-files/fa/FaUserCircle";
@@ -8,10 +8,6 @@ import { FaRobot } from "@react-icons/all-files/fa/FaRobot";
 import { FaHistory } from "@react-icons/all-files/fa/FaHistory";
 import { FaTrash } from "@react-icons/all-files/fa/FaTrash";
 import "./Chatbox.css";
-
-
-const API_BASE = (import.meta.env.VITE_API_BASE_URL?.trim() || "").replace(/\/$/, "");
-
 
 const SUGGESTIONS = [
   "Who is the chair of computer science department?",
@@ -33,7 +29,7 @@ function decodeJwt(token) {
   }
 }
 
-// Helper: split text into React nodes, handling markdown and raw URLs
+// Helper: split text into React nodes
 function linkify(text) {
   const mdRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
   const parts = text.split(mdRegex);
@@ -96,7 +92,6 @@ function linkify(text) {
 }
 
 export default function Chatbox() {
-  // — State & refs —
   const [messages, setMessages] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : [];
@@ -116,26 +111,29 @@ export default function Chatbox() {
   const [greeted, setGreeted] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Build Auth header helper
+  // --- SMART API DETECTION ---
+  const API_BASE = useMemo(() => {
+    // Force localhost:5000 if on local dev
+    if (window.location.port === "5173") {
+      return "http://localhost:5000";
+    }
+    // Force localhost:5000 if on Docker
+    return `${window.location.protocol}//${window.location.hostname}:5000`;
+  }, []);
+
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
-  // 1) Persist messages
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
   }, [messages]);
 
-  // 2) Persist sessions
   useEffect(() => {
-    localStorage.setItem(
-      `${STORAGE_KEY}_sessions`,
-      JSON.stringify(chatSessions)
-    );
+    localStorage.setItem(`${STORAGE_KEY}_sessions`, JSON.stringify(chatSessions));
   }, [chatSessions]);
 
-  // 3) Sync current session data
   useEffect(() => {
     setChatSessions((prev) =>
       prev.map((s) =>
@@ -144,25 +142,20 @@ export default function Chatbox() {
     );
   }, [messages, currentSessionId]);
 
-  // Scroll to bottom on new messages or panel toggle
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, showHistoryPanel]);
 
-  // One-time login greeting
   useEffect(() => {
     if (greeted || messages.length > 0) return;
     const token = localStorage.getItem("token");
     if (token) {
       const { email } = decodeJwt(token);
-      if (email) {
-        addMessage(`Logged in as ${email}`, "bot");
-      }
+      if (email) addMessage(`Logged in as ${email}`, "bot");
     }
     setGreeted(true);
   }, [greeted, messages]);
 
-  // Helper to add a message
   const addMessage = (text, sender) => {
     const time = new Date().toLocaleTimeString([], {
       hour: "2-digit",
@@ -171,11 +164,12 @@ export default function Chatbox() {
     setMessages((prev) => [...prev, { text, sender, time }]);
   };
 
-  // Send user query to /chat
   const sendQuery = async (query) => {
     addMessage(query, "user");
     setIsLoading(true);
     try {
+      // FIXED: Removed "/api" -> Use "/chat"
+      console.log(`Sending to: ${API_BASE}/chat`); 
       const res = await fetch(`${API_BASE}/chat`, {
         method: "POST",
         headers: {
@@ -184,9 +178,15 @@ export default function Chatbox() {
         },
         body: JSON.stringify({ query }),
       });
+      
+      if (res.status === 401 || res.status === 403) {
+          addMessage("Session expired. Please log in again.", "bot");
+          return;
+      }
       if (!res.ok) throw new Error(res.statusText);
-      const { response } = await res.json();
-      addMessage(response, "bot");
+      const data = await res.json();
+      const botResponse = data.response || data.message || JSON.stringify(data);
+      addMessage(botResponse, "bot");
     } catch (err) {
       addMessage(`Error: ${err.message}`, "bot");
     } finally {
@@ -224,6 +224,7 @@ export default function Chatbox() {
 
   const handleViewHistory = async () => {
     try {
+      // FIXED: Removed "/api" -> Use "/chat-history"
       const res = await fetch(`${API_BASE}/chat-history`, {
         headers: getAuthHeader(),
       });
@@ -243,6 +244,7 @@ export default function Chatbox() {
     setCurrentSessionId(newId);
     setMessages([]);
     setShowHistoryPanel(false);
+    // FIXED: Removed "/api" -> Use "/reset-history"
     fetch(`${API_BASE}/reset-history`, {
       method: "POST",
       headers: getAuthHeader(),
@@ -261,6 +263,7 @@ export default function Chatbox() {
         handleNewChat();
       }
     }
+    // FIXED: Removed "/api" -> Use "/reset-history"
     fetch(`${API_BASE}/reset-history`, {
       method: "POST",
       headers: getAuthHeader(),
@@ -268,33 +271,23 @@ export default function Chatbox() {
   };
 
   const getChatTitle = (session) => {
-  const first = session.messages[0];
-
-  if (!first || !first.time) {
-    return "New Chat";
-  }
-
-  const date = new Date(first.time);
-  if (isNaN(date)) {
-    return "New Chat";
-  }
-
-  return `Chat - ${date.toLocaleString([], {
-    dateStyle: "short",
-    timeStyle: "short",
-  })}`;
-};
+    const first = session.messages[0];
+    if (!first || !first.time) return "New Chat";
+    const date = new Date(first.time);
+    if (isNaN(date)) return "New Chat";
+    return `Chat - ${date.toLocaleString([], {
+      dateStyle: "short",
+      timeStyle: "short",
+    })}`;
+  };
 
   return (
     <div className="chat-wrapper">
-      {/* Sidebar */}
       <div className="chat-sidebar">
         <div className="sidebar-header">
           <h2>Chat Sessions</h2>
           <div className="action-bar">
-            <button onClick={handleNewChat} className="action-btn">
-              New Chat
-            </button>
+            <button onClick={handleNewChat} className="action-btn">New Chat</button>
             <button onClick={handleViewHistory} className="action-btn">
               <FaHistory /> {showHistoryPanel ? "Hide" : "View"} History
             </button>
@@ -304,9 +297,7 @@ export default function Chatbox() {
           {chatSessions.map((session) => (
             <li
               key={session.id}
-              className={`session-item ${
-                session.id === currentSessionId ? "active" : ""
-              }`}
+              className={`session-item ${session.id === currentSessionId ? "active" : ""}`}
               onClick={() => {
                 setCurrentSessionId(session.id);
                 setMessages(session.messages);
@@ -327,7 +318,6 @@ export default function Chatbox() {
         </ul>
       </div>
 
-      {/* Main Chat Area */}
       <div className="chat-main">
         <div className="bot-header">
           <h2>Computer Science Department</h2>
@@ -335,14 +325,11 @@ export default function Chatbox() {
         {showHistoryPanel && (
           <div className="history-panel">
             {serverHistory.length === 0 ? (
-              <p>
-                <em>No previous conversation.</em>
-              </p>
+              <p><em>No previous conversation.</em></p>
             ) : (
               serverHistory.map(([q, a], i) => (
                 <div key={i} className="history-entry">
-                  <strong>You:</strong> {q}
-                  <br />
+                  <strong>You:</strong> {q}<br />
                   <strong>Bot:</strong> {a}
                 </div>
               ))

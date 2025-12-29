@@ -1,62 +1,82 @@
-// src/Chat.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Chat() {
-  const [messages, setMessages] = useState([]);  // { from: "user"|"bot", text }
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
+
+  // --- FORCE LOCAL BACKEND (Fixes the "Invalid Token" & 403 Error) ---
+  const API_BASE = useMemo(() => {
+    // If we are on Local Dev (5173), ALWAYS talk to Localhost:5000
+    if (window.location.port === "5173") {
+      return "http://localhost:5000";
+    }
+    // Default for Docker (3000)
+    return "http://localhost:5000";
+  }, []);
 
   useEffect(() => {
-    if (!token) {
-      alert("Please log in first");
-    }
-  }, [token]);
+    if (!token) navigate("/login");
+  }, [token, navigate]);
 
   async function sendMessage(e) {
     e.preventDefault();
     if (!input.trim()) return;
+    
     setMessages(msgs => [...msgs, { from: "user", text: input }]);
     const query = input;
     setInput("");
 
-    const res = await fetch("/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({ query })
-    });
+    try {
+      // DEBUG: This will show in your console so you know where it's going
+      const targetUrl = `${API_BASE}/api/chat`; 
+      console.log("Sending chat to:", targetUrl);
 
-    if (res.ok) {
-      const { response } = await res.json();
-      setMessages(msgs => [...msgs, { from: "bot", text: response }]);
-    } else if (res.status === 403) {
-      alert("Your session expired—please log in again.");
-      localStorage.removeItem("token");
-      window.location.reload();
-    } else {
-      const { detail } = await res.json();
-      setMessages(msgs => [...msgs, { from: "bot", text: `Error: ${detail}` }]);
+      const res = await fetch(targetUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ query })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const botText = data.response || data.message || JSON.stringify(data);
+        setMessages(msgs => [...msgs, { from: "bot", text: botText }]);
+      } else if (res.status === 403 || res.status === 401) {
+        setMessages(msgs => [...msgs, { from: "bot", text: "Error: Session Invalid. Please Log In Again." }]);
+        // Optional: logout automatically
+        // localStorage.removeItem("token");
+        // navigate("/login");
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setMessages(msgs => [...msgs, { from: "bot", text: `Error: ${err.detail || "Unknown error"}` }]);
+      }
+    } catch (error) {
+      console.error(error);
+      setMessages(msgs => [...msgs, { from: "bot", text: "Error: Could not connect to server." }]);
     }
   }
 
   return (
-    <div>
-      <div style={{ maxHeight: 400, overflowY: "auto" }}>
+    <div style={{ padding: 20, maxWidth: 600, margin: "0 auto", fontFamily: "Segoe UI, sans-serif" }}>
+      <h2>Chat with Morgan State Bot</h2>
+      <div style={{ height: 400, overflowY: "auto", border: "1px solid #ccc", borderRadius: 8, padding: 20, marginBottom: 20 }}>
         {messages.map((m, i) => (
-          <div key={i} style={{ textAlign: m.from === "user" ? "right" : "left" }}>
-            <b>{m.from === "user" ? "You:" : "Bot:"}</b> {m.text}
+          <div key={i} style={{ textAlign: m.from === "user" ? "right" : "left", margin: "10px 0" }}>
+            <span style={{ padding: "8px 12px", borderRadius: 12, background: m.from === "user" ? "#4A90E2" : "#E0E0E0", color: m.from === "user" ? "#fff" : "#000" }}>
+              {m.text}
+            </span>
           </div>
         ))}
       </div>
-      <form onSubmit={sendMessage}>
-        <input
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          placeholder="Type your question..."
-        />
-        <button type="submit">Send</button>
+      <form onSubmit={sendMessage} style={{ display: "flex", gap: 10 }}>
+        <input style={{ flex: 1, padding: 10 }} value={input} onChange={e => setInput(e.target.value)} placeholder="Type a message..." />
+        <button type="submit" style={{ padding: "10px 20px", background: "#4A90E2", color: "#fff", border: "none" }}>Send</button>
       </form>
     </div>
   );

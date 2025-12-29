@@ -22,19 +22,13 @@ export default function Signup({ onRegistered }) {
 
   // --- API Base URL Resolution Logic (FIXED) ---
   const API_BASE = useMemo(() => {
-    // Check for the window global variable
     let envBase = window.VITE_API_BASE_URL;
-
     if (typeof envBase === 'string' && envBase.trim()) {
       return envBase.trim().replace(/\/$/, "");
     }
-
-    // Fallback for local Vite dev server
     if (window.location.port === "5173") {
       return `${window.location.protocol}//${window.location.hostname}:5000`;
     }
-    
-    // FIXED: Default fallback to backend on port 5000
     return `${window.location.protocol}//${window.location.hostname}:5000`;
   }, []);
 
@@ -69,7 +63,6 @@ export default function Signup({ onRegistered }) {
   const parseResponseError = async (res) => {
       let message = `Error ${res.status}`;
       const ct = res.headers.get("content-type") || "";
-      
       if (ct.includes("application/json")) {
           const errData = await res.json().catch(() => null);
           if (errData) {
@@ -83,34 +76,29 @@ export default function Signup({ onRegistered }) {
       }
       return message;
   }
-
-  // --- Form Submission Handler ---
-  const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSubmitting(true);
 
     try {
-      // FIXED: Changed from /register to /api/register
-      const url = `${API_BASE}/api/register`; 
-      const res = await fetch(url, {
+      // Explicitly point to port 5000 for local Docker testing
+      const res = await fetch("http://localhost:5000/api/register", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const errorMessage = await parseResponseError(res);
-        throw new Error(errorMessage);
+        throw new Error(data.detail || "Registration failed");
       }
 
-      // Registration successful
-      onRegistered?.();
-      // Navigate to login page on successful registration
-      navigate("/login", { replace: true });
-
+      alert("Account created successfully!");
+      navigate("/login");
     } catch (err) {
-      setError(err?.message || "Sign up failed");
+      setError(err.message);
     } finally {
       setSubmitting(false);
     }
