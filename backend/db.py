@@ -1,24 +1,33 @@
 # backend/db.py
 import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
 
-# 🚨 THE CRITICAL FIX: Read the variable from Docker
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+# Load environment variables from parent directory
+BASE_DIR = os.path.dirname(__file__)
+PROJECT_ROOT = os.path.dirname(BASE_DIR)  # Go up one level to find .env
+load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 
-# Debugging: This MUST appear in your logs
-print(f"🔌 CONNECTING TO DATABASE: {SQLALCHEMY_DATABASE_URL}")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-if not SQLALCHEMY_DATABASE_URL:
-    # Fallback for safety (prevents "localhost" error)
-    print("❌ ERROR: DATABASE_URL is missing. Checking for fallback...")
-    raise ValueError("DATABASE_URL is missing! Check docker-compose.yml")
+print(f"📁 BASE_DIR: {BASE_DIR}")
+print(f"📁 PROJECT_ROOT: {PROJECT_ROOT}")
+print(f"🔌 CONNECTING TO DATABASE: {DATABASE_URL}")
 
-# Create Engine
+if not DATABASE_URL:
+    # Fallback to SQLite if DATABASE_URL is not set
+    DATABASE_URL = "sqlite:///./cs_chatbot.db"
+    print(f"❌ ERROR: DATABASE_URL is missing. Using SQLite fallback: {DATABASE_URL}")
+else:
+    print(f"✅ DATABASE_URL loaded successfully!")
+
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    pool_pre_ping=True,  # Helps keep AWS connection alive
-    pool_recycle=3600
+    DATABASE_URL,
+    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {},
+    pool_pre_ping=True,  # Verify connections before using them
+    pool_recycle=3600    # Recycle connections after 1 hour
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

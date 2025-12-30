@@ -1,0 +1,485 @@
+/* Curriculum Page Container - No extra margin */
+
+/* FORCE CURRICULUM TO SHOW */
+.curriculum-page {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-body);
+  overflow-x: hidden;
+}
+
+.curriculum-page {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-body);
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Header Section - Starts at top */
+.curriculum-header {
+  background: linear-gradient(135deg, var(--msu-blue) 0%, #001a4d 100%);
+  color: white;
+  padding: 40px 24px;
+  border-bottom: 4px solid var(--msu-gold);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  margin: 0;
+  width: 100%;
+}
+
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  margin-bottom: 24px;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateX(-4px);
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-icon {
+  color: var(--msu-gold);
+  flex-shrink: 0;
+}
+
+.header-title h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.02em;
+  color: white;
+}
+
+.header-title p {
+  font-size: 1.1rem;
+  margin: 8px 0 0 0;
+  opacity: 0.95;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Stats Section */
+.stats-section {
+  max-width: 1400px;
+  margin: -30px auto 32px auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--msu-blue);
+}
+
+.stat-card svg {
+  color: var(--msu-blue);
+  flex-shrink: 0;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* Filters Section */
+.filters-section {
+  max-width: 1400px;
+  margin: 0 auto 32px auto;
+  padding: 0 24px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-bar {
+  flex: 1;
+  min-width: 300px;
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.search-input {
+  width: 100%;
+  padding: 14px 16px 14px 48px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  transition: all 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--msu-blue);
+  box-shadow: 0 0 0 3px rgba(0, 45, 114, 0.15);
+}
+
+.search-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  border-radius: 12px;
+}
+
+.filter-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.filter-select {
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  cursor: pointer;
+  font-weight: 600;
+  min-width: 120px;
+}
+
+.filter-select:focus {
+  outline: none;
+}
+
+/* Dark mode fix for select dropdown */
+body.dark .filter-select {
+  color-scheme: dark;
+}
+
+/* Table Container */
+.table-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px 40px 24px;
+  overflow-x: auto;
+}
+
+/* Curriculum Table */
+.curriculum-table {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border-collapse: collapse;
+}
+
+.curriculum-table thead {
+  background: linear-gradient(135deg, var(--msu-blue) 0%, #003380 100%);
+  color: white;
+}
+
+.curriculum-table th {
+  padding: 18px 16px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 3px solid var(--msu-gold);
+  color: white;
+}
+
+.curriculum-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.2s;
+}
+
+.curriculum-table tbody tr:hover {
+  background: rgba(0, 45, 114, 0.08);
+}
+
+body.dark .curriculum-table tbody tr:hover {
+  background: rgba(0, 45, 114, 0.2);
+}
+
+.curriculum-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.curriculum-table td {
+  padding: 16px;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  vertical-align: top;
+}
+
+.course-code {
+  font-weight: 700;
+  color: var(--msu-blue);
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+body.dark .course-code {
+  color: #4dabf7;
+}
+
+.course-name {
+  font-weight: 600;
+  color: var(--text-main);
+  min-width: 200px;
+}
+
+.course-credits {
+  text-align: center;
+  font-weight: 700;
+  color: var(--msu-blue);
+  font-size: 1rem;
+}
+
+body.dark .course-credits {
+  color: var(--msu-gold);
+}
+
+.course-prereq {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  max-width: 400px;
+}
+
+.course-offered {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Category Badges - Improved Colors */
+.category-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.category-badge.mathematics {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+body.dark .category-badge.mathematics {
+  background: rgba(59, 130, 246, 0.25);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.category-badge.core-cs {
+  background: rgba(0, 45, 114, 0.15);
+  color: var(--msu-blue);
+  border: 1px solid rgba(0, 45, 114, 0.3);
+}
+
+body.dark .category-badge.core-cs {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.category-badge.advanced-cs {
+  background: rgba(147, 51, 234, 0.15);
+  color: #9333ea;
+  border: 1px solid rgba(147, 51, 234, 0.3);
+}
+
+body.dark .category-badge.advanced-cs {
+  background: rgba(147, 51, 234, 0.25);
+  color: #c084fc;
+  border: 1px solid rgba(147, 51, 234, 0.4);
+}
+
+.category-badge.specialized {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+body.dark .category-badge.specialized {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px !important;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  font-style: italic;
+}
+
+/* Scrollbar for table */
+.table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: var(--bg-body);
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .header-title h1 {
+    font-size: 2rem;
+  }
+
+  .header-title p {
+    font-size: 1rem;
+  }
+
+  .curriculum-table th,
+  .curriculum-table td {
+    padding: 12px;
+    font-size: 0.85rem;
+  }
+
+  .course-prereq {
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .curriculum-header {
+    padding: 24px 16px;
+  }
+
+  .header-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .header-title h1 {
+    font-size: 1.5rem;
+  }
+
+  .stats-section {
+    padding: 0 16px;
+    margin-top: -20px;
+  }
+
+  .filters-section {
+    padding: 0 16px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-bar {
+    min-width: 100%;
+  }
+
+  .filter-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .filter-select {
+    flex: 1;
+  }
+
+  .table-container {
+    padding: 0 16px 40px 16px;
+  }
+
+  .curriculum-table {
+    font-size: 0.8rem;
+  }
+
+  .curriculum-table th,
+  .curriculum-table td {
+    padding: 10px 8px;
+  }
+
+  .course-prereq {
+    font-size: 0.75rem;
+  }
+}

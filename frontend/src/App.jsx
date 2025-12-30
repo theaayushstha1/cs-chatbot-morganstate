@@ -6,6 +6,7 @@ import NavBar         from "./components/NavBar";
 import ChatSidebar    from "./components/ChatSidebar";
 import Chatbox        from "./components/Chatbox";
 import CurriculumPage from "./components/CurriculumPage";
+import ProfilePage    from "./components/ProfilePage";
 import AdminDashboard from "./components/AdminDashboard";
 import Forbidden      from "./components/Forbidden";
 
@@ -43,7 +44,14 @@ function ChatLayout({
   onNew,
   onSelect,
   onDelete,
-  onSessionChange
+  onSessionChange,
+  onLogout,
+  userEmail,
+  onPin,
+  onArchive,
+  onRename,
+  darkMode,
+  onToggleTheme
 }) {
   const activeSession = sessions.find((s) => s.id === activeId) || { messages: [] };
   return (
@@ -54,6 +62,13 @@ function ChatLayout({
         onNew={onNew}
         onSelect={onSelect}
         onDelete={onDelete}
+        onLogout={onLogout}
+        userEmail={userEmail}
+        onPin={onPin}
+        onArchive={onArchive}
+        onRename={onRename}
+        darkMode={darkMode}
+        onToggleTheme={onToggleTheme}
       />
       <Chatbox
         key={activeId}
@@ -64,11 +79,56 @@ function ChatLayout({
   );
 }
 
+// Layout with sidebar for other pages
+function SidebarLayout({
+  sessions,
+  activeId,
+  onNew,
+  onSelect,
+  onDelete,
+  onLogout,
+  userEmail,
+  onPin,
+  onArchive,
+  onRename,
+  darkMode,
+  onToggleTheme,
+  children
+}) {
+  return (
+    <div className="app-layout">
+      <ChatSidebar
+        sessions={sessions}
+        activeId={activeId}
+        onNew={onNew}
+        onSelect={onSelect}
+        onDelete={onDelete}
+        onLogout={onLogout}
+        userEmail={userEmail}
+        onPin={onPin}
+        onArchive={onArchive}
+        onRename={onRename}
+        darkMode={darkMode}
+        onToggleTheme={onToggleTheme}
+      />
+      <div className="page-content">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const navigate = useNavigate();
 
   const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [role, setRole]   = useState(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Dark mode state
+  const [darkMode, setDarkMode] = useState(
+    () => localStorage.getItem("theme") === "dark"
+  );
 
   // sync token ↔ localStorage & extract role
   useEffect(() => {
@@ -82,56 +142,137 @@ export default function App() {
     }
   }, [token]);
 
-  // chat‐session state (unchanged)
+  // Manage dark mode
+  useEffect(() => {
+    document.body.classList.toggle("dark", darkMode);
+    localStorage.setItem("theme", darkMode ? "dark" : "light");
+  }, [darkMode]);
+
+  // Toggle sidebar CSS class on body
+  useEffect(() => {
+    document.body.classList.toggle('sidebar-collapsed', sidebarCollapsed);
+  }, [sidebarCollapsed]);
+
+  // chat‐session state with pinned and archived support
   const [sessions, setSessions] = useState(() => {
     const saved = JSON.parse(localStorage.getItem("chat_sessions") || "[]");
     if (!saved.length) {
       const id = Date.now().toString();
-      return [{ id, title: "New Chat", messages: [] }];
+      return [{ id, title: "New Chat", messages: [], pinned: false, archived: false }];
     }
-    return saved;
+    return saved.map(s => ({
+      ...s,
+      pinned: s.pinned || false,
+      archived: s.archived || false
+    }));
   });
-  const [activeId, setActiveId] = useState(sessions[0].id);
+  const [activeId, setActiveId] = useState(sessions[0]?.id || "");
+  
   useEffect(() => {
     localStorage.setItem("chat_sessions", JSON.stringify(sessions));
   }, [sessions]);
 
-  // session handlers
+  // FIXED: session handlers
   const handleNew = () => {
     const id = Date.now().toString();
-    setSessions([{ id, title: "New Chat", messages: [] }, ...sessions]);
+    const newChat = { id, title: "New Chat", messages: [], pinned: false, archived: false };
+    setSessions((prev) => [newChat, ...prev]);
     setActiveId(id);
+    navigate("/");
   };
-  const handleSelect = (id) => setActiveId(id);
+  
+  const handleSelect = (id) => {
+    setActiveId(id);
+    navigate("/");
+  };
+  
   const handleDelete = (id) => {
-    if (!window.confirm("Delete this chat?")) return;
+    if (!window.confirm("Delete this chat permanently?")) return;
     const next = sessions.filter((s) => s.id !== id);
     setSessions(next);
     if (activeId === id) setActiveId(next[0]?.id || "");
   };
-  const handleUpdateSession = (msgs) =>
-    setSessions((prev) =>
-      prev.map((s) =>
+  
+  // 🔥 FIXED: Prevent infinite re-renders by checking if messages actually changed
+  const handleUpdateSession = (msgs) => {
+    setSessions((prev) => {
+      const currentSession = prev.find((s) => s.id === activeId);
+      
+      // Only update if messages actually changed
+      if (currentSession && JSON.stringify(currentSession.messages) === JSON.stringify(msgs)) {
+        return prev; // No change needed, return same reference
+      }
+      
+      return prev.map((s) =>
         s.id === activeId
           ? {
               ...s,
               messages: msgs,
-              title: msgs[0]?.text.slice(0, 20) || "Chat",
+              title: msgs.length > 0 ? (msgs[0]?.text.slice(0, 30) || "New Chat") : "New Chat",
             }
           : s
+      );
+    });
+  };
+
+  // Pin/Unpin handler
+  const handlePin = (id) => {
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id === id ? { ...s, pinned: !s.pinned } : s
       )
     );
+  };
+
+  // Archive handler
+  const handleArchive = (id) => {
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id === id ? { ...s, archived: !s.archived } : s
+      )
+    );
+    if (id === activeId) {
+      const remaining = sessions.filter(s => s.id !== id && !s.archived);
+      setActiveId(remaining[0]?.id || "");
+    }
+  };
+
+  // Rename handler
+  const handleRename = (id, newTitle) => {
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id === id ? { ...s, title: newTitle } : s
+      )
+    );
+  };
+
+  // Sidebar toggle function
+  const toggleSidebar = () => {
+    setSidebarCollapsed(prev => !prev);
+  };
+
+  // Theme toggle function
+  const toggleTheme = () => {
+    setDarkMode(prev => !prev);
+  };
 
   // logout
   const handleLogout = () => {
     setToken(null);
+    localStorage.removeItem("token");
     navigate("/login", { replace: true });
   };
 
+  // Extract user email from token
+  const userEmail = token ? (parseJwt(token).email || parseJwt(token).sub || "User") : "";
+
   return (
     <>
-      {/* nav now knows your role & logout */}
-      <NavBar role={role} onLogout={handleLogout} />
+      <NavBar 
+        role={role} 
+        onLogout={handleLogout} 
+        onToggleSidebar={toggleSidebar}
+      />
 
       <Routes>
         {/* public */}
@@ -165,17 +306,64 @@ export default function App() {
                 onSelect={handleSelect}
                 onDelete={handleDelete}
                 onSessionChange={handleUpdateSession}
+                onLogout={handleLogout}
+                userEmail={userEmail}
+                onPin={handlePin}
+                onArchive={handleArchive}
+                onRename={handleRename}
+                darkMode={darkMode}
+                onToggleTheme={toggleTheme}
               />
             </RequireAuth>
           }
         />
 
-        {/* protected: curriculum */}
+        {/* protected: curriculum with sidebar */}
         <Route
           path="/curriculum"
           element={
             <RequireAuth>
-              <CurriculumPage />
+              <SidebarLayout
+                sessions={sessions}
+                activeId={activeId}
+                onNew={handleNew}
+                onSelect={handleSelect}
+                onDelete={handleDelete}
+                onLogout={handleLogout}
+                userEmail={userEmail}
+                onPin={handlePin}
+                onArchive={handleArchive}
+                onRename={handleRename}
+                darkMode={darkMode}
+                onToggleTheme={toggleTheme}
+              >
+                <CurriculumPage />
+              </SidebarLayout>
+            </RequireAuth>
+          }
+        />
+
+        {/* 🔥 NEW: protected profile page with sidebar */}
+        <Route
+          path="/profile"
+          element={
+            <RequireAuth>
+              <SidebarLayout
+                sessions={sessions}
+                activeId={activeId}
+                onNew={handleNew}
+                onSelect={handleSelect}
+                onDelete={handleDelete}
+                onLogout={handleLogout}
+                userEmail={userEmail}
+                onPin={handlePin}
+                onArchive={handleArchive}
+                onRename={handleRename}
+                darkMode={darkMode}
+                onToggleTheme={toggleTheme}
+              >
+                <ProfilePage userEmail={userEmail} onLogout={handleLogout} />
+              </SidebarLayout>
             </RequireAuth>
           }
         />

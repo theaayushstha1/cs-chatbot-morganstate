@@ -1,488 +1,194 @@
-/* =================== Theme Variables =================== */
 :root {
-  /* light mode */
-  --bg: #f7f7f8;
-  --card-bg: #ffffff;
-  --text: #333333;
-  --subtext: #555555;
-  --shadow: rgba(0,0,0,0.1);
-  --primary: #0066cc;
-  --primary-hover: #005bb5;
-  --link-bg: #e6f3ff;
-  --input-bg: #fafafa;
-  --user-msg-bg: #e6f0ff;
-  --bot-msg-bg: #f1f1f1;
+  /* MSU Brand Colors */
+  --msu-blue: #002D72;
+  --msu-blue-hover: #00234d;
+  --msu-gold: #FFB703;
+  
+  /* Light Mode Colors */
+  --bg-body: #f5f7fa;
+  --bg-card: #ffffff;
+  --text-main: #1a202c;
+  --text-secondary: #718096;
+  --border-color: #e2e8f0;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  
+  /* Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
 }
 
+/* Dark Mode Variables */
 body.dark {
-  /* dark mode */
-  --bg: #1e1e1e;
-  --card-bg: #2e2e2e;
-  --text: #dddddd;
-  --subtext: #aaaaaa;
-  --shadow: rgba(0,0,0,0.6);
-  --primary: #3399ff;
-  --primary-hover: #1f78d1;
-  --link-bg: #274060;
-  --input-bg: #2a2a2a;
-  --user-msg-bg: #274060;
-  --bot-msg-bg: #3a3a3a;
+  --bg-body: #1a1a2e;
+  --bg-card: #16213e;
+  --text-main: #e4e4e7;
+  --text-secondary: #a1a1aa;
+  --border-color: #27272a;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
 }
 
-/* =================== Base & Page Layout =================== */
-*,
-*::before,
-*::after {
+* {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
+html {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  padding-top: 64px; /* room for fixed navbar */
-}
-
-/* ==================== NavBar ==================== */
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
+  height: 100%;
   width: 100%;
-  background: var(--card-bg);
-  box-shadow: 0 2px 6px var(--shadow);
-  z-index: 10;
-}
-
-.navbar .nav-container {
-  max-width: 600px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-}
-
-.navbar-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.nav-logo {
-  height: 32px;
-}
-
-.nav-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.nav-links {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-}
-
-.nav-link {
-  text-decoration: none;
-  color: var(--subtext);
-  font-weight: 500;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background 0.2s, color 0.2s;
-}
-
-.nav-link:hover {
-  background: var(--input-bg);
-}
-
-.nav-link.active {
-  color: var(--primary);
-  background: var(--link-bg);
-}
-
-.theme-toggle {
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  cursor: pointer;
-  color: var(--text);
-  transition: color 0.2s;
-}
-
-.theme-toggle:hover {
-  color: var(--primary);
-}
-
-/* ==================== Cards ==================== */
-.card {
-  width: 100%;
-  max-width: 600px;
-  background: var(--card-bg);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px var(--shadow);
-  margin-bottom: 24px;
-  overflow: hidden;
-}
-
-/* ==================== Welcome Card ==================== */
-.welcome-container {
-  padding: 24px 20px;
-  text-align: center;
-}
-
-.welcome-logo {
-  width: 64px;
-  margin-bottom: 16px;
-}
-
-.welcome-title {
-  font-size: 1.75rem;
-  margin: 0;
-  color: var(--text);
-}
-
-.welcome-subtitle {
-  margin-top: 8px;
-  color: var(--subtext);
-  font-size: 1rem;
-}
-
-/* ==================== Chat Card ==================== */
-.chat-container {
-  display: flex;
-  flex-direction: column;
-  height: 75vh;
-}
-
-/* Quick-Reply Buttons */
-.suggestions {
-  background: var(--input-bg);
-  border-bottom: 1px solid var(--shadow);
-  padding: 12px 16px;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.suggestion-btn {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.suggestion-btn:hover:not(:disabled) {
-  background: var(--primary-hover);
-}
-
-.suggestion-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Messages Area */
-.chat-messages {
-  flex: 1;
-  background: var(--card-bg);
-  padding: 16px;
-  overflow-y: auto;
-  position: relative;
-}
-
-.message {
-  display: flex;
-  margin: 12px 0;
-}
-
-.message.user {
-  justify-content: flex-end;
-}
-
-.avatar {
-  font-size: 1.5rem;
-  color: var(--subtext);
-  margin: 0 8px;
-}
-
-.message-content {
-  max-width: 70%;
-  position: relative;
-}
-
-.message-text {
-  padding: 12px 16px;
-  border-radius: 6px;
-  line-height: 1.5;
-  background: var(--bot-msg-bg);
-  color: var(--text);
-}
-
-.message.user .message-text {
-  background: var(--user-msg-bg);
-}
-
-.message.bot .message-text {
-  background: var(--bot-msg-bg);
-}
-
-/* Bubble tails */
-.message.user .message-text::after,
-.message.bot .message-text::before {
-  content: "";
-  position: absolute;
-  width: 8px; height: 8px;
-  background: inherit;
-  transform: rotate(45deg);
-}
-
-.message.user .message-text::after {
-  right: -4px; top: 12px;
-}
-
-.message.bot .message-text::before {
-  left: -4px; top: 12px;
-}
-
-/* Timestamp */
-.timestamp {
-  font-size: 0.7rem;
-  color: var(--subtext);
-  margin-top: 4px;
-  text-align: right;
-}
-
-/* Input Bar */
-.chat-input {
-  display: flex;
-  padding: 12px 16px;
-  background: var(--input-bg);
-  border-top: 1px solid var(--shadow);
-  position: sticky;
-  bottom: 0;
-  align-items: center;
-}
-
-.chat-input input {
-  flex: 1;
-  padding: 10px 14px;
-  border: 1px solid var(--shadow);
-  border-radius: 4px;
-  font-size: 1rem;
-  background: var(--card-bg);
-  color: var(--text);
-  transition: border 0.2s;
-}
-
-.chat-input input:focus {
-  border-color: var(--primary);
-  outline: none;
-}
-
-.chat-input button {
-  margin-left: 8px;
-  width: 40px; height: 40px;
-  border: none;
-  border-radius: 50%;
-  background: var(--primary);
-  color: #fff;
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-  cursor: pointer;
-}
-
-.chat-input button:hover:not(:disabled) {
-  background: var(--primary-hover);
-}
-
-.chat-input button:disabled {
-  background: #888;
-  cursor: not-allowed;
-}
-
-/* Microphone accent */
-.chat-input .mic-button {
-  background: #ff4b4b;
-}
-
-.chat-input .mic-button:hover:not(:disabled) {
-  background: #e04343;
-}
-
-/* ==================== Page Container for Other Pages ==================== */
-.page-container {
-  width: 100%;
-  max-width: 600px;
-  background: var(--card-bg);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px var(--shadow);
-  padding: 24px 20px;
-  margin: 16px auto;
-  color: var(--text);
-}
-
-.page-container h1 {
-  margin-top: 0;
-  font-size: 1.5rem;
-}
-
-.page-container p {
-  color: var(--subtext);
-  line-height: 1.5;
-}
-
-/* ==================== Responsive ==================== */
-@media (max-width: 600px) {
-  body {
-    padding-top: 56px;
-  }
-  .navbar .nav-container {
-    padding: 8px 12px;
-  }
-  .welcome-container,
-  .chat-container,
-  .page-container {
-    max-width: 100%;
-    border-radius: 6px;
-  }
-  .welcome-title {
-    font-size: 1.5rem;
-  }
-  .suggestion-btn {
-    font-size: 0.8rem;
-    padding: 6px 12px;
-  }
-
-  /* ---------- Page Header (Curriculum/Admin) ---------- */
-.page-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.page-icon {
-  font-size: 1.5rem;
-  color: var(--primary);
-}
-
-.page-title {
-  font-size: 1.5rem;
-  margin: 0;
-  color: var(--text);
-}
-
-/* ---------- Curriculum List ---------- */
-.curriculum-list {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--bg-body);
+  color: var(--text-main);
   line-height: 1.6;
-}
-.curriculum-list li {
-  margin-bottom: 8px;
-  padding-left: 12px;
-  position: relative;
-}
-.curriculum-list li::before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  color: var(--primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
 }
 
-/* ---------- Admin Action Buttons ---------- */
-.admin-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 12px;
+/* Smooth transitions for theme switching */
+body * {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.action-btn {
-  flex: 1;
-  min-width: 120px;
-  padding: 10px 16px;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.action-btn:hover:not(:disabled) {
-  background: var(--primary-hover);
-}
-
-.admin-form {
+#root {
+  min-height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 12px;
 }
-.admin-form input {
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-.action-btn {
-  padding: 8px 16px;
-  margin-right: 8px;
-  background: #0066cc;
-  color: #fff;
+
+/* Utility Classes */
+.btn-primary {
+  background: var(--msu-blue);
+  color: white;
+  padding: 10px 24px;
+  border-radius: 8px;
   border: none;
-  border-radius: 4px;
+  font-weight: 600;
   cursor: pointer;
-}
-.action-btn:hover {
-  background: #005bb5;
-}
-
-body {
-  margin: 0;
-  font-family: "Inter", sans-serif;
-  background: #f9f9f9;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-block;
 }
 
-.app-container {
+.btn-primary:hover {
+  background: var(--msu-blue-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-main);
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  border-color: var(--msu-blue);
+  color: var(--msu-blue);
+  background: rgba(0, 45, 114, 0.05);
+}
+
+/* Card styles */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Input styles */
+input, textarea, select {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-body);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Dark mode scrollbar */
+body.dark ::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+body.dark ::-webkit-scrollbar-thumb {
+  background: #27272a;
+}
+
+body.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+.app-layout {
   display: flex;
-  height: 100vh;
-}
-
-.chat-layout {
-  display: flex;
+  min-height: calc(100vh - 70px);
+  margin-top: 70px;
   width: 100%;
-  height: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  background: var(--bg-body);
 }
 
-.chat-layout > * {
-  flex: 1;
-}
 
-.chatbox {
-  padding: 20px;
-  height: 100%;
+/* Page content wrapper (for pages with sidebar) - FIXED */
+.page-content {
+  position: fixed;
+  top: 70px;
+  left: 280px;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-body);
   overflow-y: auto;
-  background: #fff;
-  border-left: 1px solid #ddd;
+  overflow-x: hidden;
+  z-index: 1;
 }
 
-
-
-
+body.sidebar-collapsed .page-content {
+  left: 0;
 }
+
+@media (max-width: 768px) {
+  .page-content {
+    left: 0 !important;
+  }
+}
+

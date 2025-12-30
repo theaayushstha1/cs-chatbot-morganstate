@@ -1,7 +1,42 @@
-# Python garbage
-__pycache__/
-*.py[cod]
-.venv
+# Environment variables
+.env
+backend/.env
+frontend/.env
+
+# Virtual environments
+.venv/
 venv/
 backend/.venv/
-.env
+backend/venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+**/__pycache__/
+
+# Uploads (user profile pictures)
+backend/uploads/
+uploads/
+
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build files
+frontend/dist/
+frontend/build/
+
+# Logs
+*.log

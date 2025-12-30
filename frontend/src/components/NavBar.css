@@ -1,113 +1,336 @@
-/* ====== ACTION BUTTON (Log Out) ====== */
-
-.logout-btn {
-  display: inline-block;
-  padding: 6px 14px;
-  margin-left: 16px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #fff;
-  background-color: #4A90E2;
-  border: 1px solid #357ABD;
-  border-radius: 8px;
-  text-decoration: none;
-  transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .05s ease;
-  cursor: pointer;
-}
-.logout-btn:hover { background-color: #357ABD; border-color: #2A65A0; }
-.logout-btn:active { transform: translateY(1px); background-color: #2A65A0; border-color: #235386; }
-.logout-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(74,144,226,.4); }
-
-/* ====== NAV BAR CONTAINER ====== */
-
+/* Navbar - full width, clean layout */
 .navbar {
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.nav-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 12px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  background-color: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  height: 70px;
   display: flex;
   align-items: center;
-  gap: 24px;
-  flex-wrap: nowrap;          /* keep everything on one line */
 }
 
-/* left cluster (logo + title) */
+.navbar.scrolled {
+  box-shadow: var(--shadow-md);
+}
+
+/* Container spans full width */
+.nav-container {
+  width: 100%;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Left side - logo and title - 🔥 CLICKABLE */
 .navbar-left {
   display: flex;
   align-items: center;
-  gap: 14px;
-  white-space: nowrap;        /* keep title on one line */
+  gap: 12px;
+  text-decoration: none;
+  transition: opacity 0.2s ease, background 0.2s ease;
+  border-radius: 8px;
+  padding: 4px 8px;
+  margin: -4px -8px; /* Negative margin to maintain spacing */
 }
 
-.nav-logo {
-  height: 46px;               /* bigger logo */
-  width: auto;
+.navbar-left:hover {
+  opacity: 0.9;
+  background: rgba(0, 45, 114, 0.04);
 }
 
-/* never wrap “MSU CS Navigator” */
-.nav-title {
-  white-space: nowrap;
-  font-weight: 800;
-  font-size: 1.3rem;          /* ~20–21px */
-  line-height: 1.1;
-  letter-spacing: .2px;
+.navbar-left:active {
+  opacity: 0.75;
 }
 
-/* right cluster (links + buttons) */
-.nav-links {
-  margin-left: auto;          /* push links to the right */
+/* Logo that morphs into hamburger on hover (Chat page) */
+.logo-hamburger-toggle {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.logo-hamburger-toggle:hover {
+  background: rgba(0, 45, 114, 0.08);
+}
+
+/* Clickable logo on other pages (Curriculum, etc) */
+.logo-clickable {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.logo-clickable:hover {
+  background: rgba(0, 45, 114, 0.08);
+}
+
+/* Logo image - visible by default */
+.nav-logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 1;
+}
+
+/* Hamburger overlay - hidden by default */
+.hamburger-overlay,
+.back-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
-  gap: 22px;
+  justify-content: center;
+  color: var(--msu-blue);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-/* ====== LINKS ====== */
+/* On hover: hide logo, show hamburger/back icon */
+.logo-hamburger-toggle:hover .nav-logo-image,
+.logo-clickable:hover .nav-logo-image {
+  opacity: 0;
+  transform: scale(1.2);
+}
+
+.logo-hamburger-toggle:hover .hamburger-overlay,
+.logo-clickable:hover .back-overlay {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Regular logo (when not authenticated) */
+.nav-logo {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Title */
+.nav-title {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  font-family: var(--font-sans);
+}
+
+.brand-main {
+  font-weight: 800;
+  color: var(--msu-blue);
+  font-size: 1.1rem;
+  letter-spacing: -0.02em;
+}
+
+.brand-sub {
+  font-size: 0.75rem;
+  color: var(--msu-gold);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Right side - navigation links */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
 .nav-link {
-  color: #111827;
   text-decoration: none;
-  padding: 8px 10px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 8px 16px;
   border-radius: 8px;
-  transition: background-color .18s ease, color .18s ease, box-shadow .18s ease, transform .05s ease;
+  transition: all 0.2s ease;
 }
-.nav-link:hover { background: #f3f4f6; }
-.nav-link:active { transform: translateY(1px); }
-.nav-link:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(99,102,241,.35); }
-.nav-link--selected { background: #eef2ff; color: #1f2937; }
 
-/* theme toggle */
-.theme-toggle {
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
-  border-radius: 10px;
-  padding: 6px 10px;
+.nav-link:hover {
+  background-color: rgba(0, 45, 114, 0.08);
+  color: var(--msu-blue);
+}
+
+.nav-link.active {
+  background-color: rgba(0, 45, 114, 0.1);
+  color: var(--msu-blue);
+  font-weight: 600;
+}
+
+/* CTA button */
+.nav-cta {
+  text-decoration: none;
+  margin-left: 8px;
+}
+
+/* Logout button */
+.logout-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-left: 12px;
   cursor: pointer;
-  transition: background-color .18s ease, border-color .18s ease, transform .05s ease;
+  transition: all 0.2s;
 }
-.theme-toggle:hover { background: #f3f4f6; }
-.theme-toggle:active { transform: translateY(1px); }
-.theme-toggle:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(31,41,55,.25); }
 
-/* ====== DARK MODE ====== */
+.logout-btn:hover {
+  border-color: var(--msu-blue);
+  color: var(--msu-blue);
+  box-shadow: var(--shadow-sm);
+}
 
-.dark .navbar { background: #0f172a; border-bottom-color: #1f2937; }
-.dark .nav-link { color: #e5e7eb; }
-.dark .nav-link:hover { background: #111827; }
-.dark .nav-link--selected { background: #1f2937; color: #f3f4f6; }
-.dark .theme-toggle { background: #0b1220; border-color: #1f2937; color: #e5e7eb; }
-.dark .theme-toggle:hover { background: #111827; }
-.dark .logout-btn { background-color: #3b82f6; border-color: #2563eb; }
-.dark .logout-btn:hover { background-color: #2563eb; border-color: #1d4ed8; }
+/* Theme toggle */
+.theme-toggle {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
 
-/* ====== RESPONSIVE ====== */
+.theme-toggle:hover {
+  background-color: rgba(0, 45, 114, 0.08);
+  transform: rotate(15deg);
+}
 
+/* ========== Profile Icon Button - Clean Professional Style ========== */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.profile-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  backdrop-filter: blur(10px);
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-icon-fallback {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.profile-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.profile-icon-btn:active {
+  transform: translateY(0);
+}
+
+.profile-icon-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+/* ========== Mobile Responsive ========== */
 @media (max-width: 768px) {
-  .nav-container { gap: 16px; padding: 10px 16px; }
-  .nav-links { gap: 14px; }
-  .nav-logo { height: 38px; }
-  .nav-title { font-size: 1.1rem; }
+  .nav-container {
+    padding: 0 16px;
+  }
+
+  .navbar-left {
+    gap: 8px;
+  }
+
+  .logo-hamburger-toggle,
+  .logo-clickable {
+    width: 42px;
+    height: 42px;
+  }
+
+  .nav-logo {
+    height: 42px;
+  }
+
+  .brand-main {
+    font-size: 1rem;
+  }
+
+  .brand-sub {
+    display: none;
+  }
+
+  .nav-links {
+    gap: 4px;
+  }
+
+  .nav-link {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+  }
+
+  .profile-icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .profile-icon-fallback svg {
+    width: 16px;
+    height: 16px;
+  }
 }
