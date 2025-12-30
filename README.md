@@ -6,7 +6,8 @@ An AI-powered **RAG (Retrieval-Augmented Generation)** chatbot designed to assis
 
 ## 🖼️ Application Preview
 
-![CS Navigator UI Preview](https://imgur.com/RZJtvrk)
+![CS Navigator UI Preview](https://i.imgur.com/FKzJhWx.png)
+
 
 
 ## 🚀 Features
