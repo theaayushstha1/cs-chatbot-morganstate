@@ -1,0 +1,200 @@
+/* Uses your theme vars from src/index.css (msu blue/gold, etc.) */
+.auth {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+}
+
+/* LEFT: Brand panel (WHITE) */
+.auth__brand {
+  background: #ffffff;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;          /* keep vertical center */
+  justify-content: flex-start;  /* was center */
+  padding: 56px 40px;
+  border-right: 1px solid var(--border-color);
+}
+
+.auth__brandInner {
+  width: 100%;
+  max-width: 520px;
+  margin-left: 56px;            /* nudge toward the left */
+  transform: translateY(-22px); /* your slight upward shift */
+}
+
+
+/* Logo: smaller, non-boxy, subtle shadow */
+.auth__logoMain {
+  display: block;
+  width: 360px;        /* slightly smaller for sleek look */
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 22px;
+
+  border-radius: 0;    /* remove card-like box */
+  box-shadow: none;    /* remove heavy box shadow */
+  filter: drop-shadow(0 10px 20px rgba(15, 23, 42, 0.18));
+}
+
+.auth__brandTitle {
+  margin: 0 0 10px;
+  font-size: 3rem;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--msu-blue);
+}
+
+.auth__brandSubtitle {
+  margin: 0;
+  color: #334155;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  max-width: 560px;
+}
+
+/* RIGHT: Main panel (BLUE) */
+.auth__main {
+  background:
+    radial-gradient(900px 500px at 20% 20%, rgba(242, 169, 0, 0.15), transparent 60%),
+    linear-gradient(135deg, var(--msu-blue) 0%, #0b1c3a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+/* Card stays white on the blue background */
+.auth__card {
+  width: 100%;
+  max-width: 440px;
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22);
+}
+
+.auth__header {
+  margin-bottom: 8px;
+}
+
+.auth__title {
+  margin: 0 0 10px;
+  text-align: center;
+}
+
+.auth__footer {
+  margin-top: 14px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.auth__link {
+  color: var(--msu-blue);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* Error box */
+.auth__error {
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.10);
+  color: var(--text-main);
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin: 10px 0 14px;
+}
+
+/* Form fields (used by your children components if you use .field markup) */
+.field {
+  margin: 12px 0;
+}
+
+.field label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.field__control {
+  position: relative;
+}
+
+.field__icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.75;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+.field input {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--bg-card);
+  color: var(--text-main);
+}
+
+.field__action {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.field__action:hover {
+  background: rgba(0, 45, 114, 0.07);
+  color: var(--msu-blue);
+}
+
+.auth__submit {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* Autofill fix (removes white overlay/shadow on text) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--text-main);
+  box-shadow: 0 0 0px 1000px var(--bg-card) inset !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* Optional: small utility to size SVG icons in auth forms */
+.auth__icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .auth {
+    grid-template-columns: 1fr;
+  }
+
+  /* Hide the white logo panel on small screens */
+  .auth__brand {
+    display: none;
+  }
+
+  /* Keep the form on blue background */
+  .auth__main {
+    padding: 22px;
+  }
+}
