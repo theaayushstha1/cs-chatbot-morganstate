@@ -60,7 +60,6 @@ body.sidebar-collapsed .chat-sidebar {
   border-color: var(--msu-blue-hover);
 }
 
-/* FIXED: Z-index management for proper click handling */
 .sidebar-action-btn.curriculum-link {
   position: relative;
   z-index: 10;
@@ -367,7 +366,7 @@ body.sidebar-collapsed .chat-sidebar {
   border-color: var(--msu-gold);
 }
 
-/* 🔥 NEW: User Profile - Clickable */
+/* User Profile - Clickable */
 .user-profile {
   display: flex;
   align-items: center;
@@ -382,6 +381,7 @@ body.sidebar-collapsed .chat-sidebar {
   background: rgba(255, 255, 255, 0.08);
 }
 
+/* 🔥 FIXED: User Avatar with proper fallback */
 .user-avatar {
   width: 36px;
   height: 36px;
@@ -392,6 +392,29 @@ body.sidebar-collapsed .chat-sidebar {
   justify-content: center;
   color: white;
   flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.user-avatar .profile-picture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+.fallback-user-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .user-info {

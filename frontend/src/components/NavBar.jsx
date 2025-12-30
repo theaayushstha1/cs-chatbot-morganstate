@@ -40,28 +40,27 @@ export default function NavBar({ role, onToggleSidebar }) {
       if (response.ok) {
         const data = await response.json();
         
-        // 🔥 FIX: Construct full image URL
+        // Construct full image URL
         let pictureUrl = data.profilePicture || "/user_icon.jpg";
         if (pictureUrl && !pictureUrl.startsWith('http') && !pictureUrl.startsWith('/user_icon')) {
           pictureUrl = `${API_BASE}${pictureUrl}`;
         }
         
-        console.log("Navbar profile picture:", pictureUrl); // Debug log
+        console.log("✅ Navbar profile picture:", pictureUrl);
         setProfilePicture(pictureUrl);
       }
     } catch (error) {
-      console.error("Error fetching profile picture:", error);
+      console.error("❌ Error fetching profile picture:", error);
     }
   };
 
   const linkClass = ({ isActive }) => "nav-link" + (isActive ? " active" : "");
-
   const isAuthed = useMemo(() => Boolean(role), [role]);
 
   return (
     <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
       <div className="nav-container">
-        {/* 🔥 CLICKABLE: Navigate to home when clicking title/logo area */}
+        {/* Left side - logo and title - CLICKABLE */}
         <div 
           className="navbar-left" 
           onClick={() => navigate("/")}
@@ -72,7 +71,7 @@ export default function NavBar({ role, onToggleSidebar }) {
               type="button"
               className="logo-hamburger-toggle" 
               onClick={(e) => {
-                e.stopPropagation(); // Prevent navigation when clicking hamburger
+                e.stopPropagation();
                 onToggleSidebar();
               }}
               aria-label="Toggle sidebar"
@@ -98,7 +97,7 @@ export default function NavBar({ role, onToggleSidebar }) {
           </div>
         </div>
 
-        {/* Show profile icon when authenticated */}
+        {/* Right side - Profile icon when authenticated */}
         {isAuthed && (
           <div className="navbar-right">
             <button 
@@ -112,8 +111,10 @@ export default function NavBar({ role, onToggleSidebar }) {
                 alt="Profile" 
                 className="profile-avatar"
                 onError={(e) => {
+                  console.log("❌ Image failed to load, showing fallback");
                   e.target.style.display = 'none';
-                  e.target.nextElementSibling.style.display = 'flex';
+                  const fallback = e.target.nextElementSibling;
+                  if (fallback) fallback.style.display = 'flex';
                 }}
               />
               <div className="profile-icon-fallback">
@@ -123,7 +124,7 @@ export default function NavBar({ role, onToggleSidebar }) {
           </div>
         )}
 
-        {/* Only show links when NOT authenticated */}
+        {/* Show links only when NOT authenticated */}
         {!isAuthed && (
           <div className="nav-links" aria-label="Primary navigation">
             <NavLink to="/login" className={linkClass}>

@@ -83,7 +83,7 @@ export default function Signup({ onRegistered }) {
 
     try {
       // Explicitly point to port 5000 for local Docker testing
-      const res = await fetch("http://localhost:5000/api/register", { 
+      const res = await fetch(`${API_BASE}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),

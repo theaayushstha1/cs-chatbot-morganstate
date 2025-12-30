@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaPlus } from "@react-icons/all-files/fa/FaPlus";
 import { FaSearch } from "@react-icons/all-files/fa/FaSearch";
@@ -35,7 +35,56 @@ export default function ChatSidebar({
   const [renamingId, setRenamingId] = useState(null);
   const [renameValue, setRenameValue] = useState("");
   const [showArchived, setShowArchived] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+  const [profileImageUrl, setProfileImageUrl] = useState(null);
   const navigate = useNavigate();
+
+  // 🔥 Fetch user profile on mount
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      // 🔥 API BASE: Always use port 5000 for backend API calls
+      const API_BASE = window.location.port === "5173" 
+        ? "http://localhost:5000" 
+        : `${window.location.protocol}//${window.location.hostname}:5000`;
+
+      const response = await fetch(`${API_BASE}/api/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserProfile(data);
+
+        // 🔥 IMAGE URL: Different ports for local vs docker
+        if (data.profile_picture_filename) {
+          let imageUrl;
+          
+          if (window.location.port === "5173") {
+            // LOCAL DEV: Frontend on 5173, images served by Flask on 5000
+            imageUrl = `http://localhost:5000/uploads/profile_pictures/${data.profile_picture_filename}`;
+          } else {
+            // DOCKER: Frontend on 3000, images served by nginx on 3000
+            imageUrl = `${window.location.protocol}//${window.location.hostname}:3000/uploads/profile_pictures/${data.profile_picture_filename}`;
+          }
+          
+          setProfileImageUrl(imageUrl);
+          console.log("✅ Profile image URL:", imageUrl);
+          console.log("🌐 Current port:", window.location.port);
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error fetching profile:", error);
+    }
+  };
 
   // Filter active (non-archived) sessions
   const filteredSessions = sessions.filter(s => 
@@ -78,11 +127,9 @@ export default function ChatSidebar({
   };
 
   const handleInstallApp = () => {
-    // TODO: Implement PWA install prompt
     alert("Install App feature - Will be connected later!");
   };
 
-  // FIXED: Handle curriculum navigation properly
   const handleCurriculumClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -90,7 +137,6 @@ export default function ChatSidebar({
     navigate("/curriculum");
   };
 
-  // 🔥 NEW: Handle profile navigation
   const handleProfileClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -173,7 +219,6 @@ export default function ChatSidebar({
           />
         </div>
 
-        {/* FIXED: Curriculum button with proper click handling */}
         <button 
           className="sidebar-action-btn curriculum-link" 
           onClick={handleCurriculumClick}
@@ -308,13 +353,34 @@ export default function ChatSidebar({
           </button>
         </div>
 
-        {/* 🔥 NEW: User Profile - Clickable to navigate to /profile */}
+        {/* 🔥 FIXED: Profile with fallback icon */}
         <div className="user-profile" onClick={handleProfileClick}>
           <div className="user-avatar">
-            <FaUser size={18} />
+            {profileImageUrl ? (
+              <>
+                <img 
+                  src={profileImageUrl} 
+                  alt="Profile" 
+                  className="profile-picture"
+                  onError={(e) => {
+                    console.error("❌ Failed to load profile image:", profileImageUrl);
+                    e.target.style.display = 'none';
+                    const fallback = e.target.parentElement.querySelector('.fallback-user-icon');
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div className="fallback-user-icon" style={{ display: 'none' }}>
+                  <FaUser size={18} />
+                </div>
+              </>
+            ) : (
+              <div className="fallback-user-icon">
+                <FaUser size={18} />
+              </div>
+            )}
           </div>
           <div className="user-info">
-            <div className="user-email">{userEmail || "User"}</div>
+            <div className="user-email">{userProfile?.email || userEmail || "User"}</div>
             <div className="user-status">Free Plan</div>
           </div>
           <button 

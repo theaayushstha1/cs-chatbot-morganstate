@@ -40,3 +40,6 @@ frontend/build/
 
 # Logs
 *.log
+# Keys (AWS / SSH / TLS)
+*.pem
+*.key

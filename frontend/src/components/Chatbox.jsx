@@ -63,6 +63,7 @@ export default function Chatbox({ initialMessages = [], onSessionChange }) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [userProfilePicture, setUserProfilePicture] = useState("/user_icon.jpg");
   
   const messagesEndRef = useRef(null);
   const prevMessagesRef = useRef(initialMessages);
@@ -73,23 +74,57 @@ export default function Chatbox({ initialMessages = [], onSessionChange }) {
     prevMessagesRef.current = initialMessages;
   }, [initialMessages]);
 
+  // 🔥 FIX: Fetch user profile picture IMMEDIATELY on mount
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.log("❌ No token found, skipping profile fetch");
+        return;
+      }
+
+      try {
+        const API_BASE = window.location.port === "5173" 
+          ? "http://localhost:5000" 
+          : `${window.location.protocol}//${window.location.hostname}:5000`;
+
+        console.log("🔵 Chatbox: Fetching profile from:", `${API_BASE}/api/profile`);
+
+        const response = await fetch(`${API_BASE}/api/profile`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("🔵 Chatbox: Profile data:", data);
+          
+          if (data.profile_picture_filename) {
+            const imageUrl = `${API_BASE}/uploads/profile_pictures/${data.profile_picture_filename}`;
+            setUserProfilePicture(imageUrl);
+            console.log("✅ Chatbox profile picture set to:", imageUrl);
+          } else {
+            console.log("⚠️ No profile_picture_filename in response");
+          }
+        } else {
+          console.error("❌ Profile fetch failed:", response.status);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching profile:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []); // Empty deps = runs once on mount
+
   // 🔥 FIXED: Update parent only when messages actually change (avoid infinite loop)
   useEffect(() => {
-    // Skip if onSessionChange doesn't exist
     if (!onSessionChange) return;
+    if (JSON.stringify(messages) === JSON.stringify(prevMessagesRef.current)) return;
     
-    // Skip if messages haven't actually changed (compare with previous)
-    if (JSON.stringify(messages) === JSON.stringify(prevMessagesRef.current)) {
-      return;
-    }
-    
-    // Update parent
     onSessionChange(messages);
     prevMessagesRef.current = messages;
-    
-  }, [messages]); // 🔥 REMOVED onSessionChange from dependencies!
+  }, [messages]);
 
-  // --- SMART API DETECTION ---
   const API_BASE = useMemo(() => {
     if (window.location.port === "5173") return "http://localhost:5000";
     return `${window.location.protocol}//${window.location.hostname}:5000`;
@@ -193,9 +228,15 @@ export default function Chatbox({ initialMessages = [], onSessionChange }) {
           messages.map((msg, i) => (
             <div key={i} className={`message ${msg.sender}`}>
               <img 
-                src={msg.sender === "user" ? "/user_icon.jpg" : "/bot_avatar.jpg"} 
+                src={msg.sender === "user" ? userProfilePicture : "/bot_avatar.jpg"} 
                 alt={msg.sender} 
                 className="avatar-img"
+                onError={(e) => {
+                  if (msg.sender === "user") {
+                    console.error("❌ Image failed to load:", e.target.src);
+                    e.target.src = "/user_icon.jpg";
+                  }
+                }}
               />
               <div className="message-content">
                 <div className="message-bubble">
