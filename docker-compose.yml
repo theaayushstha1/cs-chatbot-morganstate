@@ -7,6 +7,8 @@ services:
     platform: linux/amd64
     ports:
       - "5000:5000"
+    volumes:
+      - ./backend/uploads:/app/uploads  # ← ADD THIS! Profile pictures storage!
     environment:
       # --- DATABASE (Loads from .env) ---
       - DATABASE_URL=${DATABASE_URL}
@@ -36,6 +38,7 @@ services:
       args:
         # Passes the URL from your .env to the frontend build
         VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+    image: sakina593/chatbot:frontend  # ← ADD THIS for tagging!
     platform: linux/amd64
     ports:
       - "3000:80"
