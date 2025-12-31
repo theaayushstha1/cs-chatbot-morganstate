@@ -39,7 +39,7 @@ export default function ChatSidebar({
   const [profileImageUrl, setProfileImageUrl] = useState(null);
   const navigate = useNavigate();
 
-  // 🔥 Fetch user profile on mount
+  // 🔥 Fetch user profile on mount - PRESERVED
   useEffect(() => {
     fetchUserProfile();
   }, []);
@@ -49,7 +49,7 @@ export default function ChatSidebar({
     if (!token) return;
 
     try {
-      // 🔥 API BASE: Always use port 5000 for backend API calls
+      // 🔥 API BASE: Handles 5173 vs 5000 logic - PRESERVED
       const API_BASE = window.location.port === "5173" 
         ? "http://localhost:5000" 
         : `${window.location.protocol}//${window.location.hostname}:5000`;
@@ -64,21 +64,15 @@ export default function ChatSidebar({
         const data = await response.json();
         setUserProfile(data);
 
-        // 🔥 IMAGE URL: Different ports for local vs docker
+        // 🔥 IMAGE URL: Local vs Docker logic - PRESERVED
         if (data.profile_picture_filename) {
           let imageUrl;
-          
           if (window.location.port === "5173") {
-            // LOCAL DEV: Frontend on 5173, images served by Flask on 5000
             imageUrl = `http://localhost:5000/uploads/profile_pictures/${data.profile_picture_filename}`;
           } else {
-            // DOCKER: Frontend on 3000, images served by nginx on 3000
             imageUrl = `${window.location.protocol}//${window.location.hostname}:3000/uploads/profile_pictures/${data.profile_picture_filename}`;
           }
-          
           setProfileImageUrl(imageUrl);
-          console.log("✅ Profile image URL:", imageUrl);
-          console.log("🌐 Current port:", window.location.port);
         }
       }
     } catch (error) {
@@ -86,26 +80,18 @@ export default function ChatSidebar({
     }
   };
 
-  // Filter active (non-archived) sessions
+  // Filter logic - PRESERVED
   const filteredSessions = sessions.filter(s => 
     !s.archived && s.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // Filter archived sessions
   const archivedSessions = sessions.filter(s => s.archived);
-
   const pinnedSessions = filteredSessions.filter(s => s.pinned);
   const regularSessions = filteredSessions.filter(s => !s.pinned);
 
   const handleContextMenu = (e, sessionId) => {
     e.preventDefault();
     e.stopPropagation();
-    setContextMenu({
-      visible: true,
-      x: e.clientX,
-      y: e.clientY,
-      sessionId
-    });
+    setContextMenu({ visible: true, x: e.clientX, y: e.clientY, sessionId });
   };
 
   const closeContextMenu = () => {
@@ -119,17 +105,13 @@ export default function ChatSidebar({
   };
 
   const submitRename = (sessionId) => {
-    if (renameValue.trim()) {
-      onRename(sessionId, renameValue.trim());
-    }
+    if (renameValue.trim()) onRename(sessionId, renameValue.trim());
     setRenamingId(null);
     setRenameValue("");
   };
 
-  const handleInstallApp = () => {
-    alert("Install App feature - Will be connected later!");
-  };
-
+  const handleInstallApp = () => alert("Install App feature - Will be connected later!");
+  
   const handleCurriculumClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -144,12 +126,10 @@ export default function ChatSidebar({
     navigate("/profile");
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (contextMenu.visible) {
       const handler = (e) => {
-        if (!e.target.closest('.context-menu')) {
-          closeContextMenu();
-        }
+        if (!e.target.closest('.context-menu')) closeContextMenu();
       };
       window.addEventListener('click', handler);
       return () => window.removeEventListener('click', handler);
@@ -182,6 +162,7 @@ export default function ChatSidebar({
         className={`chat-history-item ${s.id === activeId ? "active" : ""} ${isArchived ? "archived-item" : ""}`}
         onClick={() => onSelect(s.id)}
         onContextMenu={(e) => handleContextMenu(e, s.id)}
+        title={`Select conversation: ${s.title}`} // 🔥 NEW: Hover Text
       >
         {s.pinned && <FaThumbtack className="pin-icon" size={10} />}
         <span className="chat-title">{s.title}</span>
@@ -191,6 +172,7 @@ export default function ChatSidebar({
             e.stopPropagation();
             handleContextMenu(e, s.id);
           }}
+          title="Chat options" // 🔥 NEW: Hover Text
           aria-label="More options"
         >
           <FaEllipsisV size={12} />
@@ -201,14 +183,18 @@ export default function ChatSidebar({
 
   return (
     <div className="chat-sidebar">
-      {/* Top Actions */}
       <div className="sidebar-top">
-        <button className="sidebar-action-btn new-chat" onClick={onNew}>
+        {/* NEW: Tooltips added to buttons */}
+        <button 
+          className="sidebar-action-btn new-chat" 
+          onClick={onNew}
+          title="Start a new chat session" // 🔥 NEW: Hover Text
+        >
           <FaPlus size={16} />
           <span>New Chat</span>
         </button>
 
-        <div className="search-container">
+        <div className="search-container" title="Search through your conversations"> {/* 🔥 NEW: Hover Text */}
           <FaSearch className="search-icon" size={14} />
           <input
             type="text"
@@ -222,13 +208,13 @@ export default function ChatSidebar({
         <button 
           className="sidebar-action-btn curriculum-link" 
           onClick={handleCurriculumClick}
+          title="View Computer Science curriculum" // 🔥 NEW: Hover Text
         >
           <FaBook size={16} />
           <span>Curriculum</span>
         </button>
       </div>
 
-      {/* Chat History */}
       <div className="sidebar-middle">
         {pinnedSessions.length > 0 && (
           <>
@@ -248,12 +234,12 @@ export default function ChatSidebar({
           )}
         </div>
 
-        {/* ARCHIVED SECTION */}
         {archivedSessions.length > 0 && (
           <div className="archived-section-container">
             <button 
               className="archived-header"
               onClick={() => setShowArchived(!showArchived)}
+              title="Toggle archived conversations" // 🔥 NEW: Hover Text
             >
               <FaArchive size={14} />
               <span>Archived ({archivedSessions.length})</span>
@@ -262,7 +248,6 @@ export default function ChatSidebar({
                 className={`chevron-icon ${showArchived ? 'rotated' : ''}`}
               />
             </button>
-            
             {showArchived && (
               <div className="archived-list">
                 {archivedSessions.map(s => renderChatItem(s, true))}
@@ -272,72 +257,37 @@ export default function ChatSidebar({
         )}
       </div>
 
-      {/* Context Menu */}
       {contextMenu.visible && (
-        <div 
-          className="context-menu" 
-          style={{ 
-            top: contextMenu.y, 
-            left: contextMenu.x 
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            className="context-menu-item"
-            onClick={() => {
-              onPin(contextMenu.sessionId);
-              closeContextMenu();
-            }}
-          >
+        <div className="context-menu" style={{ top: contextMenu.y, left: contextMenu.x }} onClick={(e) => e.stopPropagation()}>
+          <button className="context-menu-item" onClick={() => { onPin(contextMenu.sessionId); closeContextMenu(); }}>
             <FaThumbtack size={14} />
             <span>{sessions.find(s => s.id === contextMenu.sessionId)?.pinned ? 'Unpin' : 'Pin'} chat</span>
           </button>
-          
-          <button
-            className="context-menu-item"
-            onClick={() => {
+          <button className="context-menu-item" onClick={() => {
               const session = sessions.find(s => s.id === contextMenu.sessionId);
               handleRename(contextMenu.sessionId, session?.title || '');
-            }}
-          >
+          }}>
             <FaPencilAlt size={14} />
             <span>Rename</span>
           </button>
-
-          <button
-            className="context-menu-item"
-            onClick={() => {
-              onArchive(contextMenu.sessionId);
-              closeContextMenu();
-            }}
-          >
+          <button className="context-menu-item" onClick={() => { onArchive(contextMenu.sessionId); closeContextMenu(); }}>
             <FaArchive size={14} />
             <span>{sessions.find(s => s.id === contextMenu.sessionId)?.archived ? 'Unarchive' : 'Archive'}</span>
           </button>
-
           <div className="context-menu-divider" />
-
-          <button
-            className="context-menu-item danger"
-            onClick={() => {
-              onDelete(contextMenu.sessionId);
-              closeContextMenu();
-            }}
-          >
+          <button className="context-menu-item danger" onClick={() => { onDelete(contextMenu.sessionId); closeContextMenu(); }}>
             <FaTrash size={14} />
             <span>Delete</span>
           </button>
         </div>
       )}
 
-      {/* Bottom Section - Settings & Profile */}
       <div className="sidebar-bottom">
-        {/* Settings Row */}
         <div className="sidebar-settings">
           <button 
             className="setting-btn" 
             onClick={onToggleTheme}
-            title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            title={darkMode ? "Switch to light mode" : "Switch to dark mode"} // 🔥 NEW: Hover Text
           >
             {darkMode ? <FaSun size={18} /> : <FaMoon size={18} />}
             <span>{darkMode ? "Light" : "Dark"} Mode</span>
@@ -346,15 +296,18 @@ export default function ChatSidebar({
           <button 
             className="setting-btn install-app-btn" 
             onClick={handleInstallApp}
-            title="Install CS Navigator App"
+            title="Download desktop application" // 🔥 NEW: Hover Text
           >
             <FaDownload size={18} />
             <span>Install App</span>
           </button>
         </div>
 
-        {/* 🔥 FIXED: Profile with fallback icon */}
-        <div className="user-profile" onClick={handleProfileClick}>
+        <div 
+          className="user-profile" 
+          onClick={handleProfileClick}
+          title="Open your profile and account settings" // 🔥 NEW: Hover Text
+        >
           <div className="user-avatar">
             {profileImageUrl ? (
               <>
@@ -363,20 +316,15 @@ export default function ChatSidebar({
                   alt="Profile" 
                   className="profile-picture"
                   onError={(e) => {
-                    console.error("❌ Failed to load profile image:", profileImageUrl);
                     e.target.style.display = 'none';
                     const fallback = e.target.parentElement.querySelector('.fallback-user-icon');
                     if (fallback) fallback.style.display = 'flex';
                   }}
                 />
-                <div className="fallback-user-icon" style={{ display: 'none' }}>
-                  <FaUser size={18} />
-                </div>
+                <div className="fallback-user-icon" style={{ display: 'none' }}><FaUser size={18} /></div>
               </>
             ) : (
-              <div className="fallback-user-icon">
-                <FaUser size={18} />
-              </div>
+              <div className="fallback-user-icon"><FaUser size={18} /></div>
             )}
           </div>
           <div className="user-info">
@@ -389,7 +337,7 @@ export default function ChatSidebar({
               e.stopPropagation();
               onLogout();
             }}
-            title="Log out"
+            title="Sign out of CS Navigator" // 🔥 NEW: Hover Text
           >
             <FaSignOutAlt size={16} />
           </button>

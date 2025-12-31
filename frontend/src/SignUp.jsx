@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "./components/auth/AuthLayout";
-import { getApiBase } from "./lib/apiBase";
 
 const EnvelopeIcon = (props) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -40,7 +39,11 @@ export default function Signup({ onRegistered }) {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const API_BASE = useMemo(() => getApiBase(), []);
+  // 🔥 SMART CONFIG: Browser-based detection (Bulletproof)
+  const hostname = window.location.hostname;
+  const API_BASE = (hostname === "localhost" || hostname === "127.0.0.1")
+    ? "http://127.0.0.1:8000"           // Local
+    : "http://18.214.136.155:5000";     // AWS Production
 
   const handleSubmit = async (e) => {
     e.preventDefault();

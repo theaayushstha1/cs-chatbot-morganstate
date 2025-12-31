@@ -5,10 +5,12 @@ import { FaUser } from "@react-icons/all-files/fa/FaUser";
 import "../index.css";
 import "./NavBar.css";
 
-const API_BASE = window.location.hostname === "localhost" 
-  ? "http://localhost:5000" 
-  : `${window.location.protocol}//${window.location.hostname}:5000`;
-
+// --- SMART API SWITCHING ---
+// 🔥 SMART CONFIG: Check the browser URL to pick the right backend
+const hostname = window.location.hostname;
+const API_BASE = (hostname === "localhost" || hostname === "127.0.0.1")
+  ? "http://127.0.0.1:8000"           // If on Laptop -> Use Local Backend (8000)
+  : "http://18.214.136.155:5000";     // If on AWS -> Use AWS Backend (5000)
 export default function NavBar({ role, onToggleSidebar }) {
   const [scrolled, setScrolled] = useState(false);
   const [profilePicture, setProfilePicture] = useState("/user_icon.jpg");
@@ -21,7 +23,7 @@ export default function NavBar({ role, onToggleSidebar }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Fetch user profile picture
+  // Fetch user profile picture - PRESERVED
   useEffect(() => {
     if (role) {
       fetchProfilePicture();
@@ -40,7 +42,7 @@ export default function NavBar({ role, onToggleSidebar }) {
       if (response.ok) {
         const data = await response.json();
         
-        // Construct full image URL
+        // Construct full image URL - PRESERVED Logic
         let pictureUrl = data.profilePicture || "/user_icon.jpg";
         if (pictureUrl && !pictureUrl.startsWith('http') && !pictureUrl.startsWith('/user_icon')) {
           pictureUrl = `${API_BASE}${pictureUrl}`;
@@ -65,6 +67,7 @@ export default function NavBar({ role, onToggleSidebar }) {
           className="navbar-left" 
           onClick={() => navigate("/")}
           style={{ cursor: 'pointer' }}
+          title="Return to Home" // 🔥 NEW: Hover Text
         >
           {isAuthed && (
             <button 
@@ -74,6 +77,7 @@ export default function NavBar({ role, onToggleSidebar }) {
                 e.stopPropagation();
                 onToggleSidebar();
               }}
+              title="Toggle Sidebar" // 🔥 NEW: Hover Text
               aria-label="Toggle sidebar"
             >
               <img 
@@ -88,7 +92,12 @@ export default function NavBar({ role, onToggleSidebar }) {
           )}
           
           {!isAuthed && (
-            <img src="/msu_logo.png" alt="Morgan State University" className="nav-logo" />
+            <img 
+              src="/msu_logo.png" 
+              alt="Morgan State University" 
+              className="nav-logo" 
+              title="Return to Home" // 🔥 NEW: Hover Text
+            />
           )}
           
           <div className="nav-title">
@@ -103,7 +112,7 @@ export default function NavBar({ role, onToggleSidebar }) {
             <button 
               className="profile-icon-btn" 
               onClick={() => navigate("/profile")}
-              title="Profile Settings"
+              title="Manage User Profile" // 🔥 UPDATED: Hover Text
               aria-label="Open profile settings"
             >
               <img 

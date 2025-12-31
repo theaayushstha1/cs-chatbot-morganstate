@@ -11,10 +11,10 @@ export default function Chat() {
   const API_BASE = useMemo(() => {
     // If we are on Local Dev (5173), ALWAYS talk to Localhost:5000
     if (window.location.port === "5173") {
-      return "http://localhost:5000";
+      return "http://localhost:8080";
     }
     // Default for Docker (3000)
-    return "http://localhost:5000";
+    return "http://localhost:8080";
   }, []);
 
   useEffect(() => {

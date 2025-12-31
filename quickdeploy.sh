@@ -3,7 +3,7 @@ set -euo pipefail
 
 EC2_HOST="18.214.136.155"
 EC2_USER="ec2-user"
-EC2_KEY="my-ec2-key.pem"
+EC2_KEY="cs-chatbot-key.pem"
 
 echo "🚀 Quick deployment (pull and restart)..."
 

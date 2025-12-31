@@ -43,3 +43,4 @@ frontend/build/
 # Keys (AWS / SSH / TLS)
 *.pem
 *.key
+app_bundle.tar.gz

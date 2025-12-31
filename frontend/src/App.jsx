@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
@@ -15,6 +14,15 @@ import Login  from "./Login";
 
 import "./index.css";
 
+// --- SMART API SWITCHING ---
+// 1. Check if we are running in "Development" mode (npm run dev)
+// 2. If yes, use Localhost:8000
+// 3. If no (Production), use the environment variable or default to the AWS configuration
+// 🔥 SMART CONFIG: Check the browser URL to pick the right backend
+const hostname = window.location.hostname;
+const API_BASE = (hostname === "localhost" || hostname === "127.0.0.1")
+  ? "http://127.0.0.1:8000"           // If on Laptop -> Use Local Backend (8000)
+  : "http://18.214.136.155:5000";     // If on AWS -> Use AWS Backend (5000)
 function parseJwt(token) {
   try {
     const b64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
@@ -70,8 +78,10 @@ function ChatLayout({
         darkMode={darkMode}
         onToggleTheme={onToggleTheme}
       />
+      {/* 🔥 UPDATE: Passing sessionId to Chatbox so it knows where to save */}
       <Chatbox
         key={activeId}
+        sessionId={activeId} 
         initialMessages={activeSession.messages}
         onSessionChange={onSessionChange}
       />
@@ -79,7 +89,6 @@ function ChatLayout({
   );
 }
 
-// Layout with sidebar for other pages
 function SidebarLayout({
   sessions,
   activeId,
@@ -153,8 +162,9 @@ export default function App() {
     document.body.classList.toggle('sidebar-collapsed', sidebarCollapsed);
   }, [sidebarCollapsed]);
 
-  // chat‐session state with pinned and archived support
+  // chat‐session state
   const [sessions, setSessions] = useState(() => {
+    // Try to load from local storage first for immediate UI
     const saved = JSON.parse(localStorage.getItem("chat_sessions") || "[]");
     if (!saved.length) {
       const id = Date.now().toString();
@@ -166,17 +176,79 @@ export default function App() {
       archived: s.archived || false
     }));
   });
+  
   const [activeId, setActiveId] = useState(sessions[0]?.id || "");
   
   useEffect(() => {
     localStorage.setItem("chat_sessions", JSON.stringify(sessions));
   }, [sessions]);
 
+  // 🔥 NEW: Fetch Chat History from RDS & GROUP BY SESSION ID
+  useEffect(() => {
+    async function loadHistory() {
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_BASE}/chat-history`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          
+          // Check if we have history data
+          if (data.history && data.history.length > 0) {
+              const grouped = {};
+              
+              // Group the flat list of messages by their session_id
+              data.history.forEach(item => {
+                  const sid = item.session_id || "default";
+                  if (!grouped[sid]) grouped[sid] = [];
+                  
+                  // Add User Message
+                  grouped[sid].push({ 
+                    text: item.user, 
+                    sender: "user", 
+                    time: new Date(item.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) 
+                  });
+                  
+                  // Add Bot Message
+                  grouped[sid].push({ 
+                    text: item.bot, 
+                    sender: "bot", 
+                    time: new Date(item.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) 
+                  });
+              });
+
+              // Convert the groups into your Session Objects
+              const dbSessions = Object.keys(grouped).map(sid => ({
+                  id: sid,
+                  // Use the first message as the title (capped at 30 chars)
+                  title: grouped[sid][0]?.text.slice(0, 30) || "Chat",
+                  messages: grouped[sid],
+                  pinned: false,
+                  archived: false
+              }));
+              
+              // Update state with database sessions
+              setSessions(dbSessions);
+              
+              // Set the active chat to the most recent one (last in the list)
+              if (dbSessions.length > 0) {
+                setActiveId(dbSessions[dbSessions.length - 1].id);
+              }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load persistent chat history:", err);
+      }
+    }
+    loadHistory();
+  }, [token]); // Run once when token changes (login)
+
   // FIXED: session handlers
   const handleNew = () => {
     const id = Date.now().toString();
     const newChat = { id, title: "New Chat", messages: [], pinned: false, archived: false };
-    setSessions((prev) => [newChat, ...prev]);
+    setSessions((prev) => [...prev, newChat]); // Append to end
     setActiveId(id);
     navigate("/");
   };
@@ -260,6 +332,8 @@ export default function App() {
   const handleLogout = () => {
     setToken(null);
     localStorage.removeItem("token");
+    // Clear UI but default to a new chat
+    setSessions([{ id: Date.now().toString(), title: "New Chat", messages: [], pinned: false, archived: false }]); 
     navigate("/login", { replace: true });
   };
 

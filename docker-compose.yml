@@ -1,33 +1,18 @@
+version: '3.8'
+
 services:
   backend:
     build: ./backend
     image: sakina593/chatbot-backend:latest
     platform: linux/amd64
+    container_name: ec2-user-backend-1
     ports:
       - "5000:5000"
+    env_file:
+      - .env
     volumes:
-      - ./backend/uploads:/app/backend/uploads  # ← FIXED PATH!
-    environment:
-      # --- DATABASE (Loads from .env) ---
-      - DATABASE_URL=${DATABASE_URL}
-      - DB_NAME=${DB_NAME}
-      
-      # --- AI KEYS (Loads from .env) ---
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - PINECONE_API_KEY=${PINECONE_API_KEY}
-      - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME}
-      - PINECONE_CLOUD=${PINECONE_CLOUD}
-      - PINECONE_ENV=${PINECONE_ENV}
-      - PINECONE_NAMESPACE=${PINECONE_NAMESPACE}
-      - PINECONE_HOST=${PINECONE_HOST}
-      
-      # --- SECURITY & URLS (Loads from .env) ---
-      - JWT_SECRET=${JWT_SECRET}
-      - ALGORITHM=${ALGORITHM}
-      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
-      - VITE_API_BASE_URL=${VITE_API_BASE_URL}
-      - VITE_API_URL=${VITE_API_URL}
-    restart: unless-stopped
+      - ./backend/uploads:/app/backend/uploads
+    restart: always
     networks:
       - app-network
 
@@ -36,14 +21,15 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        - VITE_API_BASE_URL=http://18.214.136.155:5000
     image: sakina593/chatbot-frontend:latest
     platform: linux/amd64
+    container_name: ec2-user-frontend-1
     ports:
       - "3000:80"
     depends_on:
       - backend
-    restart: unless-stopped
+    restart: always
     networks:
       - app-network
 

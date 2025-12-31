@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "./components/auth/AuthLayout";
-import { getApiBase } from "./lib/apiBase";
 
+// 🔥 Icons...
 const EnvelopeIcon = (props) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
     <path fill="currentColor" d="M496 128H16c-8.8 0-16 7.2-16 16v224c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V144c0-8.8-7.2-16-16-16zm-480 32l160 128 160-128v192H16V160zm480 0v192H336L496 160zM256 313.7l-192-153.6v-25.7l192 153.6 192-153.6v25.7l-192 153.6z"/>
@@ -40,10 +40,14 @@ export default function Login({ onLoggedIn }) {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const API_BASE = useMemo(() => getApiBase(), []);
+  // 🔥 SMART CONFIG: Browser-based detection (Bulletproof)
+  const hostname = window.location.hostname;
+  const API_BASE = (hostname === "localhost" || hostname === "127.0.0.1")
+    ? "http://127.0.0.1:8000"           // Local
+    : "http://18.214.136.155:5000";     // AWS Production
 
   useEffect(() => {
-    if (localStorage.getItem("token")) navigate("/chat", { replace: true });
+    if (localStorage.getItem("token")) navigate("/", { replace: true });
   }, [navigate]);
 
   const handleSubmit = async (e) => {
@@ -66,7 +70,7 @@ export default function Login({ onLoggedIn }) {
 
       localStorage.setItem("token", jwt);
       onLoggedIn?.(jwt);
-      navigate("/chat", { replace: true });
+      navigate("/", { replace: true });
     } catch (err) {
       setError(err?.message || "Login failed");
     } finally {
