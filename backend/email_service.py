@@ -114,3 +114,46 @@ def send_password_reset_email(to_email: str, token: str) -> bool:
     </div>
     """
     return _send_email(to_email, "Reset your CS Navigator password", html)
+
+
+def send_deadline_reminder_email(to_email: str, deadline, days_until: int) -> bool:
+    """Send a proactive academic deadline reminder email."""
+    deadline_label = deadline.deadline_date.strftime("%B %d, %Y")
+    category_label = "Registration" if deadline.category == "registration" else "Financial Aid"
+    urgency = "tomorrow" if days_until == 1 else f"in {days_until} days"
+    source_url = deadline.source_url or APP_URL
+    source_label = deadline.source_label or "official university information"
+
+    html = f"""
+    <div style="font-family: 'Google Sans', Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="color: #4285F4; font-size: 24px; margin: 0;">CS Navigator</h1>
+            <p style="color: #5f6368; font-size: 14px;">Proactive student reminder</p>
+        </div>
+        <div style="background: #f8f9fa; border-radius: 12px; padding: 24px; border: 1px solid #dadce0;">
+            <p style="color: #5f6368; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 8px;">
+                {category_label}
+            </p>
+            <h2 style="color: #202124; font-size: 20px; margin: 0 0 12px;">{deadline.title}</h2>
+            <p style="color: #202124; font-size: 15px; line-height: 1.6; margin: 0 0 12px;">
+                This deadline is coming up <strong>{urgency}</strong>.
+            </p>
+            <p style="color: #5f6368; font-size: 14px; line-height: 1.6; margin: 0 0 18px;">
+                Deadline date: <strong>{deadline_label}</strong>
+            </p>
+            <div style="text-align: center; margin: 24px 0;">
+                <a href="{source_url}" style="display: inline-block; padding: 12px 28px; background: #4285F4; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
+                    View official details
+                </a>
+            </div>
+            <p style="color: #9aa0a6; font-size: 12px; text-align: center; margin: 0;">
+                Source: {source_label}
+            </p>
+        </div>
+        <p style="color: #9aa0a6; font-size: 11px; text-align: center; margin-top: 16px;">
+            Dates can change, so please confirm important deadlines on the official university page.
+        </p>
+    </div>
+    """
+    subject = f"{category_label} reminder: {deadline.title} ({deadline_label})"
+    return _send_email(to_email, subject, html)

@@ -249,3 +249,51 @@ class KBSuggestion(Base):
     reviewed_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+
+class UserNotificationPreference(Base):
+    """Per-user preferences for proactive reminder emails."""
+    __tablename__ = "user_notification_preferences"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False, index=True)
+    email_enabled = Column(Boolean, nullable=False, default=True)
+    registration_enabled = Column(Boolean, nullable=False, default=True)
+    financial_aid_enabled = Column(Boolean, nullable=False, default=True)
+    remind_7_days = Column(Boolean, nullable=False, default=True)
+    remind_1_day = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User", backref="notification_preferences")
+
+
+class AcademicDeadline(Base):
+    """Normalized academic deadlines used by the reminder job."""
+    __tablename__ = "academic_deadlines"
+
+    id = Column(Integer, primary_key=True, index=True)
+    category = Column(String(50), nullable=False, index=True)  # registration, financial_aid
+    title = Column(String(255), nullable=False)
+    deadline_date = Column(DateTime, nullable=False, index=True)
+    audience = Column(String(255), nullable=True)
+    source_url = Column(String(1000), nullable=True)
+    source_label = Column(String(255), nullable=True)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class NotificationDelivery(Base):
+    """Tracks reminder deliveries so scheduled runs stay idempotent."""
+    __tablename__ = "notification_deliveries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    deadline_id = Column(Integer, ForeignKey("academic_deadlines.id"), nullable=False, index=True)
+    channel = Column(String(20), nullable=False, default="email")
+    reminder_offset_days = Column(Integer, nullable=False)
+    sent_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    user = relationship("User", backref="notification_deliveries")
+    deadline = relationship("AcademicDeadline", backref="deliveries")

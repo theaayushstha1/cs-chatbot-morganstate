@@ -144,12 +144,13 @@ except ImportError:
 
 # Local Imports (Auth & DB) - These must run AFTER load_dotenv
 from db import SessionLocal, engine, Base
-from models import User, DegreeWorksData, BannerStudentData, SupportTicket, FailedQuery, KBSuggestion, CanvasStudentData, UserMemory, ChatHistory, Feedback
+from models import User, DegreeWorksData, BannerStudentData, SupportTicket, FailedQuery, KBSuggestion, CanvasStudentData, UserMemory, ChatHistory, Feedback, UserNotificationPreference, AcademicDeadline, NotificationDelivery
 from security import hash_password, verify_password, create_access_token
 from jose import JWTError, jwt
 
 # Banner SSB integration (CAS auth + REST API sync)
 from banner_scraper import sync_banner
+from services.notifications import get_or_create_preferences, get_upcoming_deadlines_for_user, seed_all_deadlines, send_due_notifications
 
 # ==============================================================================
 # 2. CONFIGURATION & CONSTANTS
@@ -200,6 +201,7 @@ def init_db():
     try:
         Base.metadata.create_all(bind=engine)
         print("[OK] Database tables checked/created.")
+        print("[OK] Notification tables checked/created: user_notification_preferences, academic_deadlines, notification_deliveries")
     except Exception as e:
         print(f"[WARN] DB Connection Error: {e}")
 
@@ -639,6 +641,13 @@ class ProfileUpdateRequest(BaseModel):
     name: Optional[str] = None
     studentId: Optional[str] = None
     major: Optional[str] = None
+
+class NotificationPreferencesRequest(BaseModel):
+    email_enabled: bool = True
+    registration_enabled: bool = True
+    financial_aid_enabled: bool = True
+    remind_7_days: bool = True
+    remind_1_day: bool = True
 
 class PasswordChangeRequest(BaseModel):
     currentPassword: str
@@ -1107,6 +1116,46 @@ async def update_profile(req: ProfileUpdateRequest, user: dict = Depends(get_cur
     
     db.commit()
     return {"message": "Profile updated"}
+
+
+@app.get("/api/notifications/preferences")
+async def get_notification_preferences(user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    prefs = get_or_create_preferences(db, user["user_id"])
+    return {
+        "email_enabled": prefs.email_enabled,
+        "registration_enabled": prefs.registration_enabled,
+        "financial_aid_enabled": prefs.financial_aid_enabled,
+        "remind_7_days": prefs.remind_7_days,
+        "remind_1_day": prefs.remind_1_day,
+    }
+
+
+@app.put("/api/notifications/preferences")
+async def update_notification_preferences(
+    req: NotificationPreferencesRequest,
+    user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    prefs = get_or_create_preferences(db, user["user_id"])
+    prefs.email_enabled = req.email_enabled
+    prefs.registration_enabled = req.registration_enabled
+    prefs.financial_aid_enabled = req.financial_aid_enabled
+    prefs.remind_7_days = req.remind_7_days
+    prefs.remind_1_day = req.remind_1_day
+    db.commit()
+    return {"message": "Notification preferences updated"}
+
+
+@app.get("/api/notifications/upcoming")
+async def get_upcoming_notifications(
+    days_ahead: int = 30,
+    user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    seed_all_deadlines(db)
+    days_ahead = max(1, min(days_ahead, 90))
+    upcoming = get_upcoming_deadlines_for_user(db, user["user_id"], days_ahead=days_ahead)
+    return {"upcoming": upcoming}
 
 @app.post("/api/change-password")
 async def change_password(req: PasswordChangeRequest, user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -4113,6 +4162,26 @@ async def internal_memory_consolidate(request: Request):
     from services.memory_service import consolidate_user_memories
     result = await asyncio.to_thread(consolidate_user_memories, 24)
     return result
+
+
+@app.post("/api/internal/notifications/run")
+async def internal_notifications_run(request: Request):
+    """Triggered by Cloud Scheduler daily. Sends proactive reminder emails."""
+    secret = request.headers.get("X-Research-Secret", "")
+    expected = os.getenv("RESEARCH_SECRET", "")
+    if not expected or secret != expected:
+        raise HTTPException(status_code=403, detail="Invalid research secret")
+
+    db = SessionLocal()
+    try:
+        seeded = seed_all_deadlines(db)
+        result = send_due_notifications(db)
+        return {
+            **result,
+            "seeded": seeded,
+        }
+    finally:
+        db.close()
 
 
 @app.post("/api/internal/canvas/sync")

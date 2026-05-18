@@ -29,6 +29,15 @@ export default function ProfilePage({ userEmail, onLogout }) {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pendingResearch, setPendingResearch] = useState(0);
+  const [notificationSaving, setNotificationSaving] = useState(false);
+  const [notificationPrefs, setNotificationPrefs] = useState({
+    email_enabled: true,
+    registration_enabled: true,
+    financial_aid_enabled: true,
+    remind_7_days: true,
+    remind_1_day: true,
+  });
+  const [upcomingNotifications, setUpcomingNotifications] = useState([]);
 
   // Canvas State
   const [showCanvasModal, setShowCanvasModal] = useState(false);
@@ -76,6 +85,8 @@ export default function ProfilePage({ userEmail, onLogout }) {
   useEffect(() => {
     fetchProfile();
     fetchDegreeWorksData();
+    fetchNotificationPreferences();
+    fetchUpcomingNotifications();
     // Fetch Canvas connection status
     const token = localStorage.getItem("token");
     if (token) {
@@ -145,6 +156,67 @@ export default function ProfilePage({ userEmail, onLogout }) {
       }
     } catch (error) {
       console.error("Error fetching DegreeWorks data:", error);
+    }
+  };
+
+  const fetchNotificationPreferences = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const response = await fetch(`${API_BASE}/api/notifications/preferences`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setNotificationPrefs(data);
+      }
+    } catch (error) {
+      console.error("Error fetching notification preferences:", error);
+    }
+  };
+
+  const fetchUpcomingNotifications = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const response = await fetch(`${API_BASE}/api/notifications/upcoming`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUpcomingNotifications(data.upcoming || []);
+      }
+    } catch (error) {
+      console.error("Error fetching upcoming notifications:", error);
+    }
+  };
+
+  const handleSaveNotificationPreferences = async () => {
+    setNotificationSaving(true);
+    setMessage({ type: "", text: "" });
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE}/api/notifications/preferences`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(notificationPrefs)
+      });
+
+      if (response.ok) {
+        setMessage({ type: "success", text: "Notification preferences updated!" });
+        fetchUpcomingNotifications();
+      } else {
+        const error = await response.json();
+        setMessage({ type: "error", text: error.detail || "Failed to update notification preferences" });
+      }
+    } catch (error) {
+      setMessage({ type: "error", text: "Network error. Please try again." });
+    } finally {
+      setNotificationSaving(false);
     }
   };
 
@@ -728,6 +800,107 @@ export default function ProfilePage({ userEmail, onLogout }) {
               </div>
             </form>
           )}
+        </div>
+
+        <div className="profile-section">
+          <div className="section-header">
+            <h3><FaClock /> Proactive Notifications</h3>
+          </div>
+
+          <div className="notification-settings">
+            <div className="notification-row">
+              <div>
+                <div className="notification-title">Email reminders</div>
+                <div className="notification-description">Receive deadline reminders at your Morgan State email.</div>
+              </div>
+              <input
+                type="checkbox"
+                checked={notificationPrefs.email_enabled}
+                onChange={(e) => setNotificationPrefs((prev) => ({ ...prev, email_enabled: e.target.checked }))}
+              />
+            </div>
+
+            <div className={`notification-row ${!notificationPrefs.email_enabled ? "notification-row-disabled" : ""}`}>
+              <div>
+                <div className="notification-title">Registration deadlines</div>
+                <div className="notification-description">Alerts for upcoming registration windows that match your class standing.</div>
+              </div>
+              <input
+                type="checkbox"
+                checked={notificationPrefs.registration_enabled}
+                disabled={!notificationPrefs.email_enabled}
+                onChange={(e) => setNotificationPrefs((prev) => ({ ...prev, registration_enabled: e.target.checked }))}
+              />
+            </div>
+
+            <div className={`notification-row ${!notificationPrefs.email_enabled ? "notification-row-disabled" : ""}`}>
+              <div>
+                <div className="notification-title">Financial aid deadlines</div>
+                <div className="notification-description">Alerts for FAFSA availability and priority deadlines.</div>
+              </div>
+              <input
+                type="checkbox"
+                checked={notificationPrefs.financial_aid_enabled}
+                disabled={!notificationPrefs.email_enabled}
+                onChange={(e) => setNotificationPrefs((prev) => ({ ...prev, financial_aid_enabled: e.target.checked }))}
+              />
+            </div>
+
+            <div className="notification-timing">
+              <div className="notification-title">Reminder timing</div>
+              <label className="notification-check">
+                <input
+                  type="checkbox"
+                  checked={notificationPrefs.remind_7_days}
+                  disabled={!notificationPrefs.email_enabled}
+                  onChange={(e) => setNotificationPrefs((prev) => ({ ...prev, remind_7_days: e.target.checked }))}
+                />
+                7 days before
+              </label>
+              <label className="notification-check">
+                <input
+                  type="checkbox"
+                  checked={notificationPrefs.remind_1_day}
+                  disabled={!notificationPrefs.email_enabled}
+                  onChange={(e) => setNotificationPrefs((prev) => ({ ...prev, remind_1_day: e.target.checked }))}
+                />
+                1 day before
+              </label>
+            </div>
+
+            <div className="notification-actions">
+              <button className="save-btn" type="button" onClick={handleSaveNotificationPreferences} disabled={notificationSaving}>
+                {notificationSaving ? "Saving..." : "Save Notification Settings"}
+              </button>
+            </div>
+
+            <div className="upcoming-notifications">
+              <div className="notification-title">Upcoming reminders</div>
+              {upcomingNotifications.length > 0 ? (
+                <div className="upcoming-list">
+                  {upcomingNotifications.slice(0, 6).map((item) => (
+                    <div className="upcoming-item" key={item.id}>
+                      <div>
+                        <div className="upcoming-title">{item.title}</div>
+                        <div className="upcoming-meta">
+                          {item.category === "registration" ? "Registration" : "Financial aid"} · {new Date(item.deadline_date).toLocaleDateString()} · {item.days_until} day{item.days_until === 1 ? "" : "s"} away
+                        </div>
+                      </div>
+                      {item.source_url && (
+                        <a href={item.source_url} target="_blank" rel="noopener noreferrer" className="upcoming-link">
+                          <FaExternalLinkAlt />
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="notification-description" style={{ marginBottom: 0 }}>
+                  No matching reminders in the next 30 days yet.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Morgan Connection */}

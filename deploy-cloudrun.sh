@@ -188,6 +188,7 @@ deploy_backend() {
         OPENAI_API_KEY=$(grep "^OPENAI_API_KEY=" "${SCRIPT_DIR}/.env" | cut -d'=' -f2-)
         ADMIN_EMAIL=$(grep "^ADMIN_EMAIL=" "${SCRIPT_DIR}/.env" | cut -d'=' -f2-)
         ADMIN_PASSWORD=$(grep "^ADMIN_PASSWORD=" "${SCRIPT_DIR}/.env" | cut -d'=' -f2-)
+        RESEARCH_SECRET=$(grep "^RESEARCH_SECRET=" "${SCRIPT_DIR}/.env" | cut -d'=' -f2-)
     else
         error ".env file not found"
     fi
@@ -215,7 +216,8 @@ DATABASE_URL=DATABASE_URL:latest,\
 JWT_SECRET=JWT_SECRET:latest,\
 OPENAI_API_KEY=OPENAI_API_KEY:latest,\
 ADMIN_EMAIL=ADMIN_EMAIL:latest,\
-ADMIN_PASSWORD=ADMIN_PASSWORD:latest"
+ADMIN_PASSWORD=ADMIN_PASSWORD:latest,\
+RESEARCH_SECRET=RESEARCH_SECRET:latest"
 
     BACKEND_URL=$(gcloud run services describe ${BACKEND_SERVICE} \
         --region=${REGION} \
@@ -260,7 +262,7 @@ setup_secrets() {
     fi
 
     # List of secrets to create
-    SECRETS=("DATABASE_URL" "JWT_SECRET" "OPENAI_API_KEY" "ADMIN_EMAIL" "ADMIN_PASSWORD")
+    SECRETS=("DATABASE_URL" "JWT_SECRET" "OPENAI_API_KEY" "ADMIN_EMAIL" "ADMIN_PASSWORD" "RESEARCH_SECRET")
 
     for SECRET_NAME in "${SECRETS[@]}"; do
         SECRET_VALUE=$(grep "^${SECRET_NAME}=" "${SCRIPT_DIR}/.env" | cut -d'=' -f2-)
