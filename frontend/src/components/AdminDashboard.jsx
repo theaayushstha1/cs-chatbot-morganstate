@@ -77,6 +77,7 @@ export default function AdminDashboard() {
   const [userStats, setUserStats] = useState({ total: 0, students: 0, admins: 0, new_this_week: 0, morgan_connected: 0 });
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("all");
+  const [userStatusFilter, setUserStatusFilter] = useState("all");
   const [usersLoading, setUsersLoading] = useState(false);
 
   // System Health State
@@ -84,16 +85,16 @@ export default function AdminDashboard() {
   const [healthLoading, setHealthLoading] = useState(false);
 
   // Knowledge Base State
-  const [kbFiles, setKbFiles] = useState([]);
-  const [selectedKbFile, setSelectedKbFile] = useState(null);
+  const [_kbFiles, setKbFiles] = useState([]);
+  const [selectedKbFile, _setSelectedKbFile] = useState(null);
   const [kbContent, setKbContent] = useState("");
-  const [kbLoading, setKbLoading] = useState(false);
-  const [ingesting, setIngesting] = useState(false);
+  const [_kbLoading, setKbLoading] = useState(false);
+  const [_ingesting, setIngesting] = useState(false);
   const [kbSearch, setKbSearch] = useState("");
-  const [kbSearchResults, setKbSearchResults] = useState([]);
-  const [isListening, setIsListening] = useState(false);
-  const [voiceSupported, setVoiceSupported] = useState(false);
-  const [highlightTerm, setHighlightTerm] = useState("");
+  const [_kbSearchResults, setKbSearchResults] = useState([]);
+  const [_isListening, setIsListening] = useState(false);
+  const [_voiceSupported, setVoiceSupported] = useState(false);
+  const [_highlightTerm, setHighlightTerm] = useState("");
 
   // Format doc ID into a clean readable title
   // "academic_11_course_prerequisites" -> "Course Prerequisites"
@@ -134,14 +135,14 @@ export default function AdminDashboard() {
   const [showFindReplace, setShowFindReplace] = useState(false);
   const [matchCount, setMatchCount] = useState(0);
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
-  const [matchedFiles, setMatchedFiles] = useState([]); // Files with matches
-  const [showMatchedFiles, setShowMatchedFiles] = useState(false);
+  const [_matchedFiles, setMatchedFiles] = useState([]); // Files with matches
+  const [_showMatchedFiles, setShowMatchedFiles] = useState(false);
   const textareaRef = useRef(null);
   const highlightRef = useRef(null);
 
   // Analytics State
   const [analytics, setAnalytics] = useState(null);
-  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [_analyticsLoading, setAnalyticsLoading] = useState(false);
 
   // Cloud KB State
   const [cloudKbDocs, setCloudKbDocs] = useState([]);
@@ -169,11 +170,11 @@ export default function AdminDashboard() {
   const [docViewerMode, setDocViewerMode] = useState("docs"); // "docs" or "roadmap"
 
   // Feedback State
-  const [feedbackData, setFeedbackData] = useState([]);
+  const [_feedbackData, setFeedbackData] = useState([]);
   const [feedbackStats, setFeedbackStats] = useState({ total: 0, helpful: 0, not_helpful: 0, reports: 0, satisfaction_rate: 0 });
-  const [feedbackFilter, setFeedbackFilter] = useState("all");
-  const [feedbackLoading, setFeedbackLoading] = useState(false);
-  const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [_feedbackFilter, _setFeedbackFilter] = useState("all");
+  const [_feedbackLoading, setFeedbackLoading] = useState(false);
+  const [_selectedFeedback, _setSelectedFeedback] = useState(null);
 
   // ===========================================
   // DATA LOADING FUNCTIONS
@@ -254,7 +255,7 @@ export default function AdminDashboard() {
     } catch (err) { console.error("Failed to load KB files:", err); }
   };
 
-  const loadKbFileContent = async (filename) => {
+  const _loadKbFileContent = async (filename) => {
     setKbLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/admin/knowledge-base/${filename}`, { headers: { Authorization: `Bearer ${token}` } });
@@ -357,7 +358,7 @@ export default function AdminDashboard() {
       } else {
         setCloudKbContent("Failed to load content.");
       }
-    } catch (err) { setCloudKbContent("Error loading content."); }
+    } catch { setCloudKbContent("Error loading content."); }
   };
 
   const searchCloudKb = async (query) => {
@@ -397,7 +398,7 @@ export default function AdminDashboard() {
     if (!files || files.length === 0) return;
     setCloudKbUploading(true);
     let successCount = 0;
-    let failCount = 0;
+    let _failCount = 0;
     for (const file of files) {
       const formData = new FormData();
       formData.append("file", file);
@@ -410,12 +411,12 @@ export default function AdminDashboard() {
         if (res.ok) {
           successCount++;
         } else {
-          failCount++;
+          _failCount++;
           const data = await res.json();
           toast.error(`Failed: ${file.name}`, { description: data.detail || "Unknown error" });
         }
-      } catch (err) {
-        failCount++;
+      } catch {
+        _failCount++;
         toast.error(`Upload error: ${file.name}`);
       }
     }
@@ -515,7 +516,7 @@ export default function AdminDashboard() {
     } catch (err) { console.error("Failed to load feedback stats:", err); }
   };
 
-  const loadAllFeedback = async (filterType = null) => {
+  const _loadAllFeedback = async (filterType = null) => {
     setFeedbackLoading(true);
     try {
       let url = `${API_BASE}/api/feedback/all`;
@@ -565,7 +566,7 @@ export default function AdminDashboard() {
   };
 
   // Voice Search Functions
-  const startVoiceSearch = () => {
+  const _startVoiceSearch = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       toast.error("Voice search is not supported in your browser. Please use Chrome or Edge.");
@@ -647,7 +648,7 @@ export default function AdminDashboard() {
     return words.slice(0, 3).join(' ');
   };
 
-  const stopVoiceSearch = () => {
+  const _stopVoiceSearch = () => {
     setIsListening(false);
   };
 
@@ -833,7 +834,7 @@ export default function AdminDashboard() {
     } catch (err) { setMessage(`Error: ${err.message}`); }
   };
 
-  const handleClearIndex = async () => {
+  const _handleClearIndex = async () => {
     if (!window.confirm("Clear all vectors from index? This cannot be undone.")) return;
     setMessage("Clearing index...");
     try {
@@ -861,7 +862,38 @@ export default function AdminDashboard() {
     } catch (err) { console.error(err); }
   };
 
-  const handleSaveKbFile = async () => {
+  const handleUpdateUserStatus = async (targetUser) => {
+    const nextDisabled = !targetUser.is_disabled;
+    const actionLabel = nextDisabled ? "disable" : "enable";
+    const reason = nextDisabled
+      ? window.prompt(`Reason for disabling ${targetUser.email}:`, "Extra or unauthorized admin account")
+      : "";
+    if (nextDisabled && reason === null) return;
+    if (!window.confirm(`Are you sure you want to ${actionLabel} ${targetUser.email}?`)) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/users/${targetUser.id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ disabled: nextDisabled, reason }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        loadUsers();
+        loadUserStats();
+      } else {
+        window.alert(data.detail || `Failed to ${actionLabel} user`);
+      }
+    } catch (err) {
+      console.error(err);
+      window.alert(`Failed to ${actionLabel} user`);
+    }
+  };
+
+  const _handleSaveKbFile = async () => {
     if (!selectedKbFile) return;
     setKbLoading(true);
     try {
@@ -883,7 +915,7 @@ export default function AdminDashboard() {
     } finally { setKbLoading(false); }
   };
 
-  const handleTriggerIngestion = async () => {
+  const _handleTriggerIngestion = async () => {
     setIngesting(true);
     try {
       const res = await fetch(`${API_BASE}/api/admin/knowledge-base/ingest`, {
@@ -1081,6 +1113,28 @@ export default function AdminDashboard() {
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
+  const displayedUsers = users.filter((u) => {
+    if (userStatusFilter === "active") return !u.is_disabled;
+    if (userStatusFilter === "disabled") return Boolean(u.is_disabled);
+    return true;
+  });
+
+  const getServiceMeta = (service, status) => {
+    if (service === "redis" && !status?.connected) {
+      return { className: "warning", label: "Not configured locally", message: "L1 in-memory cache still works." };
+    }
+    if (service === "semantic" && !status?.available) {
+      return { className: "warning", label: "Not configured locally", message: "Requires Vertex AI embedding credentials." };
+    }
+    if (service === "adk" && status?.status === "not_configured") {
+      return { className: "warning", label: "Not configured locally", message: status?.message || "Set the ADK URL for cloud AI." };
+    }
+    if (service === "adk" && status?.status !== "connected") {
+      return { className: "warning", label: status?.status || "unknown", message: status?.message || "Check the ADK service when testing cloud AI." };
+    }
+    return { className: "healthy", label: service === "redis" || service === "semantic" ? "Connected" : status?.status || "connected", message: status?.message || "" };
+  };
+
   // ===========================================
   // RENDER
   // ===========================================
@@ -1179,18 +1233,20 @@ export default function AdminDashboard() {
                       <span className="health-status">{overviewData.health?.database?.status || "unknown"}</span>
                     </div>
                   </div>
-                  <div className={`health-card ${overviewData.health?.vertex_agent?.status === "connected" ? "healthy" : "warning"}`}>
+                  <div className={`health-card ${getServiceMeta("adk", overviewData.health?.vertex_agent).className}`}>
                     <FaRobot className="health-icon" />
                     <div className="health-info">
                       <h4>AI Agent</h4>
-                      <span className="health-status">{overviewData.health?.vertex_agent?.status || "unknown"}</span>
+                      <span className="health-status">{getServiceMeta("adk", overviewData.health?.vertex_agent).label}</span>
+                      <p>{getServiceMeta("adk", overviewData.health?.vertex_agent).message}</p>
                     </div>
                   </div>
-                  <div className={`health-card ${overviewData.cache?.cache_stats?.l2_redis?.connected ? "healthy" : "warning"}`}>
+                  <div className={`health-card ${getServiceMeta("redis", overviewData.cache?.cache_stats?.l2_redis).className}`}>
                     <FaServer className="health-icon" />
                     <div className="health-info">
                       <h4>Redis Cache</h4>
-                      <span className="health-status">{overviewData.cache?.cache_stats?.l2_redis?.connected ? "connected" : "offline"}</span>
+                      <span className="health-status">{getServiceMeta("redis", overviewData.cache?.cache_stats?.l2_redis).label}</span>
+                      <p>{getServiceMeta("redis", overviewData.cache?.cache_stats?.l2_redis).message}</p>
                     </div>
                   </div>
                 </div>
@@ -1307,6 +1363,21 @@ export default function AdminDashboard() {
                 </button>
               ))}
             </div>
+            <div className="filter-buttons">
+              {[
+                ["all", "All Status"],
+                ["active", "Active"],
+                ["disabled", "Disabled"],
+              ].map(([status, label]) => (
+                <button
+                  key={status}
+                  className={`filter-btn ${userStatusFilter === status ? "active" : ""}`}
+                  onClick={() => setUserStatusFilter(status)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="table-container">
@@ -1319,6 +1390,7 @@ export default function AdminDashboard() {
                     <th>Email</th>
                     <th>Name</th>
                     <th>Role</th>
+                    <th>Status</th>
                     <th>Major</th>
                     <th>Morgan</th>
                     <th>Joined</th>
@@ -1326,23 +1398,41 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((u) => (
+                  {displayedUsers.map((u) => (
                     <tr key={u.id}>
                       <td>{u.email}</td>
                       <td>{u.name || "-"}</td>
                       <td><span className={`role-badge ${u.role}`}>{u.role}</span></td>
+                      <td>
+                        <span
+                          className={`role-badge ${u.is_disabled ? "disabled" : "student"}`}
+                          title={u.disabled_reason || ""}
+                        >
+                          {u.is_disabled ? "disabled" : "active"}
+                        </span>
+                      </td>
                       <td>{u.major || "-"}</td>
                       <td>{u.morgan_connected ? <FaLink size={14} className="connected" /> : "-"}</td>
                       <td>{formatDate(u.created_at)}</td>
                       <td>
-                        <select
-                          value={u.role}
-                          onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
-                          className="role-select"
-                        >
-                          <option value="student">Student</option>
-                          <option value="admin">Admin</option>
-                        </select>
+                        <div className="user-actions">
+                          <select
+                            value={u.role}
+                            onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
+                            className="role-select"
+                            disabled={u.is_disabled}
+                          >
+                            <option value="student">Student</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                          <button
+                            type="button"
+                            className={`user-status-btn ${u.is_disabled ? "enable" : "disable"}`}
+                            onClick={() => handleUpdateUserStatus(u)}
+                          >
+                            {u.is_disabled ? "Enable" : "Disable"}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -2002,12 +2092,12 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <div className={`health-card ${healthStatus.vertex_agent?.status === "connected" ? "healthy" : healthStatus.vertex_agent?.status === "not_configured" ? "warning" : "error"}`}>
+                <div className={`health-card ${getServiceMeta("adk", healthStatus.vertex_agent).className}`}>
                   <FaRobot className="health-icon" />
                   <div className="health-info">
                     <h4>Vertex AI Agent (ADK)</h4>
-                    <span className="health-status">{healthStatus.vertex_agent?.status}</span>
-                    <p>{healthStatus.vertex_agent?.message}</p>
+                    <span className="health-status">{getServiceMeta("adk", healthStatus.vertex_agent).label}</span>
+                    <p>{getServiceMeta("adk", healthStatus.vertex_agent).message}</p>
                   </div>
                 </div>
 
@@ -2017,6 +2107,26 @@ export default function AdminDashboard() {
                     <h4>OpenAI TTS</h4>
                     <span className="health-status">{healthStatus.openai_tts?.status}</span>
                     <p>{healthStatus.openai_tts?.message}</p>
+                  </div>
+                </div>
+
+                <div className={`health-card ${healthStatus.email_verification?.status === "configured" ? "healthy" : "warning"}`}>
+                  <FaLink className="health-icon" />
+                  <div className="health-info">
+                    <h4>Email Verification</h4>
+                    <span className="health-status">
+                      {healthStatus.email_verification?.status === "configured" ? "configured" : "Not configured locally"}
+                    </span>
+                    <p>{healthStatus.email_verification?.message}</p>
+                  </div>
+                </div>
+
+                <div className={`health-card ${healthStatus.auth_urls?.status === "configured" ? "healthy" : "warning"}`}>
+                  <FaLink className="health-icon" />
+                  <div className="health-info">
+                    <h4>Auth Links</h4>
+                    <span className="health-status">{healthStatus.auth_urls?.status}</span>
+                    <p>{healthStatus.auth_urls?.message}</p>
                   </div>
                 </div>
 
@@ -2082,8 +2192,8 @@ export default function AdminDashboard() {
                       <h4>L2 (Redis)</h4>
                       <div className="cache-stat-row">
                         <span>Connected</span>
-                        <strong style={{ color: cacheStats.cache_stats.l2_redis?.connected ? "#22C55E" : "#EF4444" }}>
-                          {cacheStats.cache_stats.l2_redis?.connected ? "Yes" : "No"}
+                        <strong style={{ color: cacheStats.cache_stats.l2_redis?.connected ? "#22C55E" : "#F59E0B" }}>
+                          {getServiceMeta("redis", cacheStats.cache_stats.l2_redis).label}
                         </strong>
                       </div>
                       <div className="cache-stat-row">
@@ -2099,8 +2209,8 @@ export default function AdminDashboard() {
                       <h4>Semantic</h4>
                       <div className="cache-stat-row">
                         <span>Available</span>
-                        <strong style={{ color: cacheStats.cache_stats.semantic?.available ? "#22C55E" : "#EF4444" }}>
-                          {cacheStats.cache_stats.semantic?.available ? "Yes" : "No"}
+                        <strong style={{ color: cacheStats.cache_stats.semantic?.available ? "#22C55E" : "#F59E0B" }}>
+                          {getServiceMeta("semantic", cacheStats.cache_stats.semantic).label}
                         </strong>
                       </div>
                       <div className="cache-stat-row">

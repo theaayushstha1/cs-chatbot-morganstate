@@ -1,0 +1,100 @@
+{
+  "resources": [
+    {
+      "id": "yt-sliding-window-neetcode",
+      "type": "youtube_video",
+      "title": "Sliding Window Technique - Algorithm Patterns",
+      "url": "https://www.youtube.com/watch?v=MK-NZ4hN7rs",
+      "channel": "NeetCode",
+      "duration": "13 min",
+      "level": "beginner",
+      "topics": ["sliding window", "strings", "arrays", "longest unique substring"],
+      "languages": ["python", "javascript"],
+      "why": "Good fit for window-based string and array problems, with a clear pattern students can reuse."
+    },
+    {
+      "id": "yt-two-pointers-neetcode",
+      "type": "youtube_video",
+      "title": "Two Pointers Technique",
+      "url": "https://www.youtube.com/watch?v=On03HWe2tZM",
+      "channel": "NeetCode",
+      "duration": "10 min",
+      "level": "beginner",
+      "topics": ["two pointers", "arrays", "strings", "palindrome"],
+      "languages": ["python", "javascript"],
+      "why": "Helpful for palindrome checks, sorted array problems, and pointer movement strategy."
+    },
+    {
+      "id": "yt-hashmaps-freecodecamp",
+      "type": "youtube_video",
+      "title": "Hash Tables and Hash Maps Explained",
+      "url": "https://www.youtube.com/watch?v=shs0KM3wKv8",
+      "channel": "freeCodeCamp.org",
+      "duration": "8 min",
+      "level": "beginner",
+      "topics": ["hash maps", "sets", "frequency counting", "two sum"],
+      "languages": ["python", "javascript"],
+      "why": "Short conceptual overview for frequency counting, duplicate checks, and lookup-table problems."
+    },
+    {
+      "id": "yt-recursion-cs50",
+      "type": "youtube_video",
+      "title": "Recursion - CS50 Shorts",
+      "url": "https://www.youtube.com/watch?v=mz6tAJMVmfM",
+      "channel": "CS50",
+      "duration": "9 min",
+      "level": "beginner",
+      "topics": ["recursion", "nested lists", "trees", "depth"],
+      "languages": ["python", "javascript"],
+      "why": "A focused introduction to recursive thinking before nested-list or tree problems."
+    },
+    {
+      "id": "yt-dynamic-programming-freecodecamp",
+      "type": "youtube_video",
+      "title": "Dynamic Programming - Learn to Solve Algorithmic Problems",
+      "url": "https://www.youtube.com/watch?v=oBt53YbR9Kk",
+      "channel": "freeCodeCamp.org",
+      "duration": "5 hr",
+      "level": "intermediate",
+      "topics": ["dynamic programming", "memoization", "tabulation", "edit distance", "decode ways"],
+      "languages": ["javascript"],
+      "why": "Deep JavaScript-friendly walkthrough for students ready to study DP patterns beyond one example."
+    },
+    {
+      "id": "yt-graphs-bfs-dfs-abdul-bari",
+      "type": "youtube_video",
+      "title": "Breadth First Search and Depth First Search",
+      "url": "https://www.youtube.com/watch?v=pcKY4hjDrxk",
+      "channel": "Abdul Bari",
+      "duration": "22 min",
+      "level": "intermediate",
+      "topics": ["graphs", "bfs", "dfs", "islands", "shortest path"],
+      "languages": ["python", "javascript"],
+      "why": "Strong conceptual explanation for graph traversal problems like islands and shortest paths."
+    },
+    {
+      "id": "yt-binary-search-neetcode",
+      "type": "youtube_video",
+      "title": "Binary Search Algorithm",
+      "url": "https://www.youtube.com/watch?v=s4DPM8ct1pI",
+      "channel": "NeetCode",
+      "duration": "12 min",
+      "level": "beginner",
+      "topics": ["binary search", "search", "insert position"],
+      "languages": ["python", "javascript"],
+      "why": "Clear walkthrough of the boundary logic used in insert-position style problems."
+    },
+    {
+      "id": "yt-stacks-neetcode",
+      "type": "youtube_video",
+      "title": "Stack Data Structure and Problems",
+      "url": "https://www.youtube.com/watch?v=Pr6T-3yB9RM",
+      "channel": "NeetCode",
+      "duration": "11 min",
+      "level": "beginner",
+      "topics": ["stacks", "balanced brackets", "min stack"],
+      "languages": ["python", "javascript"],
+      "why": "Good pattern video for bracket matching, min stack, and last-in-first-out reasoning."
+    }
+  ]
+}

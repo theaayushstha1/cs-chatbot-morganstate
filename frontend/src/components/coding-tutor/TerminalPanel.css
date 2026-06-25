@@ -1,0 +1,418 @@
+/* The terminal is now an IN-FLOW dock inside the editor column (see
+   .coding-dock-terminal in CodeWorkspace.css), not a fixed viewport footer. Its
+   height is controlled by the dock wrapper (drag-resizable); the panel just
+   fills that wrapper. This keeps editor + terminal feeling like one unit. */
+.coding-dock-terminal .terminal-panel {
+  width: 100%;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0 !important;
+  border: 0 !important;
+  margin: 0 !important;
+  /* Terminal has its OWN, darkest surface — distinct from the editor + panels. */
+  background: #0a101e !important;
+  color: #e6edf3 !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+.coding-dock-terminal .terminal-panel .coding-terminal-header {
+  flex: 0 0 auto;
+  min-height: 36px !important;
+  padding: 0 10px 0 14px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 0 !important;
+  /* Darker, terminal-style title bar — sits just above the darkest body. */
+  background: #0e1626 !important;
+  color: #e6edf3 !important;
+  border-bottom: 1px solid #050a14 !important;
+}
+
+.coding-terminal-tabs {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+  font-family: "Cascadia Code", "Fira Code", Consolas, "Liberation Mono", monospace;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.coding-terminal-tabs span {
+  padding: 9px 0 8px;
+  color: #8b98a9;
+  border-bottom: 2px solid transparent;
+}
+
+.coding-terminal-tabs span.active {
+  color: #e6edf3;
+  border-color: #f58220;
+}
+
+/* The right-hand group: status pill + action icons, all by the close button. */
+.coding-terminal-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.coding-terminal-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  border: 1px solid rgba(230, 237, 243, 0.16);
+  background: rgba(230, 237, 243, 0.05);
+  color: #cdd6e4;
+  cursor: pointer;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.coding-terminal-controls button:hover {
+  background: linear-gradient(135deg, #f8b15f, #f58220) !important;
+  border-color: #f58220 !important;
+  color: #172033 !important;
+}
+
+/* Stop button — red accent, sits left of the close button while a run is active. */
+.coding-terminal-controls .terminal-stop-btn {
+  border-color: rgba(248, 81, 73, 0.5) !important;
+  background: rgba(248, 81, 73, 0.16) !important;
+  color: #ff8a82 !important;
+}
+
+.coding-terminal-controls .terminal-stop-btn:hover {
+  background: #f85149 !important;
+  border-color: #f85149 !important;
+  color: #fff !important;
+}
+
+/* Estimated time-complexity card in the Tests pane. */
+.terminal-complexity {
+  display: grid;
+  gap: 2px;
+  margin: 2px 0 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(130, 170, 255, 0.28);
+  border-left: 3px solid #82aaff;
+  background: rgba(130, 170, 255, 0.08);
+}
+
+.terminal-complexity-kind {
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8b98a9;
+}
+
+.terminal-complexity strong {
+  font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+  font-size: 0.96rem;
+  color: #cfe0ff;
+}
+
+.terminal-complexity-why {
+  font-size: 0.78rem;
+  color: #9aa7b8;
+  line-height: 1.35;
+}
+
+.terminal-complexity.confidence-low {
+  border-left-color: #c89bff;
+}
+
+/* Terminal state pill: monospace, colored by run state (READY / Passed / etc). */
+.terminal-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-family: "Cascadia Code", "Fira Code", Consolas, "Liberation Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.terminal-status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.terminal-status.ready { color: #8b98a9; background: rgba(139, 152, 169, 0.12); border-color: rgba(139, 152, 169, 0.3); }
+.terminal-status.running { color: #f0b429; background: rgba(240, 180, 41, 0.12); border-color: rgba(240, 180, 41, 0.35); }
+.terminal-status.passed,
+.terminal-status.ran { color: #3fb950; background: rgba(63, 185, 80, 0.12); border-color: rgba(63, 185, 80, 0.35); }
+.terminal-status.failed,
+.terminal-status.error { color: #f85149; background: rgba(248, 81, 73, 0.12); border-color: rgba(248, 81, 73, 0.35); }
+
+.terminal-panel-body {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(260px, 3fr);
+  gap: 0;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #0d1424;
+}
+
+.terminal-panel-output,
+.terminal-panel-tests {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 12px;
+}
+
+.terminal-panel-output {
+  border-right: 1px solid rgba(230, 237, 243, 0.1);
+}
+
+.terminal-panel-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #8b98a9;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.terminal-panel-heading strong {
+  color: #e6edf3;
+  font-size: 0.82rem;
+  text-transform: none;
+}
+
+.terminal-panel-heading em {
+  color: #9aa7b8;
+  font-size: 0.8rem;
+  font-style: normal;
+  text-transform: none;
+}
+
+.terminal-explain-btn {
+  margin-left: auto;
+  border: 1px solid rgba(245, 130, 32, 0.5);
+  border-radius: 999px;
+  background: rgba(245, 130, 32, 0.16);
+  color: #f9b572;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 900;
+  padding: 0.32rem 0.66rem;
+  text-transform: none;
+}
+
+.terminal-explain-btn:hover {
+  border-color: #f58220;
+  background: rgba(245, 130, 32, 0.28);
+  color: #ffd29b;
+}
+
+.terminal-panel-message {
+  margin: 0 0 8px;
+  color: #c2cad6;
+  font-size: 0.88rem;
+}
+
+.terminal-quality-checklist {
+  border: 1px solid rgba(230, 237, 243, 0.12);
+  border-radius: 8px;
+  background: rgba(230, 237, 243, 0.04);
+  color: #e6edf3;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+}
+
+.terminal-quality-checklist strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.84rem;
+}
+
+.terminal-quality-checklist ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.terminal-quality-checklist li {
+  margin: 0.18rem 0;
+  color: #9aa7b8;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.terminal-output-kind {
+  display: inline-flex;
+  width: fit-content;
+  margin: 0 0 6px;
+  padding: 2px 8px;
+  border: 1px solid rgba(230, 237, 243, 0.16);
+  border-radius: 999px;
+  background: rgba(230, 237, 243, 0.06);
+  color: #9aa7b8;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.terminal-panel-empty {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #6b7888;
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, "Courier New", monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  padding: 2px 0;
+}
+
+.terminal-panel pre {
+  width: 100%;
+  /* Size to content; the output COLUMN scrolls, not the <pre>. No min-height so
+     short output does not leave a big empty scroll area. Text sits directly on
+     the terminal surface — no nested box. */
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0;
+  overflow: visible;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  color: #e6edf3 !important;
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, "Courier New", monospace;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.terminal-panel-test-list {
+  display: grid;
+  gap: 6px;
+  min-height: 0;
+}
+
+/* Subtle row, not a card: a thin left accent + faint divider on the dark surface. */
+.terminal-panel-test {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  padding: 7px 8px 7px 10px;
+  border: 0;
+  border-left: 2px solid transparent;
+  border-bottom: 1px solid rgba(230, 237, 243, 0.08);
+  border-radius: 0;
+  background: transparent;
+  color: #e6edf3;
+}
+
+.terminal-panel-test.passed {
+  border-left-color: #3fb950;
+}
+
+.terminal-panel-test.failed {
+  border-left-color: #f85149;
+}
+
+.terminal-panel-test > span {
+  color: #3fb950;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.terminal-panel-test.failed > span {
+  color: #f85149;
+}
+
+.terminal-panel-test-detail {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.terminal-panel-test-detail strong {
+  color: #f0f6fc;
+  font-size: 0.9rem;
+}
+
+.terminal-panel-test-detail code {
+  display: block;
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #9aa7b8;
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, "Courier New", monospace;
+  font-size: 0.78rem;
+}
+
+.terminal-panel-test-detail small {
+  color: #ff7b72;
+  font-size: 0.78rem;
+}
+
+/* The terminal uses the SAME dark look in light and dark themes (it's a real
+   terminal). Only nudge the outer chrome a touch in dark mode so it blends with
+   the darker page; all inner element colors come from the base rules above. */
+body.dark .coding-dock-terminal .terminal-panel {
+  background: #080d18 !important;
+}
+
+body.dark .coding-dock-terminal .terminal-panel .coding-terminal-header {
+  background: #0b1322 !important;
+}
+
+body.dark .terminal-panel-body {
+  background: #080d18;
+}
+
+@media (max-height: 760px) {
+  .terminal-panel-output,
+  .terminal-panel-tests {
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .terminal-panel-body {
+    grid-template-columns: minmax(0, 7fr) minmax(220px, 3fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .terminal-panel-body {
+    grid-template-columns: 1fr;
+  }
+
+  .terminal-panel-output {
+    min-height: 72px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(230, 237, 243, 0.1);
+  }
+}

@@ -1,0 +1,575 @@
+/* The workspace fixed-height shell is defined in the "V2 workspace sizing" block
+   below (the one with !important wins). The workbench fills it; the terminal's
+   reserved padding-bottom shrinks the usable area when open, so the editor column
+   automatically gets less height — no manual calc needed. */
+.coding-app.coding-workspace-active .coding-app-main,
+.coding-app.coding-workspace-active .coding-app-content,
+.coding-app.coding-workspace-active .coding-workbench,
+.coding-app.coding-workspace-active .coding-workbench-main {
+  min-height: 0;
+}
+
+.coding-app.coding-workspace-active .coding-problem-panel,
+.coding-app.coding-workspace-active .coding-editor-center {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(24, 36, 64, 0.08) !important;
+}
+
+.coding-app.coding-workspace-active .coding-problem-content,
+.coding-app.coding-workspace-active .coding-problem-empty,
+.coding-app.coding-workspace-active .workspace-tab-body {
+  min-height: 0;
+  overflow: auto;
+}
+
+.coding-app.coding-workspace-active .coding-editor-center {
+  display: flex;
+  flex-direction: column;
+}
+
+.coding-app.coding-workspace-active .workspace-tab-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Editor + Terminal stack ─────────────────────────────────────────────────
+   The editor and the docked terminal are ONE vertical unit. The stack fills the
+   editor column; the editor body flexes to fill, the terminal sits below it at a
+   drag-set height, separated by a visible divider. No floating footer. */
+.editor-terminal-stack {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-terminal-stack .workspace-tab-body {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* The editor window fills the space the terminal leaves. A small floor keeps it
+   usable even when the terminal is dragged tall. */
+.coding-app.coding-workspace-active .editor-terminal-stack .code-editor-window {
+  flex: 1 1 auto;
+  min-height: 120px;
+}
+
+/* The draggable divider — a visible rule between editor and terminal. */
+.editor-terminal-divider {
+  flex: 0 0 auto;
+  position: relative;
+  height: 10px;
+  cursor: ns-resize;
+  background: var(--ct-panel-soft, #f1ece2);
+  border-top: 1px solid var(--ct-border, #d8cbb8);
+  border-bottom: 1px solid var(--ct-border, #d8cbb8);
+  touch-action: none;
+}
+
+.editor-terminal-divider:hover,
+.editor-terminal-divider:focus-visible {
+  background: color-mix(in srgb, var(--ct-accent, #f58220) 18%, var(--ct-panel-soft, #f1ece2));
+  outline: none;
+}
+
+/* The grip dots in the middle of the divider. */
+.editor-terminal-divider-grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 34px;
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ct-text, #2a2118) 28%, transparent);
+}
+
+.editor-terminal-divider:hover .editor-terminal-divider-grip,
+.editor-terminal-divider:focus-visible .editor-terminal-divider-grip {
+  background: var(--ct-accent, #f58220);
+}
+
+/* The docked terminal: height set inline from the drag state, but it can SHRINK
+   so it never crushes the editor out of view — the editor keeps priority. Its own
+   darkest surface, straight top edge so the divider reads as the seam. */
+.coding-dock-terminal {
+  flex: 0 1 auto;
+  min-height: 0;
+  /* Never take more than ~62% of the stack, so the editor always stays visible. */
+  max-height: 62%;
+  overflow: hidden;
+  background: #0a101e;
+}
+
+/* While dragging, kill text selection + show the resize cursor everywhere. */
+body.ct-terminal-resizing,
+body.ct-terminal-resizing * {
+  cursor: ns-resize !important;
+  user-select: none !important;
+}
+
+
+.workspace-tabs .terminal-tab {
+  margin-left: auto;
+}
+
+.workspace-tabs .terminal-tab.active {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--ct-primary) 88%, #ffffff 12%), color-mix(in srgb, var(--ct-primary) 72%, var(--ct-accent) 28%)) !important;
+  color: #ffffff !important;
+}
+
+body.dark .coding-app.coding-workspace-active .coding-problem-panel,
+body.dark .coding-app.coding-workspace-active .coding-editor-center {
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22) !important;
+}
+
+body.dark .workspace-tabs .terminal-tab.active {
+  background: linear-gradient(135deg, #243a67, #d89a43) !important;
+  color: #f8f1e8 !important;
+}
+
+@media (max-width: 900px) {
+  .workspace-tabs .terminal-tab {
+    margin-left: 0;
+  }
+
+  .coding-app.terminal-open .coding-workbench-main,
+  .coding-app.terminal-closed .coding-workbench-main,
+  .coding-app.coding-workspace-active .workspace-tab-body .code-editor-window,
+  .coding-app.terminal-closed .workspace-tab-body .code-editor-window {
+    min-height: auto !important;
+  }
+}
+
+/* V2 workspace sizing: the workspace is a fixed-height shell exactly the size of
+   the viewport minus the (responsive) navbar. box-sizing means the terminal's
+   reserved padding-bottom shrinks the usable area instead of growing the page,
+   so there is no scroll and no empty gap above the editor. */
+.coding-app.coding-workspace-active {
+  box-sizing: border-box !important;
+  height: calc(100vh - var(--nav-h, 70px)) !important;
+  max-height: calc(100vh - var(--nav-h, 70px)) !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  align-content: stretch;
+}
+
+.coding-app.coding-workspace-active .coding-app-main,
+.coding-app.coding-workspace-active .coding-app-content,
+.coding-app.coding-workspace-active .coding-workbench,
+.coding-app.coding-workspace-active .coding-workbench-main {
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.coding-app.terminal-open .coding-workbench-main,
+.coding-app.terminal-closed .coding-workbench-main {
+  min-height: 0 !important;
+}
+
+.coding-app.coding-workspace-active .coding-workbench {
+  display: flex;
+  flex-direction: column;
+}
+
+.coding-app.coding-workspace-active .coding-workbench-main {
+  flex: 1 1 auto;
+  gap: 14px;
+}
+
+.coding-app.coding-workspace-active .coding-problem-panel,
+.coding-app.coding-workspace-active .coding-editor-center {
+  min-height: 0 !important;
+  max-height: 100%;
+}
+
+.coding-app.coding-workspace-active .workspace-tab-body {
+  min-height: 0 !important;
+}
+
+.coding-app.coding-workspace-active .workspace-tab-body .leetcode-editor,
+.coding-app.terminal-closed .workspace-tab-body .leetcode-editor,
+.coding-app.terminal-open .workspace-tab-body .leetcode-editor {
+  flex: 1 1 auto;
+  min-height: 0 !important;
+}
+
+/* The terminal now lives IN-FLOW inside the editor column (see
+   .editor-terminal-stack), so the workbench grid no longer reserves a footer row
+   and the editor column manages its own internal split. The problem panel and
+   editor column both just fill the workbench height; the editor column is a flex
+   column (header / tabs / stack / run-controls) and the stack holds editor+terminal. */
+.coding-app.coding-workspace-active.terminal-open .coding-editor-center,
+.coding-app.coding-workspace-active.terminal-open .coding-problem-panel {
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+@media (max-height: 780px), (max-width: 1180px) {
+  .coding-app.coding-workspace-active .coding-workbench-main {
+    gap: 10px;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   EDITOR "WINDOW": title bar (traffic-light dots + filename), a line-number
+   gutter, and a bottom status bar — makes the textarea read as a real editor.
+   Shared font metrics (--ed-font, --ed-size, --ed-lh, --ed-pad-y) keep the
+   gutter line numbers aligned with the code lines.
+   ─────────────────────────────────────────────────────────────────────────── */
+.code-editor-window {
+  --ed-font: "Cascadia Code", "Fira Code", Consolas, "Liberation Mono", monospace;
+  --ed-size: 0.92rem;
+  --ed-lh: 1.55;
+  --ed-pad-y: 12px;
+  --ed-bg: var(--ct-editor-bg, #0f172a);
+  --ed-text: var(--ct-editor-text, #e5e7eb);
+  --ed-border: color-mix(in srgb, var(--ct-primary, #002d72) 26%, #0b1220);
+
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--ed-border);
+  background: var(--ed-bg);
+  box-shadow: 0 14px 30px rgba(8, 15, 30, 0.22);
+}
+
+/* Title bar: filename on the left; action icons + language selector on the right
+   (so the bottom row is freed for the editor). */
+.code-editor-titlebar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+  padding: 0 10px 0 14px;
+  background: color-mix(in srgb, var(--ed-bg) 84%, #000);
+  border-bottom: 1px solid color-mix(in srgb, var(--ed-border) 70%, transparent);
+}
+
+.code-editor-titlebar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.code-editor-filename {
+  font-family: var(--ed-font);
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--ed-text) 78%, transparent);
+}
+
+/* Language switch styled like LeetCode's: plain orange text + a subtle chevron,
+   not a boxed dropdown. It's a real <select> so clicking opens the native list. */
+.code-editor-lang-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--ed-font);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ct-accent, #f58220);
+  /* room for the chevron drawn on the right */
+  padding: 2px 16px 2px 6px;
+  border-radius: 6px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M1 3l4 4 4-4' fill='none' stroke='%23f58220' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  transition: background-color 0.15s ease;
+}
+
+.code-editor-lang-select:hover {
+  background-color: rgba(245, 130, 32, 0.12);
+}
+
+.code-editor-lang-select:focus-visible {
+  outline: 2px solid rgba(245, 130, 32, 0.6);
+  outline-offset: 1px;
+}
+
+/* The dropdown LIST items render with the OS theme; keep them readable. */
+.code-editor-lang-select option {
+  color: #1f2937;
+  background: #ffffff;
+}
+
+/* ── Editor action icon toolbar (in the title bar) ───────────────────────────
+   Run / Mark Solved / Copy / Clear as compact icons with tooltips, replacing the
+   old pill-button row so the editor gets the full height. */
+.editor-action-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-right: 8px;
+  margin-right: 4px;
+  border-right: 1px solid color-mix(in srgb, var(--ed-border) 60%, transparent);
+}
+
+.editor-action-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.editor-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: color-mix(in srgb, var(--ed-text) 75%, transparent);
+  cursor: pointer;
+  font-size: 0.82rem;
+  line-height: 1;
+  transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+.editor-action-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.editor-action-btn:focus-visible {
+  outline: 2px solid rgba(245, 130, 32, 0.6);
+  outline-offset: 1px;
+}
+
+.editor-action-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Run = the primary, accented action. */
+.editor-action-run {
+  color: #fff;
+  background: color-mix(in srgb, var(--ct-accent, #f58220) 90%, #000);
+  border-color: color-mix(in srgb, var(--ct-accent, #f58220) 70%, #000);
+}
+
+.editor-action-run:hover:not(:disabled) {
+  background: var(--ct-accent, #f58220);
+  color: #fff;
+}
+
+.editor-action-solve:hover:not(:disabled),
+.editor-action-confirm-yes:hover:not(:disabled) {
+  background: rgba(63, 185, 80, 0.22);
+  color: #7ee495;
+}
+
+.editor-action-confirm-yes {
+  color: #7ee495;
+  border-color: rgba(63, 185, 80, 0.4);
+}
+
+.editor-action-clear:hover:not(:disabled),
+.editor-action-confirm-no:hover:not(:disabled) {
+  background: rgba(248, 81, 73, 0.2);
+  color: #ff8a82;
+}
+
+/* Personal workspace: Save (green-ish) + Upload (blue-ish) hover accents. */
+.editor-action-save:hover:not(:disabled) {
+  background: rgba(63, 185, 80, 0.2);
+  color: #7ee495;
+}
+
+.editor-action-upload:hover:not(:disabled) {
+  background: rgba(130, 170, 255, 0.2);
+  color: #aecbff;
+}
+
+/* Editor body: gutter + textarea side by side. */
+.code-editor-shell {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+  background: var(--ed-bg);
+}
+
+.code-editor-gutter {
+  flex: 0 0 auto;
+  overflow: hidden;
+  user-select: none;
+  text-align: right;
+  padding: var(--ed-pad-y) 10px var(--ed-pad-y) 14px;
+  font-family: var(--ed-font);
+  font-size: var(--ed-size);
+  line-height: var(--ed-lh);
+  color: color-mix(in srgb, var(--ed-text) 38%, transparent);
+  background: color-mix(in srgb, var(--ed-bg) 92%, #000);
+  border-right: 1px solid color-mix(in srgb, var(--ed-border) 60%, transparent);
+}
+
+.code-editor-line-no {
+  display: block;
+  min-width: 1.5ch;
+}
+
+.code-editor-line-no.active {
+  color: var(--ct-accent, #f58220);
+  font-weight: 700;
+}
+
+/* The textarea + the highlight overlay share these exact metrics so the colored
+   text behind the caret lines up perfectly with what the user types. */
+.code-editor-input-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+}
+
+.code-editor-window .coding-editor,
+.code-editor-window .leetcode-editor {
+  flex: 1 1 auto;
+  min-height: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  resize: none !important;
+  font-family: var(--ed-font) !important;
+  font-size: var(--ed-size) !important;
+  line-height: var(--ed-lh) !important;
+  padding: var(--ed-pad-y) 16px !important;
+  box-shadow: none !important;
+  white-space: pre !important;
+  word-wrap: normal !important;
+  overflow: auto;
+  tab-size: 4;
+  -moz-tab-size: 4;
+}
+
+/* The transparent input layer. Text is invisible (the overlay shows it colored)
+   but the caret and selection stay visible. Scoped under .coding-app .code-editor-window
+   so it OUTRANKS `body.dark .coding-app textarea { background; color }` (0,2,2) —
+   that dark rule was painting an OPAQUE panel background over the colored overlay,
+   which is why the code was invisible in dark mode but fine in light mode. */
+.coding-app .code-editor-window .code-editor-textarea,
+.code-editor-window .code-editor-textarea {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: transparent !important;
+  caret-color: var(--ed-text) !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.coding-app .code-editor-window .code-editor-textarea::selection,
+.code-editor-window .code-editor-textarea::selection {
+  /* Keep selection text invisible too (the overlay shows the colored code) so
+     highlighting doesn't reveal a second, differently-colored copy of the text. */
+  background: rgba(245, 130, 32, 0.32);
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* The colored layer behind the textarea (the real, dark editor surface). It
+   carries ONLY the .code-editor-highlight class (no .coding-editor/.leetcode-editor)
+   so NO theme rule can recolor it. It must replicate the textarea's exact metrics
+   so the colored text lines up under the caret. The editor surface is always dark,
+   so the base text is a fixed light color. */
+.code-editor-window .code-editor-highlight {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  /* Match the textarea metrics exactly (see .coding-editor/.leetcode-editor). */
+  font-family: var(--ed-font);
+  font-size: var(--ed-size);
+  line-height: var(--ed-lh);
+  padding: var(--ed-pad-y) 16px;
+  white-space: pre;
+  word-wrap: normal;
+  tab-size: 4;
+  -moz-tab-size: 4;
+  background: var(--ed-bg) !important;
+  color: #e6edf3 !important;
+}
+
+/* Token colors (one dark theme, in BOTH light and dark app modes). Forced with
+   !important + high specificity so no theme rule on .leetcode-editor / code can
+   override them and make the code invisible. */
+.code-editor-window .code-editor-highlight .tok-keyword { color: #c792ea !important; font-weight: 600; }
+.code-editor-window .code-editor-highlight .tok-string  { color: #c3e88d !important; }
+.code-editor-window .code-editor-highlight .tok-comment { color: #7d8aa0 !important; font-style: italic; }
+.code-editor-window .code-editor-highlight .tok-number  { color: #f78c6c !important; }
+.code-editor-window .code-editor-highlight .tok-func    { color: #82aaff !important; }
+.code-editor-window .code-editor-highlight .tok-bracket { color: #ffcb6b !important; }
+
+.code-editor-window .coding-editor:focus,
+.code-editor-window .leetcode-editor:focus {
+  outline: none !important;
+}
+
+/* Subtle focus glow on the whole window when the editor is focused. */
+.code-editor-window:focus-within {
+  border-color: color-mix(in srgb, var(--ct-accent, #f58220) 55%, var(--ed-border));
+  box-shadow: 0 14px 30px rgba(8, 15, 30, 0.26),
+              0 0 0 2px color-mix(in srgb, var(--ct-accent, #f58220) 28%, transparent);
+}
+
+/* Status bar */
+.code-editor-statusbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 28px;
+  padding: 0 12px;
+  font-family: var(--ed-font);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--ed-text) 70%, transparent);
+  background: color-mix(in srgb, var(--ct-primary, #002d72) 22%, var(--ed-bg));
+  border-top: 1px solid color-mix(in srgb, var(--ed-border) 70%, transparent);
+}
+
+.code-editor-statusbar .status-left,
+.code-editor-statusbar .status-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.code-editor-statusbar .status-pill {
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  color: #fff;
+  background: color-mix(in srgb, var(--ct-accent, #f58220) 88%, #000);
+}
+
+@media (max-width: 640px) {
+  .code-editor-statusbar { font-size: 0.66rem; gap: 8px; padding: 0 8px; }
+  .code-editor-statusbar .status-left,
+  .code-editor-statusbar .status-right { gap: 8px; }
+  .code-editor-gutter { padding-left: 8px; padding-right: 6px; }
+}

@@ -868,6 +868,43 @@ body.dark .search-box:focus-within {
   color: #9333EA;
 }
 
+.role-badge.disabled {
+  background: rgba(100, 116, 139, 0.16);
+  color: #64748B;
+}
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.user-status-btn {
+  border: 1px solid var(--border-color);
+  border-radius: 7px;
+  padding: 7px 10px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.user-status-btn.disable {
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+.user-status-btn.enable {
+  color: #16a34a;
+  border-color: rgba(22, 163, 74, 0.35);
+}
+
+.user-status-btn:hover {
+  background: var(--bg-card-hover);
+}
+
 .role-select {
   padding: 6px 12px;
   background: var(--bg-body);

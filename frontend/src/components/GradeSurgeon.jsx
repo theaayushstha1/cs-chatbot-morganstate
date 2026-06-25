@@ -55,7 +55,7 @@ export default function GradeSurgeon() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     if (!selected || !token) return;
@@ -65,7 +65,7 @@ export default function GradeSurgeon() {
       .then(d => { if (d) setDetail(d); })
       .catch(() => {})
       .finally(() => setLoadingDetail(false));
-  }, [selected]);
+  }, [selected, token]);
 
   const toggleGroup = (id) => setExpandedGroups(prev => ({ ...prev, [id]: !prev[id] }));
 

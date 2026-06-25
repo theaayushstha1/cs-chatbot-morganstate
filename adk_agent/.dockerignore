@@ -1,0 +1,17 @@
+# Python and ADK runtime artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.adk/
+
+# Local environments and secrets
+.venv/
+venv/
+.env
+.env.*
+*.env
+
+# Editor/log artifacts
+.vscode/
+.idea/
+*.log

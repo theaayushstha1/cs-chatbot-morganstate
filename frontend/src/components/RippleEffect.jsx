@@ -93,7 +93,7 @@ export default function RippleEffect() {
       .then(d => { if (d) setGraphData(d); })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [token]);
 
   const handleSelect = useCallback((nodeData) => {
     setSelected(prev => prev?.id === nodeData.id ? null : nodeData);
@@ -162,7 +162,7 @@ export default function RippleEffect() {
     const laid = layoutGraph(flowNodes, flowEdges);
     setNodes(laid);
     setEdges(flowEdges);
-  }, [graphData, highlightedPath, selected, handleSelect]);
+  }, [graphData, highlightedPath, selected, handleSelect, setNodes, setEdges]);
 
   if (loading) return (
     <div className="re"><div className="re-center"><FaSync className="re-spin" size={20} /><p>Loading prerequisite graph...</p></div></div>

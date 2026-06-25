@@ -1,32 +1,34 @@
 /* Chat main */
 
-/* Chatbox container - fills space with proper background */
-.chatbox-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 70px);
-  background: var(--bg-body);
-  overflow: hidden;
-}
-
 .chat-main {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 70px);
-  background: var(--bg-body);
-  overflow: hidden;
+  min-height: calc(100vh - 70px);
+  /* A soft WARM wash that complements the ivory background (was a cold blue
+     radial that clashed with ivory and bled into the chats). Uses the theme's
+     warm accent at low opacity so it blends instead of tinting blue. */
+  background:
+    radial-gradient(circle at top, var(--page-wash, rgba(245, 130, 32, 0.06)), transparent 38%),
+    var(--bg-body);
+  overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
   margin-left: 280px;
   width: calc(100% - 280px);
   flex: 1;
   position: relative;
-  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+  padding-bottom: 0;
+  transition: margin-left 0.32s cubic-bezier(0.22, 1, 0.36, 1), width 0.32s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.12s ease;
 }
 
 body.sidebar-collapsed .chat-main {
   margin-left: 64px;
   width: calc(100% - 64px);
+}
+
+body.sidebar-custom-width:not(.sidebar-collapsed) .chat-main {
+  margin-left: var(--sidebar-width, 280px);
+  width: calc(100% - var(--sidebar-width, 280px));
 }
 
 /* Messages area */
@@ -57,7 +59,8 @@ body.sidebar-collapsed .chat-main {
   position: relative;
 }
 
-/* Subtle decorative background glow */
+/* Subtle decorative background glow — warm tint to complement the ivory page
+   (was a blue radial + blue mesh that read as a cold blue wash). */
 .welcome-container::before {
   content: '';
   position: absolute;
@@ -66,7 +69,7 @@ body.sidebar-collapsed .chat-main {
   transform: translateX(-50%);
   width: 600px;
   height: 600px;
-  background: var(--gradient-mesh), radial-gradient(circle, rgba(66, 133, 244, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--page-wash, rgba(245, 130, 32, 0.06)) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -114,6 +117,842 @@ body.sidebar-collapsed .chat-main {
   max-width: 500px;
   line-height: 1.6;
 }
+.practice-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.practice-controls label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-secondary, #5f6368);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.daily-practice-btn.secondary {
+  background: rgba(66, 133, 244, 0.08);
+  color: var(--msu-blue, #4285f4);
+}
+
+.regular-chat-hidden {
+  display: none !important;
+}
+
+.coding-problem-panel,
+.coding-editor-center,
+.coding-page-panel {
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  background: var(--bg-card, #fff);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+}
+
+.coding-problem-panel,
+.coding-editor-center {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.coding-problem-content,
+.coding-problem-empty {
+  overflow: auto;
+  padding: 16px;
+}
+
+.coding-problem-content h2,
+.coding-problem-empty h2 {
+  margin: 0;
+  color: var(--text-primary, #1a1a1a);
+  font-size: 1.08rem;
+  line-height: 1.3;
+}
+
+.coding-problem-content h3 {
+  margin: 18px 0 8px;
+  color: var(--text-primary, #1a1a1a);
+  font-size: 0.86rem;
+}
+
+.coding-problem-content p,
+.coding-problem-content li,
+.coding-problem-empty p {
+  color: var(--text-secondary, #666);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.problem-example {
+  display: grid;
+  gap: 6px;
+  border-radius: 8px;
+  background: var(--bg-secondary, #f7f8fa);
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.problem-example code {
+  white-space: pre-wrap;
+  /* --text-primary was never defined, so this fell back to near-black and went
+     invisible on the dark example card in dark mode. Use the theme text var. */
+  color: var(--ct-text, var(--text-main, #1a1a1a));
+}
+
+.coding-problem-empty button {
+  border: none;
+  border-radius: 7px;
+  background: var(--msu-blue, #4285f4);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 9px 12px;
+}
+
+.coding-editor-center {
+  padding: 12px;
+  gap: 10px;
+}
+
+.leetcode-editor {
+  flex: 1;
+  min-height: 380px;
+  resize: none;
+}
+
+.ai-status-card {
+  border: 1px solid rgba(66, 133, 244, 0.18);
+  border-radius: 8px;
+  background: rgba(66, 133, 244, 0.06);
+  padding: 10px;
+}
+
+.ai-status-card dl {
+  margin: 8px 0 0;
+  display: grid;
+  gap: 6px;
+}
+
+.ai-status-card dl div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.ai-status-card dt,
+.ai-status-card dd {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.25;
+}
+
+.ai-status-card dt {
+  color: var(--text-secondary, #666);
+  font-weight: 800;
+}
+
+.ai-status-card dd {
+  color: var(--text-primary, #1a1a1a);
+  font-weight: 700;
+}
+
+.coding-page-panel {
+  /* Edge-to-edge with side padding (was a narrow 980px centered column with big
+     empty gutters). Detailed per-page layout lives in CodingTutor.css. */
+  max-width: 2200px;
+  margin: 0 auto;
+  padding: 18px 24px;
+}
+
+.coding-progress-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.coding-progress-stats div {
+  border-radius: 8px;
+  background: var(--bg-secondary, #f7f8fa);
+  padding: 14px;
+}
+
+.coding-progress-stats strong,
+.coding-progress-stats span {
+  display: block;
+}
+
+.coding-progress-stats strong {
+  color: var(--text-primary, #1a1a1a);
+  font-size: 1.4rem;
+}
+
+.coding-progress-stats span {
+  color: var(--text-secondary, #666);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.daily-challenge-title-row,
+.daily-actions,
+.daily-tags {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.daily-challenge-title-row {
+  justify-content: space-between;
+}
+
+.daily-difficulty {
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(107, 114, 128, 0.12);
+  color: #4b5563;
+}
+
+.problem-meta-pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.problem-solved-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  white-space: nowrap;
+}
+
+body.dark .problem-solved-badge {
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.36);
+}
+
+.daily-difficulty.easy {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.daily-difficulty.medium {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.daily-difficulty.hard {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+
+.daily-tags {
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.daily-tags span {
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 0.74rem;
+  color: var(--text-secondary, #666);
+  background: var(--bg-secondary, #f7f8fa);
+}
+
+/* Dark mode: the light pill text/background washed out on the dark card.
+   Use a lighter readable text on a subtle translucent pill with a visible border. */
+body.dark .daily-tags span {
+  color: #cdd6e4;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.daily-actions {
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.daily-link,
+.daily-practice-btn {
+  border: none;
+  border-radius: 7px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.daily-link {
+  background: var(--msu-blue, #4285f4);
+  color: #fff;
+}
+
+.daily-practice-btn {
+  background: var(--bg-secondary, #f0f2f5);
+  color: var(--text-primary, #1a1a1a);
+}
+
+.daily-practice-btn:hover:not(:disabled),
+.daily-link:hover {
+  transform: translateY(-1px);
+}
+
+.daily-practice-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.daily-challenge-loading {
+  margin: 10px 0 0;
+  color: var(--text-secondary, #666);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+[data-theme="dark"] .daily-practice-btn,
+body.dark .daily-practice-btn {
+  background: var(--bg-secondary, #2a2a2a);
+  color: var(--text-primary, #e0e0e0);
+}
+
+@media (max-width: 600px) {
+  .daily-challenge-title-row,
+  .daily-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .daily-difficulty {
+    margin-top: 2px;
+  }
+}
+
+.coding-pane-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.coding-pane-header h2 {
+  margin: 2px 0 0;
+  font-size: 1rem;
+  line-height: 1.25;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.coding-kicker {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-secondary, #666);
+}
+
+.coding-select {
+  flex: 0 0 auto;
+  max-width: 150px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 7px;
+  background: var(--bg-secondary, #f7f8fa);
+  color: var(--text-primary, #1a1a1a);
+  padding: 7px 9px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.coding-editor {
+  width: 100%;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  background: var(--bg-secondary, #f7f8fa);
+  color: var(--text-primary, #1a1a1a);
+  padding: 12px;
+  resize: vertical;
+  outline: none;
+}
+
+.coding-editor {
+  min-height: 260px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.coding-editor:focus,
+.coding-select:focus {
+  border-color: var(--msu-blue, #4285f4);
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.12);
+}
+
+.coding-terminal {
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #111827;
+  color: #e5e7eb;
+}
+
+.coding-terminal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.coding-terminal pre {
+  margin: 0;
+  min-height: 96px;
+  max-height: 190px;
+  overflow: auto;
+  padding: 12px;
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+[data-theme="dark"] .coding-section-nav,
+body.dark .coding-section-nav,
+[data-theme="dark"] .coding-problem-panel,
+body.dark .coding-problem-panel,
+[data-theme="dark"] .coding-editor-center,
+body.dark .coding-editor-center,
+[data-theme="dark"] .coding-page-panel,
+body.dark .coding-page-panel {
+  background: var(--bg-primary, #1a1a1a);
+  border-color: rgba(66, 133, 244, 0.22);
+}
+
+[data-theme="dark"] .problem-example,
+body.dark .problem-example,
+[data-theme="dark"] .coding-progress-stats div,
+body.dark .coding-progress-stats div {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .ai-status-card,
+body.dark .ai-status-card {
+  background: rgba(66, 133, 244, 0.12);
+  border-color: rgba(66, 133, 244, 0.24);
+}
+
+.coding-workbench {
+  min-height: calc(100vh - 146px);
+  display: grid;
+  grid-template-rows: minmax(520px, 1fr) minmax(280px, 0.48fr);
+  gap: 10px;
+}
+
+.coding-workbench-main {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.72fr) minmax(480px, 1.55fr);
+  gap: 10px;
+}
+
+.coding-workbench .coding-problem-panel,
+.coding-workbench .coding-editor-center {
+  box-shadow: none;
+}
+
+.coding-workbench .ai-status-card {
+  min-width: 0;
+}
+
+.workspace-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+
+.workspace-tabs button {
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-secondary, #666);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 7px 9px;
+}
+
+.workspace-tabs button.active,
+.workspace-tabs button:hover {
+  border-bottom-color: var(--msu-blue, #4285f4);
+  color: var(--msu-blue, #4285f4);
+}
+
+.workspace-tab-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.workspace-tab-body .leetcode-editor {
+  min-height: 0;
+}
+
+.workspace-hints-panel,
+.workspace-discussion-panel {
+  flex: 1;
+  min-height: 260px;
+  overflow: auto;
+  border-radius: 8px;
+  background: var(--bg-secondary, #f7f8fa);
+  color: var(--text-primary, #1a1a1a);
+  padding: 12px;
+}
+
+.workspace-hints-panel ol {
+  margin: 12px 0 0;
+  padding-left: 20px;
+}
+
+.workspace-hints-panel li {
+  margin-bottom: 10px;
+  color: var(--text-secondary, #666);
+  line-height: 1.45;
+}
+
+.coding-terminal.expanded {
+  flex: 1;
+  min-height: 300px;
+}
+
+.coding-terminal.expanded pre {
+  max-height: none;
+  min-height: 260px;
+}
+
+.practice-progress-overview {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  background: var(--bg-card, #fff);
+  padding: 14px;
+}
+
+.practice-progress-overview > div:first-child {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.practice-progress-overview strong {
+  color: var(--text-primary, #1a1a1a);
+  font-size: 1.1rem;
+}
+
+.progress-bar {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(107, 114, 128, 0.16);
+}
+
+.progress-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #34a853, #4285f4);
+}
+
+.progress-overview-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.progress-overview-stats span {
+  border-radius: 999px;
+  background: var(--bg-secondary, #f7f8fa);
+  color: var(--text-secondary, #666);
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 6px 9px;
+}
+
+.quiz-bank-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.34fr);
+  gap: 14px;
+}
+
+.quiz-library,
+.quiz-insight-panel,
+.daily-feature-card {
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  background: var(--bg-card, #fff);
+  color: var(--text-primary, #1a1a1a);
+}
+
+.quiz-library {
+  padding: 14px;
+}
+
+.quiz-bank-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.quiz-bank-header h2 {
+  margin: 2px 0 0;
+  font-size: 1.1rem;
+}
+
+.practice-controls.compact {
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  min-width: min(360px, 100%);
+}
+
+.quiz-card-grid {
+  display: grid;
+  /* Wider min so the now-edge-to-edge library lands at ~3-4 comfortable columns
+     instead of many tiny ones. */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.quiz-problem-card {
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  background: var(--bg-secondary, #f7f8fa);
+  color: var(--text-primary, #1a1a1a);
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  min-height: 118px;
+  padding: 12px;
+  text-align: left;
+}
+
+.quiz-problem-card:hover {
+  border-color: rgba(66, 133, 244, 0.4);
+  background: rgba(66, 133, 244, 0.08);
+}
+
+.quiz-problem-card.solved {
+  border-color: rgba(52, 168, 83, 0.36);
+}
+
+.quiz-problem-card.in_progress {
+  border-color: rgba(245, 158, 11, 0.38);
+}
+
+.quiz-problem-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quiz-problem-title strong {
+  font-size: 0.92rem;
+  line-height: 1.25;
+}
+
+.quiz-status-dot {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #9ca3af;
+}
+
+.quiz-problem-card.solved .quiz-status-dot {
+  background: #34a853;
+}
+
+.quiz-problem-card.in_progress .quiz-status-dot {
+  background: #f59e0b;
+}
+
+.quiz-problem-card small,
+.quiz-meta-row {
+  color: var(--text-secondary, #666);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.quiz-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.quiz-insight-panel {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 14px;
+}
+
+.quiz-insight-panel h3 {
+  margin: 0 0 8px;
+  color: var(--text-primary, #1a1a1a);
+  font-size: 0.9rem;
+}
+
+.quiz-insight-panel p {
+  margin: 5px 0;
+  color: var(--text-secondary, #666);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.daily-feature-card {
+  display: grid;
+  gap: 12px;
+  overflow: hidden;
+  padding: 18px;
+  position: relative;
+}
+
+.daily-feature-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, #fbbc05, #34a853, #4285f4);
+}
+
+.daily-feature-card h2,
+.daily-feature-card strong {
+  margin: 0;
+  color: var(--text-primary, #1a1a1a);
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.daily-feature-card dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.daily-feature-card dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.daily-feature-card dt,
+.daily-feature-card dd,
+.daily-feature-card small {
+  margin: 0;
+  color: var(--text-secondary, #666);
+  font-size: 0.86rem;
+}
+
+.daily-feature-card dd {
+  color: var(--text-primary, #1a1a1a);
+  font-weight: 900;
+}
+
+.dashboard-daily {
+  min-height: 190px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.daily-practice-btn.inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+}
+
+[data-theme="dark"] .practice-progress-overview,
+body.dark .practice-progress-overview,
+[data-theme="dark"] .quiz-library,
+body.dark .quiz-library,
+[data-theme="dark"] .quiz-insight-panel,
+body.dark .quiz-insight-panel,
+[data-theme="dark"] .daily-feature-card,
+body.dark .daily-feature-card {
+  background: var(--bg-primary, #1a1a1a);
+  border-color: rgba(66, 133, 244, 0.22);
+}
+
+[data-theme="dark"] .quiz-problem-card,
+body.dark .quiz-problem-card,
+[data-theme="dark"] .workspace-hints-panel,
+body.dark .workspace-hints-panel,
+[data-theme="dark"] .workspace-discussion-panel,
+body.dark .workspace-discussion-panel {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+@media (max-width: 900px) {
+
+  .coding-workbench,
+  .coding-workbench-main,
+  .quiz-bank-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  .coding-workbench {
+    min-height: auto;
+  }
+
+  .quiz-bank-header {
+    display: grid;
+  }
+
+  .leetcode-editor {
+    min-height: 320px;
+  }
+
+  .coding-dashboard {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .coding-pane-header {
+    flex-direction: column;
+  }
+
+  .coding-select {
+    width: 100%;
+    max-width: none;
+  }
+}
 
 .suggestions {
   display: grid;
@@ -126,7 +965,7 @@ body.sidebar-collapsed .chat-main {
 }
 
 @media (max-width: 600px) {
-  .suggestions {
+.suggestions {
     grid-template-columns: 1fr;
   }
 }
@@ -273,6 +1112,148 @@ body.sidebar-collapsed .chat-main {
 }
 .message-bubble p:last-child {
   margin-bottom: 0;
+}
+
+.youtube-resource-card {
+  display: block;
+  width: min(100%, 560px);
+  margin: 0.75rem 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border-color, #d8dee9) 78%, var(--primary-blue, #173d7a) 22%);
+  border-radius: 16px;
+  background: var(--bg-card, #fff);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+}
+
+.youtube-resource-frame {
+  display: block;
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  aspect-ratio: 16 / 9;
+  background: #0f172a;
+}
+
+/* aspect-ratio is ignored on inline boxes; this padding ratio guarantees the
+   frame keeps a 16:9 height even where aspect-ratio does not apply. */
+@supports not (aspect-ratio: 16 / 9) {
+  .youtube-resource-frame {
+    height: 0;
+    padding-bottom: 56.25%;
+  }
+}
+
+.youtube-resource-frame iframe,
+.youtube-resource-iframe {
+  position: absolute !important;
+  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+  display: block;
+}
+
+/* Click-to-play thumbnail (facade before the iframe is mounted). */
+.youtube-resource-thumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  background-color: #0f172a;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 0.15s ease;
+}
+
+.youtube-resource-thumb:hover {
+  filter: brightness(1.06);
+}
+
+.youtube-resource-play {
+  display: inline-flex;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+  opacity: 0.92;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.youtube-resource-thumb:hover .youtube-resource-play {
+  transform: scale(1.08);
+  opacity: 1;
+}
+
+.youtube-resource-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  color: var(--text-main);
+}
+
+.youtube-resource-meta strong {
+  min-width: 0;
+  font-size: 0.92rem;
+  line-height: 1.25;
+}
+
+.youtube-resource-meta a {
+  flex: 0 0 auto;
+  color: var(--primary-blue, #173d7a);
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.youtube-resource-meta a:hover {
+  color: var(--accent-orange, #f58220);
+  text-decoration: underline;
+}
+
+body.dark .youtube-resource-card {
+  border-color: color-mix(in srgb, var(--accent-orange, #f4a261) 34%, #26354d 66%);
+  background: color-mix(in srgb, var(--bg-card, #111827) 92%, #f4a261 8%);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.32);
+}
+
+body.dark .youtube-resource-meta,
+body.dark .youtube-resource-meta strong {
+  color: var(--text-main);
+}
+
+body.dark .youtube-resource-meta a {
+  color: color-mix(in srgb, var(--accent-orange, #f4a261) 80%, #fff 20%);
+}
+
+.floating-coding-chat .youtube-resource-card {
+  width: 100%;
+  margin: 0.55rem 0;
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+.floating-coding-chat .youtube-resource-meta {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+}
+
+.floating-coding-chat .youtube-resource-meta strong {
+  font-size: 0.82rem;
+}
+
+.floating-coding-chat .youtube-resource-meta a {
+  font-size: 0.78rem;
 }
 
 /* List Styling - Professional Indentation */
@@ -510,17 +1491,27 @@ body.dark .message.bot .message-bubble strong {
   bottom: 0;
   left: 280px;
   right: 0;
-  background: linear-gradient(180deg, transparent 0%, var(--bg-body) 20%);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(226, 232, 240, 0.5);
-  padding: 20px 24px 24px;
+  /* Floating input: the container is transparent (no footer block / border). A
+     soft bottom fade lets chat bubbles scroll behind the floating input pill and
+     gently dissolve instead of being cut by a solid bar. */
+  background: linear-gradient(to top, var(--bg-body) 18%, color-mix(in srgb, var(--bg-body) 70%, transparent) 64%, transparent 100%);
+  border-top: 0;
+  padding: 28px 24px 24px;
   z-index: 100;
-  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: calc(100% - 280px);
+  pointer-events: none;
+  transition: left 0.32s cubic-bezier(0.22, 1, 0.36, 1), width 0.32s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.12s ease, border-color 0.12s ease;
+}
+
+/* The container is click-through (so the fade area doesn't block scrolling), but
+   the actual input controls inside must remain interactive. */
+.chat-input-container > * {
+  pointer-events: auto;
 }
 
 body.sidebar-collapsed .chat-input-container {
-  left: 0;
+  left: 64px;
+  width: calc(100% - 64px);
 }
 
 .chat-input-wrapper {
@@ -586,24 +1577,247 @@ body.sidebar-collapsed .chat-input-container {
 
 /* Model toggle button */
 /* ── Model Selector Dropdown (ChatGPT-style) ───────────────────── */
+/* Layout + background of the secondary header live in ChatHeader.css. These
+   base rules only keep the transition and border token; the old absolute,
+   transparent-gradient version was removed because it showed chat through. */
 .model-selector-header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
-  padding: 10px 16px 20px;
-  background: linear-gradient(to bottom, var(--bg-body, #fff) 50%, transparent 100%);
-  pointer-events: none;
+  transition: padding 0.32s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.12s ease;
 }
 
-.model-selector-header > button,
-.model-selector-header > .model-dropdown {
+.chat-controls-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   pointer-events: auto;
+  padding-left: 0;
+  transition: padding-left 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-[data-theme="dark"] .model-selector-header {
-  background: linear-gradient(to bottom, var(--bg-body, #1a1a1a) 50%, transparent 100%);
+/* CS Navigator token theme polish */
+.model-selector-header {
+  border-color: var(--border-subtle) !important;
+}
+
+.model-selector-trigger,
+.mode-segmented,
+.chat-input-wrapper,
+.message.bot .message-bubble,
+.feedback-dropdown,
+.report-modal {
+  background: var(--bg-surface, var(--bg-card)) !important;
+  border-color: var(--border-soft, var(--border-color)) !important;
+  color: var(--text-main) !important;
+}
+
+.model-dropdown {
+  background: var(--bg-surface-raised, var(--bg-elevated)) !important;
+  border-color: var(--border-soft, var(--border-color)) !important;
+  box-shadow: var(--shadow-xl) !important;
+}
+
+.model-dropdown-item:hover,
+.model-dropdown-item.active,
+.suggestions .suggestion-btn:hover {
+  background: var(--primary-soft, var(--msu-blue-100)) !important;
+}
+
+.mode-segmented-btn {
+  color: var(--text-muted, var(--text-secondary)) !important;
+}
+
+.mode-segmented-btn.active,
+.send-btn:not(:disabled),
+.header-home-btn {
+  background: linear-gradient(135deg, var(--primary, var(--msu-blue)), var(--primary-hover, var(--msu-blue-hover))) !important;
+  color: #ffffff !important;
+  border-color: color-mix(in srgb, var(--primary, var(--msu-blue)) 68%, transparent) !important;
+}
+
+.mode-segmented-btn.active {
+  background: var(--accent-soft, var(--msu-gold-50)) !important;
+  color: var(--accent, var(--msu-gold)) !important;
+  border-color: color-mix(in srgb, var(--accent, var(--msu-gold)) 52%, transparent) !important;
+}
+
+.message.user .message-bubble {
+  background: linear-gradient(135deg, var(--primary, var(--msu-blue)), var(--accent, var(--accent-teal))) !important;
+  color: #ffffff !important;
+}
+
+.suggestions .suggestion-btn {
+  background: var(--bg-surface, var(--bg-card)) !important;
+  border-color: var(--border-soft, var(--border-color)) !important;
+  color: var(--text-main) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.suggestions .suggestion-btn:nth-child(4n+1),
+.suggestions .suggestion-btn:nth-child(4n+2),
+.suggestions .suggestion-btn:nth-child(4n+3),
+.suggestions .suggestion-btn:nth-child(4n+4) {
+  border-left-color: var(--accent, var(--msu-gold)) !important;
+}
+
+.suggestions .suggestion-btn:hover {
+  border-color: color-mix(in srgb, var(--accent, var(--msu-gold)) 45%, var(--border-soft)) !important;
+  color: var(--accent, var(--msu-gold)) !important;
+}
+
+.chat-input-field {
+  color: var(--text-main) !important;
+}
+
+body.dark .model-selector-header {
+  background: var(--bg-body) !important;
+}
+
+body.dark .chat-input-wrapper,
+body.dark .message.bot .message-bubble,
+body.dark .model-selector-trigger,
+body.dark .mode-segmented {
+  background: var(--bg-surface, var(--bg-card)) !important;
+  border-color: var(--border-soft, var(--border-color)) !important;
+}
+
+/* Morgan academic message polish */
+.message.user .message-bubble {
+  background: var(--primary, var(--msu-blue)) !important;
+  color: #ffffff !important;
+  border: 1px solid color-mix(in srgb, var(--primary-hover, var(--msu-blue-hover)) 64%, transparent) !important;
+  box-shadow: 0 8px 20px rgba(0, 45, 114, 0.16) !important;
+}
+
+.message.bot .message-bubble {
+  background: transparent !important;
+  border: 0 !important;
+  border-left: 3px solid var(--accent, var(--msu-gold)) !important;
+  border-radius: 0 12px 12px 0 !important;
+  box-shadow: none !important;
+  color: var(--text-main) !important;
+  padding-left: 18px !important;
+}
+
+.message.bot .message-bubble-wrapper {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+body.dark .message.user .message-bubble {
+  background: var(--primary, var(--msu-blue)) !important;
+  color: #07111f !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28) !important;
+}
+
+body.dark .message.bot .message-bubble {
+  background: transparent !important;
+  border-left-color: var(--accent, var(--msu-gold)) !important;
+  color: var(--text-main) !important;
+}
+
+body.dark .message.bot .message-bubble-wrapper {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* Dark mode academic finish: softer Morgan blue, warm hover accents, no black text. */
+body.dark .chatbox {
+  color: var(--text-main);
+}
+
+body.dark .message.user .message-bubble {
+  background: linear-gradient(135deg, #5f7fae, #466995) !important;
+  color: #f8f3ea !important;
+  border-color: rgba(143, 174, 215, 0.34) !important;
+  box-shadow: 0 10px 24px rgba(6, 12, 22, 0.34) !important;
+}
+
+body.dark .message.bot .message-bubble {
+  background: transparent !important;
+  color: #ece6dc !important;
+  border-left-color: #e7a05b !important;
+}
+
+body.dark .message.bot .message-bubble strong,
+body.dark .message.bot .message-bubble h1,
+body.dark .message.bot .message-bubble h2,
+body.dark .message.bot .message-bubble h3 {
+  color: #f7efe3 !important;
+}
+
+body.dark .model-selector-header {
+  background: var(--bg-body) !important;
+}
+
+body.dark .model-selector-trigger,
+body.dark .mode-segmented,
+body.dark .header-home-btn,
+body.dark .chat-input-wrapper {
+  background: var(--bg-surface) !important;
+  border-color: rgba(143, 174, 215, 0.24) !important;
+  color: var(--text-main) !important;
+  box-shadow: 0 10px 24px rgba(6, 12, 22, 0.2) !important;
+}
+
+body.dark .model-selector-trigger:hover:not(:disabled),
+body.dark .header-home-btn:hover,
+body.dark .mode-segmented-btn:hover:not(:disabled) {
+  background: rgba(231, 160, 91, 0.14) !important;
+  border-color: rgba(231, 160, 91, 0.34) !important;
+  color: #f7d6b4 !important;
+}
+
+body.dark .mode-segmented-btn.active {
+  background: linear-gradient(135deg, rgba(120, 157, 202, 0.24), rgba(231, 160, 91, 0.14)) !important;
+  color: #f4efe6 !important;
+}
+
+body.dark .send-btn:not(:disabled) {
+  background: #5f7fae !important;
+  color: #f8f3ea !important;
+}
+
+body.dark .send-btn:hover:not(:disabled) {
+  background: #e7a05b !important;
+  color: #182033 !important;
+}
+
+.header-home-btn {
+  border: 1px solid rgba(29, 78, 216, 0.35);
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(29, 78, 216, 0.22);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 34px;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.header-home-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.3);
+}
+
+.coding-chat-main {
+  padding-top: 42px;
+  height: auto;
+  min-height: calc(100vh - 70px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.model-selector-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+[data-theme="dark"] .model-selector-header,
+body.dark .model-selector-header {
+  background: var(--bg-body, #1a1a1a);
 }
 
 .model-selector-trigger {
@@ -676,33 +1890,6 @@ body.sidebar-collapsed .chat-input-container {
   background: var(--bg-secondary, #f0f2f5);
 }
 
-.model-dropdown-icon {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border-radius: 8px;
-  background: var(--bg-secondary, #f0f2f5);
-  color: var(--text-secondary, #555);
-}
-
-.model-dropdown-item.active .model-dropdown-icon {
-  background: rgba(66, 133, 244, 0.1);
-  color: var(--msu-blue, #4285f4);
-}
-
-[data-theme="dark"] .model-dropdown-icon {
-  background: var(--bg-secondary, #2a2a2a);
-  color: var(--text-secondary, #999);
-}
-
-[data-theme="dark"] .model-dropdown-item.active .model-dropdown-icon {
-  background: rgba(66, 133, 244, 0.15);
-  color: var(--msu-blue, #4285f4);
-}
-
 .model-dropdown-info {
   display: flex;
   flex-direction: column;
@@ -726,30 +1913,107 @@ body.sidebar-collapsed .chat-input-container {
   flex-shrink: 0;
   color: var(--msu-blue, #4285f4);
 }
+.mode-segmented {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid rgba(66, 133, 244, 0.18);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(66, 133, 244, 0.08), rgba(52, 168, 83, 0.05)),
+    var(--bg-primary, #fff);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.mode-segmented-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #666);
+  border-radius: 7px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.mode-segmented-btn:hover:not(:disabled) {
+  color: var(--text-primary, #1a1a1a);
+  background: var(--bg-secondary, #f0f2f5);
+}
+
+.mode-segmented-btn.active {
+  color: var(--msu-blue, #4285f4);
+  background: rgba(66, 133, 244, 0.1);
+}
+
+.mode-segmented-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* Dark theme */
-[data-theme="dark"] .model-selector-trigger {
-  color: var(--text-primary, #e0e0e0);
+[data-theme="dark"] .model-selector-trigger,
+body.dark .model-selector-trigger {
+  color: #e5e7eb;
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.18);
 }
-[data-theme="dark"] .model-selector-trigger:hover:not(:disabled) {
-  background: var(--bg-secondary, #2a2a2a);
+[data-theme="dark"] .model-selector-trigger:hover:not(:disabled),
+body.dark .model-selector-trigger:hover:not(:disabled) {
+  background: rgba(30, 41, 59, 0.92);
+  border-color: rgba(138, 180, 248, 0.28);
 }
-[data-theme="dark"] .model-dropdown {
+[data-theme="dark"] .model-dropdown,
+body.dark .model-dropdown {
   background: var(--bg-primary, #1a1a1a);
   border-color: var(--border-color, #333);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 [data-theme="dark"] .model-dropdown-item:hover,
-[data-theme="dark"] .model-dropdown-item.active {
+[data-theme="dark"] .model-dropdown-item.active,
+body.dark .model-dropdown-item:hover,
+body.dark .model-dropdown-item.active {
   background: var(--bg-secondary, #2a2a2a);
 }
-[data-theme="dark"] .model-dropdown-name {
+[data-theme="dark"] .model-dropdown-name,
+body.dark .model-dropdown-name {
   color: var(--text-primary, #e0e0e0);
 }
-[data-theme="dark"] .model-dropdown-desc {
+[data-theme="dark"] .model-dropdown-desc,
+body.dark .model-dropdown-desc {
   color: var(--text-secondary, #888);
 }
+[data-theme="dark"] .mode-segmented,
+body.dark .mode-segmented {
+  background:
+    linear-gradient(135deg, rgba(66, 133, 244, 0.14), rgba(52, 168, 83, 0.06)),
+    rgba(15, 23, 42, 0.86);
+  border-color: rgba(66, 133, 244, 0.24);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+}
+[data-theme="dark"] .mode-segmented-btn,
+body.dark .mode-segmented-btn {
+  color: #a7b3c6;
+}
+[data-theme="dark"] .mode-segmented-btn:hover:not(:disabled),
+body.dark .mode-segmented-btn:hover:not(:disabled) {
+  color: #e5e7eb;
+  background: rgba(30, 41, 59, 0.95);
+}
+[data-theme="dark"] .mode-segmented-btn.active,
+body.dark .mode-segmented-btn.active {
+  color: #fff;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
 
+body.dark .header-home-btn {
+  border-color: rgba(147, 197, 253, 0.32);
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: #fff;
+}
 .action-btn-icon {
   background: transparent;
   border: none;
@@ -824,13 +2088,6 @@ body.dark .send-btn:hover:not(:disabled) {
 }
 
 /* Typing Dots - Enhanced */
-.typing-bubble {
-  display: flex;
-  gap: 6px;
-  padding: 16px 22px !important;
-  background: var(--bg-card) !important;
-}
-
 .dot {
   width: 8px;
   height: 8px;
@@ -1183,14 +2440,9 @@ body.dark .send-btn:hover:not(:disabled) {
 
 /* iPad Pro Portrait & iPad Landscape (768px - 1023px) */
 @media (max-width: 1023px) and (min-width: 768px) {
-  .chat-main {
-    margin-left: 0 !important;
-    width: 100% !important;
-  }
-
-  .chat-input-container {
-    left: 0 !important;
-  }
+  /* Tablet sidebar offsets (push, not overlay) are defined in the later
+     1023/768 block below, which is sidebar-state-aware for both .chat-main and
+     .coding-chat-main. Keep the rest of the tablet tweaks here. */
 
   .chat-messages {
     padding: 24px 20px 110px 20px;
@@ -1207,8 +2459,7 @@ body.dark .send-btn:hover:not(:disabled) {
   .welcome-title {
     font-size: 2rem;
   }
-
-  .suggestions {
+.suggestions {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -1276,18 +2527,13 @@ body.dark .send-btn:hover:not(:disabled) {
   .chat-input-field {
     font-size: 16px !important; /* Prevent iOS zoom */
   }
-
-  .suggestions {
+.suggestions {
     grid-template-columns: 1fr;
   }
 }
 
 /* Small mobile devices */
 @media (max-width: 480px) {
-  .chatbox-container {
-    height: calc(100vh - 60px);
-  }
-
   .chat-main {
     height: calc(100vh - 60px);
   }
@@ -1319,8 +2565,7 @@ body.dark .send-btn:hover:not(:disabled) {
     margin-bottom: 24px;
     max-width: 100%;
   }
-
-  .suggestions {
+.suggestions {
     grid-template-columns: 1fr;
     gap: 8px;
     margin-top: 16px;
@@ -1568,9 +2813,9 @@ body.dark .suggestions .suggestion-btn:hover {
   box-shadow: var(--shadow-md);
 }
 
-/* Dark mode decorative glow */
+/* Dark mode decorative glow (warm, faint). */
 body.dark .welcome-container::before {
-  background: var(--gradient-mesh), radial-gradient(circle, rgba(138, 180, 248, 0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--page-wash, rgba(245, 130, 32, 0.05)) 0%, transparent 70%);
 }
 
 body.dark .message.user .message-bubble {
@@ -1924,11 +3169,6 @@ body.dark .file-action {
 }
 
 /* Voice Button States */
-.voice-btn.voice-active {
-  background: var(--msu-blue) !important;
-  color: white !important;
-}
-
 .voice-btn.listening {
   background: #ef4444 !important;
   color: white !important;
@@ -2453,31 +3693,6 @@ body.dark .report-textarea:focus {
   color: #fff;
 }
 
-/* ===== Regenerate Button ===== */
-.regenerate-container {
-  display: flex;
-  justify-content: center;
-  padding: 4px 0;
-}
-
-.regenerate-btn {
-  background: transparent;
-  border: 1px solid var(--border-color);
-  border-radius: 20px;
-  padding: 6px 16px;
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.regenerate-btn:hover {
-  color: var(--msu-blue);
-  border-color: var(--msu-blue);
-  background: var(--msu-blue-50, rgba(66, 133, 244, 0.06));
-}
-
 /* ===== Drag and Drop Overlay ===== */
 .drag-overlay {
   position: absolute;
@@ -2509,4 +3724,223 @@ body.dark .drag-overlay {
 
 body.dark .drag-overlay-content {
   color: #8ab4f8;
+}
+@media (max-width: 900px) {
+  .model-selector-header {
+    top: -4px;
+    padding: 4px 10px 16px;
+  }
+
+  .chat-controls-header {
+    flex-wrap: wrap;
+    gap: 6px;
+    max-width: 100%;
+  }
+
+  .model-selector-trigger,
+  .mode-segmented-btn {
+    min-height: 34px;
+  }
+
+  .model-selector-name {
+    font-size: 14px;
+  }
+
+  .mode-segmented {
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .mode-segmented::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mode-segmented-btn {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .model-dropdown {
+    min-width: min(260px, calc(100vw - 32px));
+  }
+}
+
+@media (max-width: 640px) {
+  .chat-main {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  body.sidebar-collapsed .chat-main {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  /* The fixed secondary header reserves its space via .chat-main padding-top
+     (ChatHeader.css). Messages only need side/bottom padding here — adding top
+     padding would double-count and the header layout is owned by ChatHeader.css,
+     so no position/background override belongs here. */
+  .chat-messages {
+    padding: 16px 12px 118px;
+  }
+
+  .chat-controls-header {
+    justify-content: flex-start;
+  }
+}
+body.sidebar-resizing .chat-main {
+  margin-left: var(--sidebar-preview-width, 280px);
+  width: calc(100% - var(--sidebar-preview-width, 280px));
+  transition: margin-left 80ms linear, width 80ms linear;
+  will-change: margin-left, width;
+}
+
+body.sidebar-resizing .chat-input-container {
+  left: var(--sidebar-preview-width, 280px);
+  width: calc(100% - var(--sidebar-preview-width, 280px));
+  transition: left 80ms linear, width 80ms linear;
+  will-change: left, width;
+}
+
+body.sidebar-custom-width:not(.sidebar-collapsed) .chat-input-container {
+  left: var(--sidebar-width, 280px);
+  width: calc(100% - var(--sidebar-width, 280px));
+}
+
+.coding-chat-main .coding-workbench-main {
+  grid-template-columns: minmax(280px, 0.34fr) minmax(0, 1fr);
+}
+
+.coding-chat-main .coding-editor-center {
+  min-height: 0;
+}
+
+.coding-chat-main .workspace-tab-body .leetcode-editor,
+.coding-chat-main .leetcode-editor {
+  min-height: clamp(260px, calc(100vh - 470px), 460px);
+}
+
+@media (max-width: 1023px) and (min-width: 768px) {
+  /* Tablet uses a NARROWER 220px sidebar (set in ChatSidebar.css) so pushing the
+     content keeps a balanced split. Open -> 220px; collapsed -> 64px. */
+  body:not(.sidebar-collapsed) .chat-main {
+    margin-left: 220px !important;
+    width: calc(100% - 220px) !important;
+  }
+
+  body.sidebar-collapsed .chat-main {
+    margin-left: 64px !important;
+    width: calc(100% - 64px) !important;
+  }
+
+  body:not(.sidebar-collapsed) .chat-input-container {
+    left: 220px !important;
+    width: calc(100% - 220px) !important;
+  }
+
+  body.sidebar-collapsed .chat-input-container {
+    left: 64px !important;
+    width: calc(100% - 64px) !important;
+  }
+
+  /* Coding Tutor on tablet: PUSH the workspace too (don't let the open sidebar
+     overlay it), at the same balanced 220px width. */
+  body:not(.sidebar-collapsed) .coding-chat-main {
+    margin-left: 220px !important;
+    width: calc(100% - 220px) !important;
+  }
+
+  body.sidebar-collapsed .coding-chat-main {
+    margin-left: 64px !important;
+    width: calc(100% - 64px) !important;
+  }
+
+  .coding-chat-main .coding-workbench-main {
+    grid-template-columns: minmax(260px, 0.34fr) minmax(0, 1fr) !important;
+  }
+
+  .model-selector-header {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  body.sidebar-collapsed .chat-input-container,
+  body.sidebar-resizing .chat-input-container,
+  body.sidebar-custom-width:not(.sidebar-collapsed) .chat-input-container {
+    left: 0;
+    width: 100%;
+  }
+}
+
+/* Final header action hover lock for Coding Tutor / full chat controls. */
+.model-selector-header .header-home-btn {
+  background: linear-gradient(135deg, var(--primary, #002d72), var(--primary-hover, #0057b8)) !important;
+  border: 1px solid color-mix(in srgb, var(--primary, #002d72) 70%, var(--border-strong, #b7c6d8)) !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--primary, #002d72) 20%, transparent) !important;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease !important;
+}
+
+.model-selector-header .header-home-btn:hover:not(:disabled),
+.model-selector-header .header-home-btn:focus-visible {
+  background: linear-gradient(135deg, var(--accent, #f58220), var(--accent-hover, #d96f1a)) !important;
+  border-color: color-mix(in srgb, var(--accent, #f58220) 64%, var(--border-strong, #b7c6d8)) !important;
+  color: #182033 !important;
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--accent, #f58220) 22%, transparent) !important;
+  transform: translateY(-1px);
+}
+
+body.dark .model-selector-header .header-home-btn {
+  background: linear-gradient(135deg, #5f7fae, #466995) !important;
+  border-color: rgba(143, 174, 215, 0.34) !important;
+  color: #f8f3ea !important;
+}
+
+body.dark .model-selector-header .header-home-btn:hover:not(:disabled),
+body.dark .model-selector-header .header-home-btn:focus-visible {
+  background: linear-gradient(135deg, #e7a05b, #c98242) !important;
+  border-color: rgba(231, 160, 91, 0.46) !important;
+  color: #172033 !important;
+}
+
+/* The secondary iNav/tutor-mode header is styled ENTIRELY in ChatHeader.css
+   (its own component file): fixed-on-scroll, opaque ivory background, sizing,
+   and dark mode. The duplicate copy that used to live here had the SAME
+   selector + !important and only differed by being semi-transparent with a
+   backdrop-blur — on a specificity tie the later-loaded file won, which made
+   the bar see-through. Removed so ChatHeader.css is the single source. */
+
+@media (max-width: 1100px) {
+  .welcome-container {
+    max-width: 100%;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .suggestions {
+    width: min(100%, 760px);
+    max-width: calc(100vw - 112px);
+  }
+
+  .suggestions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .suggestions {
+    max-width: 100%;
+  }
+
+  .practice-controls {
+    grid-template-columns: 1fr;
+  }
 }

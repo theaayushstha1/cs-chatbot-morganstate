@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from 'sonner';
 import { FaPlus } from "@react-icons/all-files/fa/FaPlus";
 import { FaSearch } from "@react-icons/all-files/fa/FaSearch";
@@ -7,6 +7,7 @@ import { FaBook } from "@react-icons/all-files/fa/FaBook";
 import { FaChalkboardTeacher } from "@react-icons/all-files/fa/FaChalkboardTeacher";
 import { FaChartLine } from "@react-icons/all-files/fa/FaChartLine";
 import { FaProjectDiagram } from "@react-icons/all-files/fa/FaProjectDiagram";
+import { FaLaptopCode } from "@react-icons/all-files/fa/FaLaptopCode";
 import { FaTrash } from "@react-icons/all-files/fa/FaTrash";
 import { FaUser } from "@react-icons/all-files/fa/FaUser";
 import { FaSignOutAlt } from "@react-icons/all-files/fa/FaSignOutAlt";
@@ -42,7 +43,8 @@ export default function ChatSidebar({
   onRename,
   darkMode,
   onToggleTheme,
-  onCollapse
+  onCollapseSidebar,
+  onSidebarResize
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, sessionId: null });
@@ -52,6 +54,13 @@ export default function ChatSidebar({
   const [userProfile, setUserProfile] = useState(null);
   const [profileImageUrl, setProfileImageUrl] = useState(null);
   const navigate = useNavigate();
+  const dragStartXRef = useRef(0);
+  const dragFrameRef = useRef(null);
+  const sidebarRef = useRef(null);
+
+  const SIDEBAR_MIN_WIDTH = 64;
+  const SIDEBAR_MAX_WIDTH = 280;
+  const SIDEBAR_COLLAPSE_WIDTH = 72;
 
   // Support Ticket Modal State
   const [showTicketModal, setShowTicketModal] = useState(false);
@@ -66,27 +75,38 @@ export default function ChatSidebar({
   const [ticketSuccess, setTicketSuccess] = useState(false);
 
   const API_BASE = getApiBase();
+  const location = useLocation();
+  const codingTutorActive = location.pathname === "/coding";
 
   // PWA install prompt
   const deferredPromptRef = useRef(null);
-  const [canInstall, setCanInstall] = useState(false);
+
+  useEffect(() => {
+    const savedWidth = Number(localStorage.getItem("sidebar_width"));
+    if (!Number.isFinite(savedWidth)) return;
+
+    if (savedWidth <= SIDEBAR_COLLAPSE_WIDTH) {
+      document.documentElement.style.setProperty("--sidebar-width", `${SIDEBAR_MIN_WIDTH}px`);
+      document.body.classList.remove("sidebar-custom-width");
+      return;
+    }
+
+    if (savedWidth < SIDEBAR_MAX_WIDTH) {
+      document.documentElement.style.setProperty("--sidebar-width", `${savedWidth}px`);
+      document.body.classList.add("sidebar-custom-width");
+    }
+  }, []);
 
   useEffect(() => {
     const handler = (e) => {
       e.preventDefault();
       deferredPromptRef.current = e;
-      setCanInstall(true);
     };
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
-  // 🔥 Fetch user profile on mount - PRESERVED
-  useEffect(() => {
-    fetchUserProfile();
-  }, []);
-
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
@@ -119,13 +139,25 @@ export default function ChatSidebar({
     } catch (error) {
       console.error("❌ Error fetching profile:", error);
     }
+  }, [API_BASE]);
+
+  // 🔥 Fetch user profile on mount - PRESERVED
+  useEffect(() => {
+    fetchUserProfile();
+  }, [fetchUserProfile]);
+
+  // Coding Tutor creates the next session boundary when its widget closes.
+  // Keep that empty draft out of history until the user sends a real message.
+  const isVisibleHistorySession = (session) => {
+    const isCodingSession = session.mode === "coding_tutor" || String(session.id).startsWith("coding-");
+    return !isCodingSession || (session.messages?.length ?? 0) > 0;
   };
 
-  // Filter logic - PRESERVED
-  const filteredSessions = sessions.filter(s =>
-    !s.archived && s.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const visibleSessions = sessions.filter(isVisibleHistorySession);
+  const filteredSessions = visibleSessions.filter(s =>
+    !s.archived && String(s.title || "New Chat").toLowerCase().includes(searchQuery.toLowerCase())
   );
-  const archivedSessions = sessions.filter(s => s.archived);
+  const archivedSessions = visibleSessions.filter(s => s.archived);
   const pinnedSessions = filteredSessions.filter(s => s.pinned);
   const regularSessions = filteredSessions.filter(s => !s.pinned);
 
@@ -139,7 +171,7 @@ export default function ChatSidebar({
     const groups = { "Today": [], "Yesterday": [], "Previous 7 Days": [], "Older": [] };
 
     sessions.forEach(s => {
-      const ts = parseInt(s.id);
+      const ts = Number(String(s.id).match(/\d+/)?.[0]);
       if (isNaN(ts)) { groups["Older"].push(s); return; }
       const date = new Date(ts);
       if (date >= today) groups["Today"].push(s);
@@ -156,7 +188,14 @@ export default function ChatSidebar({
   const handleContextMenu = (e, sessionId) => {
     e.preventDefault();
     e.stopPropagation();
-    setContextMenu({ visible: true, x: e.clientX, y: e.clientY, sessionId });
+    const menuWidth = 208;
+    const menuHeight = 210;
+    const padding = 10;
+    const maxX = Math.max(padding, window.innerWidth - menuWidth - padding);
+    const maxY = Math.max(padding, window.innerHeight - menuHeight - padding);
+    const x = Math.min(Math.max(e.clientX, padding), maxX);
+    const y = Math.min(Math.max(e.clientY, padding), maxY);
+    setContextMenu({ visible: true, x, y, sessionId });
   };
 
   const closeContextMenu = () => {
@@ -181,7 +220,6 @@ export default function ChatSidebar({
       const { outcome } = await deferredPromptRef.current.userChoice;
       if (outcome === 'accepted') {
         toast.success("App installed!");
-        setCanInstall(false);
       }
       deferredPromptRef.current = null;
     } else {
@@ -374,8 +412,98 @@ export default function ChatSidebar({
     );
   };
 
+  const handleSidebarDragStart = (e) => {
+    if (!onSidebarResize) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const handle = e.currentTarget;
+    const pointerId = e.pointerId;
+    const startClientX = e.clientX;
+    if (!Number.isFinite(startClientX)) return;
+
+    handle.setPointerCapture?.(pointerId);
+
+    const currentWidth = sidebarRef.current?.getBoundingClientRect().width || SIDEBAR_MAX_WIDTH;
+    const startWidth = Math.max(SIDEBAR_MIN_WIDTH, Math.min(SIDEBAR_MAX_WIDTH, currentWidth));
+    let previewWidth = startWidth;
+    let latestClientX = startClientX;
+
+    dragStartXRef.current = startClientX;
+    document.body.classList.add("sidebar-resizing");
+    document.documentElement.style.setProperty("--sidebar-preview-width", `${startWidth}px`);
+
+    const setPreviewWidth = (clientX) => {
+      const deltaX = clientX - dragStartXRef.current;
+      previewWidth = Math.max(SIDEBAR_MIN_WIDTH, Math.min(SIDEBAR_MAX_WIDTH, startWidth + deltaX));
+      document.documentElement.style.setProperty("--sidebar-preview-width", `${previewWidth}px`);
+    };
+
+    const handleMove = (moveEvent) => {
+      moveEvent.preventDefault();
+      latestClientX = moveEvent.clientX;
+      if (dragFrameRef.current !== null) return;
+
+      dragFrameRef.current = window.requestAnimationFrame(() => {
+        dragFrameRef.current = null;
+        setPreviewWidth(latestClientX);
+      });
+    };
+
+    const finishDrag = (finishEvent) => {
+      finishEvent?.preventDefault?.();
+      if (dragFrameRef.current !== null) {
+        window.cancelAnimationFrame(dragFrameRef.current);
+        dragFrameRef.current = null;
+      }
+      setPreviewWidth(latestClientX);
+      const finalWidth = Math.round(previewWidth);
+      const shouldCollapse = finalWidth <= SIDEBAR_COLLAPSE_WIDTH;
+      const savedWidth = shouldCollapse ? SIDEBAR_MIN_WIDTH : finalWidth;
+
+      document.documentElement.style.setProperty("--sidebar-width", `${savedWidth}px`);
+      document.body.classList.toggle("sidebar-custom-width", !shouldCollapse && savedWidth < SIDEBAR_MAX_WIDTH);
+      onSidebarResize({ collapsed: shouldCollapse, width: savedWidth });
+      cleanup();
+    };
+
+    const cleanup = () => {
+      handle.releasePointerCapture?.(pointerId);
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", finishDrag);
+      window.removeEventListener("pointercancel", finishDrag);
+      if (dragFrameRef.current !== null) {
+        window.cancelAnimationFrame(dragFrameRef.current);
+        dragFrameRef.current = null;
+      }
+      window.setTimeout(() => {
+        document.body.classList.remove("sidebar-resizing");
+        document.documentElement.style.removeProperty("--sidebar-preview-width");
+      }, 120);
+    };
+
+    window.addEventListener("pointermove", handleMove, { passive: false });
+    window.addEventListener("pointerup", finishDrag, { once: true });
+    window.addEventListener("pointercancel", finishDrag, { once: true });
+  };
+
   return (
-    <div className="chat-sidebar">
+    <>
+      {/* Mobile-only backdrop: tap to close the drawer so it never traps the chat. */}
+      <div
+        className="sidebar-backdrop"
+        aria-hidden="true"
+        onClick={() => onCollapseSidebar?.()}
+      />
+    <div className="chat-sidebar" ref={sidebarRef}>
+      <div
+        className="sidebar-drag-handle"
+        role="separator"
+        aria-label="Drag to collapse or expand sidebar"
+        title="Drag to collapse or expand sidebar"
+        onPointerDown={handleSidebarDragStart}
+        onDragStart={(event) => event.preventDefault()}
+      />
       <div className="sidebar-top">
         <div className="sidebar-top-row">
           <button
@@ -387,8 +515,8 @@ export default function ChatSidebar({
             <FaPlus size={16} />
             <span>New Chat</span>
           </button>
-          {onCollapse && (
-            <button className="sidebar-toggle-btn" onClick={onCollapse} title="Close sidebar">
+          {onCollapseSidebar && (
+            <button className="sidebar-toggle-btn" onClick={onCollapseSidebar} title="Close sidebar">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                 <line x1="9" y1="3" x2="9" y2="21"/>
@@ -415,6 +543,14 @@ export default function ChatSidebar({
         >
           <FaChalkboardTeacher size={16} />
           <span>My Classes</span>
+        </button>
+        <button
+          className={`sidebar-action-btn curriculum-link ${codingTutorActive ? 'active' : ''}`}
+          onClick={(e) => { e.preventDefault(); navigate("/coding"); }}
+          title="Open Morgan State Coding Tutor"
+        >
+          <FaLaptopCode size={16} />
+          <span>Coding Tutor</span>
         </button>
         <button
           className="sidebar-action-btn curriculum-link"
@@ -706,5 +842,6 @@ export default function ChatSidebar({
         </div>
       )}
     </div>
+    </>
   );
 }

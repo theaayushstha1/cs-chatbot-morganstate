@@ -108,16 +108,6 @@
   font-size: 0.85rem;
 }
 
-.trial-page-title {
-  font-weight: 700;
-  color: var(--msu-blue);
-  font-size: 0.95rem;
-}
-
-.guest-trial-bar.expired .trial-page-title {
-  color: white;
-}
-
 .trial-text {
   color: var(--text-main);
 }
@@ -142,11 +132,6 @@
 .trial-divider {
   color: var(--text-secondary);
   opacity: 0.5;
-}
-
-.trial-hint {
-  color: var(--text-secondary);
-  font-size: 0.85rem;
 }
 
 .trial-link {
