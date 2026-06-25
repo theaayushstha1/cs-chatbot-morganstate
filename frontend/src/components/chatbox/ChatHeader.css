@@ -1,0 +1,165 @@
+/* Height of the top app navbar this secondary header tucks under, and the
+   secondary header's own height. Both drive the layout so there is never a gap
+   above the bar or a chat message hidden behind it. */
+.chat-main {
+  --app-navbar-height: 70px;
+  --secondary-header-height: 48px;
+  /* Reserve the bar's height so the first chat message starts below it. */
+  padding-top: var(--secondary-header-height);
+}
+
+/* Fixed to the viewport so the iNav / tutor-mode bar NEVER scrolls away — the
+   user can switch modes at any scroll position. It sits directly under the top
+   navbar and to the right of the sidebar. */
+.chat-main > .model-selector-header {
+  position: fixed !important;
+  top: var(--app-navbar-height) !important;
+  left: 280px !important;
+  right: 0 !important;
+  z-index: 240 !important;
+  width: auto;
+  height: var(--secondary-header-height) !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-shrink: 0;
+  padding: 0 18px !important;
+  /* Invisible bar: no solid band, border, or shadow — only the controls (model
+     dropdown + tutor-mode toggle, which carry their own backgrounds) float over
+     the chat, like the floating chat input below. The bar's layout (position /
+     height / padding) is unchanged, so the buttons stay exactly where they were. */
+  background: transparent !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  /* The empty parts of the bar must NOT block the chat behind them (scroll,
+     text selection). Only the controls re-enable pointer events (below). */
+  pointer-events: none !important;
+}
+
+/* Re-enable interaction on the actual controls inside the now-transparent bar.
+   A soft backdrop blur (scoped to ONLY the controls, not the empty bar) keeps the
+   dropdown + tutor-mode pills legible when chat text scrolls behind them, while
+   the empty parts of the bar stay fully see-through. The pill/rounded radius and
+   slight inset padding give the blur a tidy floating-chip edge. */
+.chat-main > .model-selector-header .chat-controls-header {
+  pointer-events: auto !important;
+  padding: 3px 6px !important;
+  border-radius: 12px !important;
+  background: color-mix(in srgb, var(--bg-body, #fffdf7) 55%, transparent) !important;
+  backdrop-filter: blur(8px) saturate(1.05) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(1.05) !important;
+}
+
+body.dark .chat-main > .model-selector-header .chat-controls-header {
+  background: color-mix(in srgb, var(--bg-body, #111827) 55%, transparent) !important;
+}
+
+/* Follow the sidebar width so the bar lines up with the chat area. */
+body.sidebar-collapsed .chat-main > .model-selector-header {
+  left: 64px !important;
+}
+
+body.sidebar-custom-width:not(.sidebar-collapsed) .chat-main > .model-selector-header {
+  left: var(--sidebar-width, 280px) !important;
+}
+
+body.sidebar-resizing .chat-main > .model-selector-header {
+  left: var(--sidebar-preview-width, 280px) !important;
+}
+
+.chat-main > .model-selector-header .chat-controls-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  max-width: 100%;
+}
+
+.chat-main > .model-selector-header .model-selector-trigger {
+  min-height: 30px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  box-shadow: none !important;
+}
+
+.chat-main > .model-selector-header .model-selector-name {
+  font-size: 14px;
+  line-height: 1.1;
+}
+
+.chat-main > .model-selector-header .mode-segmented {
+  min-height: 30px;
+  padding: 3px;
+  border-radius: 8px;
+  box-shadow: none !important;
+}
+
+.chat-main > .model-selector-header .mode-segmented-btn {
+  min-height: 24px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.1;
+}
+
+.chat-main > .model-selector-header :is(.header-home-btn, .workspace-toggle-btn) {
+  min-height: 28px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.1;
+  box-shadow: none !important;
+}
+
+.coding-chat-main {
+  padding-top: 0 !important;
+}
+
+body.dark .chat-main > .model-selector-header {
+  background: transparent !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 900px) {
+  /* Controls wrap to two rows, so the bar (and the space reserved for it) is
+     taller. Keep height and padding in sync so it still fully covers the band. */
+  .chat-main {
+    --secondary-header-height: 84px;
+  }
+
+  .chat-main > .model-selector-header {
+    padding: 0 10px !important;
+  }
+
+  .chat-main > .model-selector-header .chat-controls-header {
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+  }
+}
+
+/* The top navbar shrinks on small screens; keep the fixed bar tucked right
+   under it (no gap above) and span the full width once the sidebar is overlaid. */
+@media (max-width: 767px) {
+  .chat-main {
+    --app-navbar-height: 60px;
+  }
+}
+
+@media (max-width: 640px) {
+  .chat-main > .model-selector-header,
+  body.sidebar-collapsed .chat-main > .model-selector-header,
+  body.sidebar-custom-width:not(.sidebar-collapsed) .chat-main > .model-selector-header,
+  body.sidebar-resizing .chat-main > .model-selector-header {
+    left: 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-main {
+    --app-navbar-height: 56px;
+  }
+}

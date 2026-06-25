@@ -6,12 +6,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  /* Google Brand Colors */
-  --msu-blue: #4285F4;
-  --msu-blue-hover: #3367D6;
-  --msu-blue-light: #669DF6;
-  --msu-blue-50: rgba(66, 133, 244, 0.06);
-  --msu-blue-100: rgba(66, 133, 244, 0.12);
+  /* CS Navigator Brand Colors */
+  --msu-blue: #1d4ed8;
+  --msu-blue-hover: #1e40af;
+  --msu-blue-light: #60a5fa;
+  --msu-blue-50: rgba(29, 78, 216, 0.08);
+  --msu-blue-100: rgba(29, 78, 216, 0.14);
   --msu-gold: #FBBC05;
   --msu-gold-hover: #F9AB00;
   --msu-gold-50: rgba(251, 188, 5, 0.08);
@@ -21,43 +21,63 @@
   --google-yellow: #FBBC05;
   --google-green: #34A853;
   --google-blue: #4285F4;
-  --accent-teal: #00BCD4;
+  --accent-teal: #0f766e;
   --accent-emerald: #34A853;
   --accent-violet: #A142F4;
   --accent-rose: #EA4335;
   --accent-amber: #FBBC05;
 
   /* Modern Gradients */
-  --gradient-primary: linear-gradient(135deg, #4285F4 0%, #669DF6 100%);
+  --gradient-primary: linear-gradient(135deg, #1d4ed8 0%, #60a5fa 100%);
   --gradient-gold: linear-gradient(135deg, #FBBC05 0%, #F9AB00 100%);
-  --gradient-subtle: linear-gradient(180deg, #f8f9fa 0%, #f1f3f4 100%);
+  --gradient-subtle: linear-gradient(180deg, #f8fafc 0%, #eef4ff 100%);
   --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.75) 100%);
-  --gradient-mesh: radial-gradient(at 40% 20%, rgba(66, 133, 244, 0.04) 0px, transparent 50%),
-                   radial-gradient(at 80% 0%, rgba(52, 168, 83, 0.03) 0px, transparent 50%),
+  --gradient-mesh: radial-gradient(at 40% 20%, rgba(29, 78, 216, 0.05) 0px, transparent 50%),
+                   radial-gradient(at 80% 0%, rgba(15, 118, 110, 0.04) 0px, transparent 50%),
                    radial-gradient(at 0% 50%, rgba(234, 67, 53, 0.02) 0px, transparent 50%);
   --gradient-google: linear-gradient(135deg, #4285F4, #34A853, #FBBC05, #EA4335);
 
+  /* Navbar height — kept in a variable so the sidebar and page content always
+     stay flush with the header at every breakpoint (no gap showing through). */
+  --nav-h: 70px;
+
   /* Light Mode Colors */
-  --bg-body: #f8f9fa;
+  --bg-body: #f6f8fc;
   --bg-card: #ffffff;
-  --bg-card-hover: #f1f3f4;
+  --bg-card-hover: #f8fafc;
   --bg-elevated: #ffffff;
-  --bg-input: #f1f3f4;
-  --text-main: #202124;
-  --text-secondary: #5f6368;
-  --text-tertiary: #9aa0a6;
-  --border-color: #dadce0;
-  --border-subtle: #e8eaed;
-  --border-focus: #4285F4;
+  --bg-input: #f8fafc;
+  --text-main: #111827;
+  --text-secondary: #64748b;
+  --text-tertiary: #94a3b8;
+  --border-color: #dbe3ef;
+  --border-subtle: #eef3fb;
+  --border-focus: #1d4ed8;
+  --bg-app: var(--bg-body);
+  --bg-surface: var(--bg-card);
+  --bg-surface-soft: var(--bg-input);
+  --bg-surface-raised: var(--bg-elevated);
+  --text-muted: var(--text-secondary);
+  --text-soft: var(--text-tertiary);
+  --border-soft: var(--border-color);
+  --border-strong: #b8c5d8;
+  --primary: var(--msu-blue);
+  --primary-hover: var(--msu-blue-hover);
+  --primary-soft: var(--msu-blue-100);
+  --accent: var(--accent-teal);
+  --accent-soft: rgba(15, 118, 110, 0.1);
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
 
   /* Refined Shadows (Google Material) */
-  --shadow-xs: 0 1px 2px rgba(60, 64, 67, 0.1);
-  --shadow-sm: 0 1px 3px rgba(60, 64, 67, 0.15), 0 1px 2px rgba(60, 64, 67, 0.1);
-  --shadow-md: 0 4px 8px rgba(60, 64, 67, 0.15), 0 1px 3px rgba(60, 64, 67, 0.1);
-  --shadow-lg: 0 8px 20px rgba(60, 64, 67, 0.12), 0 2px 6px rgba(60, 64, 67, 0.08);
-  --shadow-xl: 0 16px 32px rgba(60, 64, 67, 0.14), 0 4px 8px rgba(60, 64, 67, 0.08);
-  --shadow-2xl: 0 24px 48px rgba(60, 64, 67, 0.18);
-  --shadow-glow: 0 0 16px rgba(66, 133, 244, 0.15);
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 10px rgba(15, 23, 42, 0.1), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 10px 24px rgba(15, 23, 42, 0.1), 0 2px 6px rgba(15, 23, 42, 0.06);
+  --shadow-xl: 0 18px 40px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06);
+  --shadow-2xl: 0 28px 60px rgba(15, 23, 42, 0.16);
+  --shadow-glow: 0 0 18px rgba(29, 78, 216, 0.16);
   --shadow-gold-glow: 0 0 16px rgba(251, 188, 5, 0.15);
   --shadow-inner: inset 0 1px 3px rgba(60, 64, 67, 0.08);
 
@@ -90,19 +110,41 @@
   --radius-full: 9999px;
 }
 
-/* Dark Mode - Google Dark Theme */
+/* Dark Mode - CS Navigator Midnight Theme */
 body.dark {
-  --bg-body: #1f1f1f;
-  --bg-card: #2d2d2d;
-  --bg-card-hover: #3c3c3c;
-  --bg-elevated: #333333;
-  --bg-input: #3c3c3c;
-  --text-main: #e8eaed;
-  --text-secondary: #9aa0a6;
-  --text-tertiary: #5f6368;
-  --border-color: #3c4043;
-  --border-subtle: #2d2d2d;
-  --border-focus: #8ab4f8;
+  --msu-blue: #60a5fa;
+  --msu-blue-hover: #93c5fd;
+  --msu-blue-light: #bfdbfe;
+  --msu-blue-50: rgba(96, 165, 250, 0.1);
+  --msu-blue-100: rgba(96, 165, 250, 0.16);
+  --accent-teal: #2dd4bf;
+  --bg-body: #0b1020;
+  --bg-card: #111827;
+  --bg-card-hover: #172033;
+  --bg-elevated: #1e293b;
+  --bg-input: #172033;
+  --text-main: #e5edf7;
+  --text-secondary: #9aa8bd;
+  --text-tertiary: #718096;
+  --border-color: #2b3a55;
+  --border-subtle: #1f2a40;
+  --border-focus: #60a5fa;
+  --bg-app: var(--bg-body);
+  --bg-surface: var(--bg-card);
+  --bg-surface-soft: var(--bg-input);
+  --bg-surface-raised: var(--bg-elevated);
+  --text-muted: var(--text-secondary);
+  --text-soft: var(--text-tertiary);
+  --border-soft: var(--border-color);
+  --border-strong: #3b4d6b;
+  --primary: var(--msu-blue);
+  --primary-hover: var(--msu-blue-hover);
+  --primary-soft: var(--msu-blue-100);
+  --accent: var(--accent-teal);
+  --accent-soft: rgba(45, 212, 191, 0.13);
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --danger: #f87171;
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
@@ -112,11 +154,12 @@ body.dark {
   --shadow-glow: 0 0 16px rgba(138, 180, 248, 0.12);
   --shadow-gold-glow: 0 0 16px rgba(253, 214, 99, 0.12);
   --shadow-inner: inset 0 1px 3px rgba(0, 0, 0, 0.3);
-  --gradient-subtle: linear-gradient(180deg, #2d2d2d 0%, #1f1f1f 100%);
-  --gradient-glass: linear-gradient(135deg, rgba(45, 45, 45, 0.95) 0%, rgba(31, 31, 31, 0.9) 100%);
-  --gradient-mesh: radial-gradient(at 40% 20%, rgba(138, 180, 248, 0.05) 0px, transparent 50%),
-                   radial-gradient(at 80% 0%, rgba(129, 201, 149, 0.04) 0px, transparent 50%),
-                   radial-gradient(at 0% 50%, rgba(242, 139, 130, 0.03) 0px, transparent 50%);
+  --gradient-primary: linear-gradient(135deg, #60a5fa 0%, #2dd4bf 100%);
+  --gradient-subtle: linear-gradient(180deg, #111827 0%, #0b1020 100%);
+  --gradient-glass: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(11, 16, 32, 0.9) 100%);
+  --gradient-mesh: radial-gradient(at 40% 20%, rgba(96, 165, 250, 0.08) 0px, transparent 50%),
+                   radial-gradient(at 80% 0%, rgba(45, 212, 191, 0.05) 0px, transparent 50%),
+                   radial-gradient(at 0% 50%, rgba(248, 113, 113, 0.03) 0px, transparent 50%);
 }
 
 /* ============================================================
@@ -146,13 +189,13 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'cv11', 'ss01';
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.12s ease, color 0.12s ease;
   overflow-x: hidden;
 }
 
 /* Smooth theme transitions (only on colors, not layout) */
 body * {
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease, fill 0.12s ease, stroke 0.12s ease;
 }
 
 #root {
@@ -295,8 +338,8 @@ body.dark ::-webkit-scrollbar-thumb:hover {
    ============================================================ */
 .app-layout {
   display: flex;
-  min-height: calc(100vh - 70px);
-  margin-top: 70px;
+  min-height: calc(100vh - var(--nav-h, 70px));
+  margin-top: 0;
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
@@ -306,7 +349,7 @@ body.dark ::-webkit-scrollbar-thumb:hover {
 /* Page content wrapper (for pages with sidebar) */
 .page-content {
   position: fixed;
-  top: 70px;
+  top: var(--nav-h, 70px);
   left: 280px;
   right: 0;
   bottom: 0;

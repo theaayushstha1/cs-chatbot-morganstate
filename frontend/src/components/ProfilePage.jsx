@@ -63,8 +63,6 @@ export default function ProfilePage({ userEmail, onLogout }) {
   // DegreeWorks Modal State
   const [showMorganModal, setShowMorganModal] = useState(false);
   const [degreeWorksData, setDegreeWorksData] = useState(null);
-  const [syncStep, setSyncStep] = useState(1); // 1=instructions, 2=syncing, 3=success
-
   // Banner Auto-Sync State
   const [bannerCreds, setBannerCreds] = useState({ username: "", password: "" });
   const [bannerSyncing, setBannerSyncing] = useState(false);
@@ -166,7 +164,7 @@ export default function ProfilePage({ userEmail, onLogout }) {
         setDegreeWorksData(null);
         setMessage({ type: "success", text: "DegreeWorks data disconnected successfully." });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: "error", text: "Failed to disconnect. Please try again." });
     } finally {
       setLoading(false);
@@ -201,7 +199,7 @@ export default function ProfilePage({ userEmail, onLogout }) {
         const error = await response.json();
         setMessage({ type: "error", text: error.detail || "Failed to update profile" });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: "error", text: "Network error. Please try again." });
     } finally {
       setLoading(false);
@@ -246,7 +244,7 @@ export default function ProfilePage({ userEmail, onLogout }) {
         const error = await response.json();
         setMessage({ type: "error", text: error.detail || "Failed to change password" });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: "error", text: "Network error. Please try again." });
     } finally {
       setLoading(false);
@@ -284,7 +282,7 @@ export default function ProfilePage({ userEmail, onLogout }) {
         const error = await response.json();
         setMessage({ type: "error", text: error.detail || "Failed to upload picture" });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: "error", text: "Network error. Please try again." });
     } finally {
       setLoading(false);
@@ -292,7 +290,6 @@ export default function ProfilePage({ userEmail, onLogout }) {
   };
 
   const handleConnectMorgan = () => {
-    setSyncStep(1);
     setShowMorganModal(true);
   };
 
@@ -359,7 +356,7 @@ export default function ProfilePage({ userEmail, onLogout }) {
             } else if (event.type === "error") {
               setBannerError(event.detail);
             }
-          } catch (e) {
+          } catch {
             // Skip malformed SSE lines
           }
         }
@@ -422,7 +419,9 @@ export default function ProfilePage({ userEmail, onLogout }) {
             } else if (event.type === "error") {
               setCanvasError(event.detail);
             }
-          } catch (e) {}
+          } catch {
+            // Skip malformed SSE lines
+          }
         }
       }
     } catch (error) {
@@ -1202,6 +1201,14 @@ export default function ProfilePage({ userEmail, onLogout }) {
       {showCanvasModal && (
         <div className="modal-overlay" onClick={() => !canvasSyncing && setShowCanvasModal(false)}>
           <div className="modal-content degreeworks-modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="modal-close"
+              onClick={() => !canvasSyncing && setShowCanvasModal(false)}
+              disabled={canvasSyncing}
+              title={canvasSyncing ? "Sync in progress" : "Close Canvas sync"}
+            >
+              <FaTimes />
+            </button>
             <div className="modal-header">
               <FaBook className="modal-icon" />
               <h2>Sync Canvas LMS</h2>

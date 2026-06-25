@@ -52,6 +52,8 @@ def get_current_user(
         user = db.query(User).filter(User.email == user_email).first()
         if not user:
             raise HTTPException(status_code=403, detail="User not found")
+        if getattr(user, "is_disabled", False):
+            raise HTTPException(status_code=403, detail="Account disabled")
 
         return {
             "user_id": user.id,
@@ -85,6 +87,8 @@ def get_optional_user(
         user = db.query(User).filter(User.email == user_email).first()
         if not user:
             return None
+        if getattr(user, "is_disabled", False):
+            return None
         return {"user_id": user.id, "email": user.email, "role": user.role}
     except JWTError:
         return None
@@ -116,18 +120,28 @@ class LoginRequest(BaseModel):
     password: str
 
 VALID_MODELS = {"", "inav-1.0", "inav-1.1"}
+VALID_CHAT_MODES = {"regular", "coding_tutor"}
 
 class QueryRequest(BaseModel):
     query: str
+    display_query: Optional[str] = None
     session_id: str = "default"
     skip_cache: bool = False
     model: str = ""
+    mode: str = "regular"
 
     @field_validator("model", mode="before")
     @classmethod
     def validate_model(cls, v):
         if v not in VALID_MODELS:
             return ""
+        return v
+
+    @field_validator("mode", mode="before")
+    @classmethod
+    def validate_mode(cls, v):
+        if v not in VALID_CHAT_MODES:
+            return "regular"
         return v
 
 class GuestQueryRequest(BaseModel):

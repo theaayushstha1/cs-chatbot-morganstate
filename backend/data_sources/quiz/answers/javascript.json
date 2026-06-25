@@ -1,0 +1,2604 @@
+{
+  "language": "javascript",
+  "defaults": {
+    "starter_code": "function solve(data) {\n  // Read the prompt, choose clear variables, and replace this with your approach.\n  return null;\n}\n\nexport { solve };",
+    "guided_steps": [
+      "Restate the input and output in your own words.",
+      "Choose arrays, objects, maps, sets, stacks, or queues based on the hints.",
+      "Write one small test before filling in the full logic."
+    ],
+    "reference_solution": "Use the prompt's hints to build a focused solve function. Prefer readable loops and helper functions before optimizing.",
+    "complexity": "Depends on the chosen approach; most Easy/Medium prompts should be O(n) or O(n log n).",
+    "tests": [
+      "Try the provided example.",
+      "Try an empty or smallest valid input.",
+      "Try a case with duplicates, ties, or no valid answer when relevant."
+    ]
+  },
+  "items": [
+    {
+      "question_id": "easy-01",
+      "function_name": "countVowels",
+      "runner_tests": [
+        {
+          "name": "mixed case campus name",
+          "args": [
+            "Morgan State"
+          ],
+          "expected": 4
+        },
+        {
+          "name": "empty string",
+          "args": [
+            ""
+          ],
+          "expected": 0
+        },
+        {
+          "name": "uppercase vowels",
+          "args": [
+            "AEIoU xyz"
+          ],
+          "expected": 5
+        }
+      ]
+    },
+    {
+      "question_id": "easy-02",
+      "function_name": "reverseWords",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            "data structures are useful"
+          ],
+          "expected": "useful are structures data"
+        },
+        {
+          "name": "single word",
+          "args": [
+            "coding"
+          ],
+          "expected": "coding"
+        },
+        {
+          "name": "extra spaces normalize",
+          "args": [
+            "  intro   to cs  "
+          ],
+          "expected": "cs to intro"
+        }
+      ]
+    },
+    {
+      "question_id": "easy-03",
+      "function_name": "maximumScore",
+      "runner_tests": [
+        {
+          "name": "regular scores",
+          "args": [
+            [
+              72,
+              88,
+              91,
+              84
+            ]
+          ],
+          "expected": 91
+        },
+        {
+          "name": "empty list",
+          "args": [
+            []
+          ],
+          "expected": null
+        },
+        {
+          "name": "negative values",
+          "args": [
+            [
+              -4,
+              -1,
+              -9
+            ]
+          ],
+          "expected": -1
+        }
+      ]
+    },
+    {
+      "question_id": "easy-04",
+      "function_name": "isPalindrome",
+      "runner_tests": [
+        {
+          "name": "spaces and case",
+          "args": [
+            "Never odd or even"
+          ],
+          "expected": true
+        },
+        {
+          "name": "not palindrome",
+          "args": [
+            "Morgan"
+          ],
+          "expected": false
+        },
+        {
+          "name": "empty normalizes true",
+          "args": [
+            "   "
+          ],
+          "expected": true
+        }
+      ]
+    },
+    {
+      "question_id": "easy-05",
+      "function_name": "sumEvenNumbers",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ],
+          "expected": 6
+        },
+        {
+          "name": "no evens",
+          "args": [
+            [
+              1,
+              3,
+              5
+            ]
+          ],
+          "expected": 0
+        },
+        {
+          "name": "negative evens",
+          "args": [
+            [
+              -2,
+              4,
+              7
+            ]
+          ],
+          "expected": 2
+        }
+      ]
+    },
+    {
+      "question_id": "easy-06",
+      "function_name": "firstRepeatedCharacter",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            "advisor"
+          ],
+          "expected": "d"
+        },
+        {
+          "name": "first repeated left to right",
+          "args": [
+            "abcaade"
+          ],
+          "expected": "a"
+        },
+        {
+          "name": "none repeated",
+          "args": [
+            "campus"
+          ],
+          "expected": null
+        }
+      ]
+    },
+    {
+      "question_id": "easy-07",
+      "function_name": "gradeBucket",
+      "runner_tests": [
+        {
+          "name": "B score",
+          "args": [
+            84
+          ],
+          "expected": "B"
+        },
+        {
+          "name": "A cutoff",
+          "args": [
+            90
+          ],
+          "expected": "A"
+        },
+        {
+          "name": "F score",
+          "args": [
+            59
+          ],
+          "expected": "F"
+        }
+      ]
+    },
+    {
+      "question_id": "easy-08",
+      "function_name": "removeDuplicatesKeepOrder",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              3,
+              1,
+              3,
+              2,
+              1
+            ]
+          ],
+          "expected": [
+            3,
+            1,
+            2
+          ]
+        },
+        {
+          "name": "already unique",
+          "args": [
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "name": "empty",
+          "args": [
+            []
+          ],
+          "expected": []
+        }
+      ]
+    },
+    {
+      "question_id": "easy-09",
+      "function_name": "countWords",
+      "runner_tests": [
+        {
+          "name": "extra spaces",
+          "args": [
+            "  intro   to cs  "
+          ],
+          "expected": 3
+        },
+        {
+          "name": "empty spaces",
+          "args": [
+            "    "
+          ],
+          "expected": 0
+        },
+        {
+          "name": "one word",
+          "args": [
+            "Morgan"
+          ],
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "question_id": "easy-10",
+      "function_name": "smallestPositive",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              -2,
+              0,
+              9,
+              4
+            ]
+          ],
+          "expected": 4
+        },
+        {
+          "name": "none positive",
+          "args": [
+            [
+              -3,
+              0,
+              -1
+            ]
+          ],
+          "expected": null
+        },
+        {
+          "name": "smallest among many",
+          "args": [
+            [
+              5,
+              2,
+              8,
+              1
+            ]
+          ],
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "question_id": "easy-11",
+      "function_name": "runningTotal",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              2,
+              4,
+              1
+            ]
+          ],
+          "expected": [
+            2,
+            6,
+            7
+          ]
+        },
+        {
+          "name": "empty list",
+          "args": [
+            []
+          ],
+          "expected": []
+        },
+        {
+          "name": "with negatives",
+          "args": [
+            [
+              3,
+              -1,
+              5
+            ]
+          ],
+          "expected": [
+            3,
+            2,
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "easy-12",
+      "function_name": "validCourseCodeShape",
+      "runner_tests": [
+        {
+          "name": "space shape",
+          "args": [
+            "COSC 220"
+          ],
+          "expected": true
+        },
+        {
+          "name": "no space shape",
+          "args": [
+            "MATH241"
+          ],
+          "expected": true
+        },
+        {
+          "name": "lowercase invalid",
+          "args": [
+            "cosc 220"
+          ],
+          "expected": false
+        }
+      ]
+    },
+    {
+      "question_id": "easy-13",
+      "function_name": "findIndex",
+      "runner_tests": [
+        {
+          "name": "found target",
+          "args": [
+            [
+              5,
+              7,
+              9
+            ],
+            7
+          ],
+          "expected": 1
+        },
+        {
+          "name": "missing target",
+          "args": [
+            [
+              5,
+              7,
+              9
+            ],
+            8
+          ],
+          "expected": -1
+        },
+        {
+          "name": "first occurrence",
+          "args": [
+            [
+              "a",
+              "b",
+              "a"
+            ],
+            "a"
+          ],
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "question_id": "easy-14",
+      "function_name": "mergeNames",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              "Ada"
+            ],
+            [
+              "Grace",
+              "Katherine"
+            ]
+          ],
+          "expected": [
+            "Ada",
+            "Grace",
+            "Katherine"
+          ]
+        },
+        {
+          "name": "first empty",
+          "args": [
+            [],
+            [
+              "Morgan"
+            ]
+          ],
+          "expected": [
+            "Morgan"
+          ]
+        },
+        {
+          "name": "second empty",
+          "args": [
+            [
+              "CS"
+            ],
+            []
+          ],
+          "expected": [
+            "CS"
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "easy-15",
+      "function_name": "temperatureAboveThreshold",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              70,
+              82,
+              81
+            ],
+            80
+          ],
+          "expected": 2
+        },
+        {
+          "name": "strict greater only",
+          "args": [
+            [
+              80,
+              81
+            ],
+            80
+          ],
+          "expected": 1
+        },
+        {
+          "name": "none above",
+          "args": [
+            [
+              60,
+              70
+            ],
+            75
+          ],
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "question_id": "easy-16",
+      "function_name": "lastDigit",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            384
+          ],
+          "expected": 4
+        },
+        {
+          "name": "zero",
+          "args": [
+            0
+          ],
+          "expected": 0
+        },
+        {
+          "name": "multiple digits",
+          "args": [
+            1009
+          ],
+          "expected": 9
+        }
+      ]
+    },
+    {
+      "question_id": "easy-17",
+      "function_name": "truthyAttendance",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              true,
+              false,
+              true
+            ]
+          ],
+          "expected": 2
+        },
+        {
+          "name": "none present",
+          "args": [
+            [
+              false,
+              false
+            ]
+          ],
+          "expected": 0
+        },
+        {
+          "name": "all present",
+          "args": [
+            [
+              true,
+              true,
+              true
+            ]
+          ],
+          "expected": 3
+        }
+      ]
+    },
+    {
+      "question_id": "easy-18",
+      "function_name": "initials",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            "morgan state university"
+          ],
+          "expected": "MSU"
+        },
+        {
+          "name": "extra spaces",
+          "args": [
+            "  ada   lovelace "
+          ],
+          "expected": "AL"
+        },
+        {
+          "name": "single name",
+          "args": [
+            "grace"
+          ],
+          "expected": "G"
+        }
+      ]
+    },
+    {
+      "question_id": "easy-19",
+      "function_name": "clampScore",
+      "runner_tests": [
+        {
+          "name": "above max",
+          "args": [
+            118
+          ],
+          "expected": 100
+        },
+        {
+          "name": "below min",
+          "args": [
+            -5
+          ],
+          "expected": 0
+        },
+        {
+          "name": "inside range",
+          "args": [
+            88
+          ],
+          "expected": 88
+        }
+      ]
+    },
+    {
+      "question_id": "easy-20",
+      "function_name": "everyOtherItem",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              10,
+              20,
+              30,
+              40,
+              50
+            ]
+          ],
+          "expected": [
+            10,
+            30,
+            50
+          ]
+        },
+        {
+          "name": "empty list",
+          "args": [
+            []
+          ],
+          "expected": []
+        },
+        {
+          "name": "strings",
+          "args": [
+            [
+              "a",
+              "b",
+              "c",
+              "d"
+            ]
+          ],
+          "expected": [
+            "a",
+            "c"
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "medium-01",
+      "function_name": "twoSumIndexes",
+      "runner_tests": [
+        {
+          "name": "provided pair",
+          "args": [
+            [
+              2,
+              7,
+              11,
+              15
+            ],
+            9
+          ],
+          "expected": [
+            0,
+            1
+          ]
+        },
+        {
+          "name": "no pair",
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            10
+          ],
+          "expected": []
+        },
+        {
+          "name": "uses different indexes",
+          "args": [
+            [
+              3,
+              3
+            ],
+            6
+          ],
+          "expected": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "medium-02",
+      "function_name": "balancedBrackets",
+      "runner_tests": [
+        {
+          "name": "nested balanced",
+          "args": [
+            "{[()]}"
+          ],
+          "expected": true
+        },
+        {
+          "name": "ignore letters",
+          "args": [
+            "a+(b*c)"
+          ],
+          "expected": true
+        },
+        {
+          "name": "wrong close",
+          "args": [
+            "{[(])}"
+          ],
+          "expected": false
+        }
+      ]
+    },
+    {
+      "question_id": "medium-03",
+      "function_name": "longestUniqueWindow",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            "abcabcbb"
+          ],
+          "expected": 3
+        },
+        {
+          "name": "all same",
+          "args": [
+            "bbbbb"
+          ],
+          "expected": 1
+        },
+        {
+          "name": "empty",
+          "args": [
+            ""
+          ],
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "question_id": "medium-04",
+      "function_name": "groupAnagrams",
+      "runner_tests": [
+        {
+          "name": "provided groups",
+          "args": [
+            [
+              "eat",
+              "tea",
+              "tan",
+              "ate"
+            ]
+          ],
+          "expected": [
+            [
+              "eat",
+              "tea",
+              "ate"
+            ],
+            [
+              "tan"
+            ]
+          ],
+          "order_insensitive": true
+        },
+        {
+          "name": "single word",
+          "args": [
+            [
+              "abc"
+            ]
+          ],
+          "expected": [
+            [
+              "abc"
+            ]
+          ]
+        },
+        {
+          "name": "empty input",
+          "args": [
+            []
+          ],
+          "expected": []
+        }
+      ]
+    },
+    {
+      "question_id": "medium-05",
+      "function_name": "mergeSortedLists",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              1,
+              3,
+              5
+            ],
+            [
+              2,
+              4
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "name": "one empty",
+          "args": [
+            [],
+            [
+              1,
+              2
+            ]
+          ],
+          "expected": [
+            1,
+            2
+          ]
+        },
+        {
+          "name": "duplicates",
+          "args": [
+            [
+              1,
+              2,
+              2
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "expected": [
+            1,
+            2,
+            2,
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "medium-06",
+      "function_name": "coursePrerequisiteChain",
+      "runner_tests": [
+        {
+          "name": "transitive dependency",
+          "args": [
+            [
+              [
+                "COSC220",
+                "COSC112"
+              ],
+              [
+                "COSC350",
+                "COSC220"
+              ]
+            ],
+            "COSC350",
+            "COSC112"
+          ],
+          "expected": true
+        },
+        {
+          "name": "direct dependency",
+          "args": [
+            [
+              [
+                "B",
+                "A"
+              ]
+            ],
+            "B",
+            "A"
+          ],
+          "expected": true
+        },
+        {
+          "name": "not dependency",
+          "args": [
+            [
+              [
+                "B",
+                "A"
+              ],
+              [
+                "C",
+                "B"
+              ]
+            ],
+            "A",
+            "C"
+          ],
+          "expected": false
+        }
+      ]
+    },
+    {
+      "question_id": "medium-07",
+      "function_name": "topKFrequent",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              1,
+              1,
+              1,
+              2,
+              2,
+              3
+            ],
+            2
+          ],
+          "expected": [
+            1,
+            2
+          ]
+        },
+        {
+          "name": "one result",
+          "args": [
+            [
+              "a",
+              "b",
+              "a"
+            ],
+            1
+          ],
+          "expected": [
+            "a"
+          ]
+        },
+        {
+          "name": "clear frequencies",
+          "args": [
+            [
+              3,
+              3,
+              3,
+              2,
+              2,
+              1
+            ],
+            2
+          ],
+          "expected": [
+            3,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "medium-08",
+      "function_name": "matrixRowSums",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              [
+                1,
+                2
+              ],
+              [
+                3,
+                4
+              ],
+              [
+                5,
+                6
+              ]
+            ]
+          ],
+          "expected": [
+            3,
+            7,
+            11
+          ]
+        },
+        {
+          "name": "empty row",
+          "args": [
+            [
+              [],
+              [
+                4
+              ]
+            ]
+          ],
+          "expected": [
+            0,
+            4
+          ]
+        },
+        {
+          "name": "empty matrix",
+          "args": [
+            []
+          ],
+          "expected": []
+        }
+      ]
+    },
+    {
+      "question_id": "medium-09",
+      "function_name": "rotateListRight",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            2
+          ],
+          "expected": [
+            4,
+            5,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "name": "k larger than length",
+          "args": [
+            [
+              1,
+              2,
+              3
+            ],
+            4
+          ],
+          "expected": [
+            3,
+            1,
+            2
+          ]
+        },
+        {
+          "name": "empty list",
+          "args": [
+            [],
+            3
+          ],
+          "expected": []
+        }
+      ]
+    },
+    {
+      "question_id": "medium-10",
+      "function_name": "firstMissingPositiveSmall",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              1,
+              2,
+              0
+            ]
+          ],
+          "expected": 3
+        },
+        {
+          "name": "missing one",
+          "args": [
+            [
+              3,
+              4,
+              -1,
+              1
+            ]
+          ],
+          "expected": 2
+        },
+        {
+          "name": "starts missing",
+          "args": [
+            [
+              7,
+              8,
+              9
+            ]
+          ],
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "question_id": "medium-11",
+      "function_name": "compressRuns",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            "aaabbc"
+          ],
+          "expected": "a3b2c1"
+        },
+        {
+          "name": "single char",
+          "args": [
+            "z"
+          ],
+          "expected": "z1"
+        },
+        {
+          "name": "empty string",
+          "args": [
+            ""
+          ],
+          "expected": ""
+        }
+      ]
+    },
+    {
+      "question_id": "medium-12",
+      "function_name": "validStudySchedule",
+      "runner_tests": [
+        {
+          "name": "overlap false",
+          "args": [
+            [
+              [
+                9,
+                10
+              ],
+              [
+                10,
+                11
+              ],
+              [
+                10,
+                12
+              ]
+            ]
+          ],
+          "expected": false
+        },
+        {
+          "name": "touching allowed",
+          "args": [
+            [
+              [
+                9,
+                10
+              ],
+              [
+                10,
+                11
+              ]
+            ]
+          ],
+          "expected": true
+        },
+        {
+          "name": "unsorted overlap",
+          "args": [
+            [
+              [
+                12,
+                13
+              ],
+              [
+                9,
+                11
+              ],
+              [
+                10,
+                12
+              ]
+            ]
+          ],
+          "expected": false
+        }
+      ]
+    },
+    {
+      "question_id": "medium-13",
+      "function_name": "binarySearchInsertPosition",
+      "runner_tests": [
+        {
+          "name": "insert middle",
+          "args": [
+            [
+              1,
+              3,
+              5,
+              6
+            ],
+            2
+          ],
+          "expected": 1
+        },
+        {
+          "name": "found target",
+          "args": [
+            [
+              1,
+              3,
+              5,
+              6
+            ],
+            5
+          ],
+          "expected": 2
+        },
+        {
+          "name": "insert end",
+          "args": [
+            [
+              1,
+              3,
+              5,
+              6
+            ],
+            7
+          ],
+          "expected": 4
+        }
+      ]
+    },
+    {
+      "question_id": "medium-14",
+      "function_name": "countIslands",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              [
+                1,
+                1,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                1,
+                0,
+                1
+              ]
+            ]
+          ],
+          "expected": 3
+        },
+        {
+          "name": "no land",
+          "args": [
+            [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ]
+          ],
+          "expected": 0
+        },
+        {
+          "name": "one island",
+          "args": [
+            [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          ],
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "question_id": "medium-15",
+      "function_name": "minStackOperations",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              "push 3",
+              "push 1",
+              "min",
+              "pop",
+              "top"
+            ]
+          ],
+          "expected": [
+            1,
+            3
+          ]
+        },
+        {
+          "name": "duplicate minimum",
+          "args": [
+            [
+              "push 2",
+              "push 2",
+              "min",
+              "pop",
+              "min"
+            ]
+          ],
+          "expected": [
+            2,
+            2
+          ]
+        },
+        {
+          "name": "top only",
+          "args": [
+            [
+              "push 5",
+              "top"
+            ]
+          ],
+          "expected": [
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "medium-16",
+      "function_name": "normalizeEmailList",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              " A@MSU.edu ",
+              "a@msu.edu"
+            ]
+          ],
+          "expected": [
+            "a@msu.edu"
+          ]
+        },
+        {
+          "name": "preserve first seen",
+          "args": [
+            [
+              "B@x.com",
+              " a@x.com ",
+              "b@x.com"
+            ]
+          ],
+          "expected": [
+            "b@x.com",
+            "a@x.com"
+          ]
+        },
+        {
+          "name": "empty",
+          "args": [
+            []
+          ],
+          "expected": []
+        }
+      ]
+    },
+    {
+      "question_id": "medium-17",
+      "function_name": "prefixSearch",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              "data",
+              "database",
+              "algo"
+            ],
+            "data"
+          ],
+          "expected": [
+            "data",
+            "database"
+          ]
+        },
+        {
+          "name": "case sensitive",
+          "args": [
+            [
+              "Data",
+              "database"
+            ],
+            "da"
+          ],
+          "expected": [
+            "database"
+          ]
+        },
+        {
+          "name": "no matches",
+          "args": [
+            [
+              "tree"
+            ],
+            "trie"
+          ],
+          "expected": []
+        }
+      ]
+    },
+    {
+      "question_id": "medium-18",
+      "function_name": "windowAverage",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4
+            ],
+            2
+          ],
+          "expected": [
+            1.5,
+            2.5,
+            3.5
+          ]
+        },
+        {
+          "name": "whole window",
+          "args": [
+            [
+              2,
+              4,
+              6
+            ],
+            3
+          ],
+          "expected": [
+            4
+          ]
+        },
+        {
+          "name": "single window size",
+          "args": [
+            [
+              5,
+              7
+            ],
+            1
+          ],
+          "expected": [
+            5,
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "medium-19",
+      "function_name": "nestedListDepthSum",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              1,
+              [
+                2,
+                [
+                  3
+                ]
+              ]
+            ]
+          ],
+          "expected": 14
+        },
+        {
+          "name": "flat list",
+          "args": [
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "expected": 6
+        },
+        {
+          "name": "nested siblings",
+          "args": [
+            [
+              [
+                1,
+                1
+              ],
+              2,
+              [
+                1,
+                1
+              ]
+            ]
+          ],
+          "expected": 10
+        }
+      ]
+    },
+    {
+      "question_id": "medium-20",
+      "function_name": "mostRecentUnique",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              "login",
+              "sync",
+              "login",
+              "chat"
+            ]
+          ],
+          "expected": "chat"
+        },
+        {
+          "name": "older unique skipped by recent",
+          "args": [
+            [
+              "a",
+              "b",
+              "c",
+              "b"
+            ]
+          ],
+          "expected": "c"
+        },
+        {
+          "name": "none unique",
+          "args": [
+            [
+              "a",
+              "a"
+            ]
+          ],
+          "expected": null
+        }
+      ]
+    },
+    {
+      "question_id": "hard-01",
+      "function_name": "shortestPathInCampusGrid",
+      "runner_tests": [
+        {
+          "name": "simple path",
+          "args": [
+            [
+              [
+                "S",
+                ".",
+                "."
+              ],
+              [
+                "#",
+                "#",
+                "."
+              ],
+              [
+                ".",
+                ".",
+                "T"
+              ]
+            ]
+          ],
+          "expected": 4
+        },
+        {
+          "name": "unreachable",
+          "args": [
+            [
+              [
+                "S",
+                "#"
+              ],
+              [
+                "#",
+                "T"
+              ]
+            ]
+          ],
+          "expected": -1
+        },
+        {
+          "name": "start next target",
+          "args": [
+            [
+              [
+                "S",
+                "T"
+              ]
+            ]
+          ],
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "question_id": "hard-02",
+      "function_name": "coursePlanTopologicalOrder",
+      "runner_tests": [
+        {
+          "name": "provided order",
+          "args": [
+            [
+              "A",
+              "B",
+              "C"
+            ],
+            [
+              [
+                "C",
+                "B"
+              ],
+              [
+                "B",
+                "A"
+              ]
+            ]
+          ],
+          "expected": [
+            "A",
+            "B",
+            "C"
+          ]
+        },
+        {
+          "name": "cycle",
+          "args": [
+            [
+              "A",
+              "B"
+            ],
+            [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "B",
+                "A"
+              ]
+            ]
+          ],
+          "expected": []
+        },
+        {
+          "name": "multiple roots sorted",
+          "args": [
+            [
+              "A",
+              "B"
+            ],
+            []
+          ],
+          "expected": [
+            "A",
+            "B"
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "hard-03",
+      "function_name": "longestIncreasingSubsequenceLength",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              10,
+              9,
+              2,
+              5,
+              3,
+              7,
+              101,
+              18
+            ]
+          ],
+          "expected": 4
+        },
+        {
+          "name": "decreasing",
+          "args": [
+            [
+              5,
+              4,
+              3
+            ]
+          ],
+          "expected": 1
+        },
+        {
+          "name": "empty",
+          "args": [
+            []
+          ],
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "question_id": "hard-04",
+      "function_name": "editDistance",
+      "runner_tests": [
+        {
+          "name": "horse ros",
+          "args": [
+            "horse",
+            "ros"
+          ],
+          "expected": 3
+        },
+        {
+          "name": "same",
+          "args": [
+            "cs",
+            "cs"
+          ],
+          "expected": 0
+        },
+        {
+          "name": "empty source",
+          "args": [
+            "",
+            "abc"
+          ],
+          "expected": 3
+        }
+      ]
+    },
+    {
+      "question_id": "hard-05",
+      "function_name": "lruCacheSimulation",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            2,
+            [
+              "put 1 A",
+              "put 2 B",
+              "get 1",
+              "put 3 C",
+              "get 2"
+            ]
+          ],
+          "expected": [
+            "A",
+            null
+          ]
+        },
+        {
+          "name": "update recency",
+          "args": [
+            2,
+            [
+              "put 1 A",
+              "put 2 B",
+              "get 1",
+              "put 3 C",
+              "get 1"
+            ]
+          ],
+          "expected": [
+            "A",
+            "A"
+          ]
+        },
+        {
+          "name": "missing get",
+          "args": [
+            1,
+            [
+              "get 9"
+            ]
+          ],
+          "expected": [
+            null
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "hard-06",
+      "function_name": "medianOfTwoSortedLists",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              1,
+              3
+            ],
+            [
+              2
+            ]
+          ],
+          "expected": 2
+        },
+        {
+          "name": "even total",
+          "args": [
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              4
+            ]
+          ],
+          "expected": 2.5
+        },
+        {
+          "name": "one empty",
+          "args": [
+            [],
+            [
+              5
+            ]
+          ],
+          "expected": 5
+        }
+      ]
+    },
+    {
+      "question_id": "hard-07",
+      "function_name": "wordLadderSteps",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            "hit",
+            "cog",
+            [
+              "hot",
+              "dot",
+              "dog",
+              "lot",
+              "log",
+              "cog"
+            ]
+          ],
+          "expected": 5
+        },
+        {
+          "name": "unreachable",
+          "args": [
+            "hit",
+            "cog",
+            [
+              "hot",
+              "dot",
+              "dog"
+            ]
+          ],
+          "expected": 0
+        },
+        {
+          "name": "same word",
+          "args": [
+            "same",
+            "same",
+            [
+              "same"
+            ]
+          ],
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "question_id": "hard-08",
+      "function_name": "expressionEvaluator",
+      "runner_tests": [
+        {
+          "name": "multiply precedence",
+          "args": [
+            "3+2*2"
+          ],
+          "expected": 7
+        },
+        {
+          "name": "integer division toward zero",
+          "args": [
+            "14-3/2"
+          ],
+          "expected": 13
+        },
+        {
+          "name": "spaces",
+          "args": [
+            " 3 + 5 / 2 "
+          ],
+          "expected": 5
+        }
+      ]
+    },
+    {
+      "question_id": "hard-09",
+      "function_name": "triePrefixCounts",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              "insert cat",
+              "insert car",
+              "insert dog",
+              "count ca"
+            ]
+          ],
+          "expected": [
+            2
+          ]
+        },
+        {
+          "name": "multiple counts",
+          "args": [
+            [
+              "insert apple",
+              "count a",
+              "insert app",
+              "count app"
+            ]
+          ],
+          "expected": [
+            1,
+            2
+          ]
+        },
+        {
+          "name": "missing prefix",
+          "args": [
+            [
+              "insert dog",
+              "count ca"
+            ]
+          ],
+          "expected": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "hard-10",
+      "function_name": "unionFindComponents",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            5,
+            [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                3,
+                4
+              ]
+            ]
+          ],
+          "expected": 2
+        },
+        {
+          "name": "no pairs",
+          "args": [
+            3,
+            []
+          ],
+          "expected": 3
+        },
+        {
+          "name": "all connected",
+          "args": [
+            4,
+            [
+              [
+                0,
+                1
+              ],
+              [
+                2,
+                3
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          ],
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "question_id": "hard-11",
+      "function_name": "kthLargestStream",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            3,
+            [
+              4,
+              5,
+              8,
+              2
+            ]
+          ],
+          "expected": [
+            null,
+            null,
+            4,
+            4
+          ]
+        },
+        {
+          "name": "k one",
+          "args": [
+            1,
+            [
+              2,
+              1,
+              3
+            ]
+          ],
+          "expected": [
+            2,
+            2,
+            3
+          ]
+        },
+        {
+          "name": "duplicates",
+          "args": [
+            2,
+            [
+              5,
+              5,
+              4
+            ]
+          ],
+          "expected": [
+            null,
+            5,
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "hard-12",
+      "function_name": "decodeWays",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            "226"
+          ],
+          "expected": 3
+        },
+        {
+          "name": "leading zero",
+          "args": [
+            "06"
+          ],
+          "expected": 0
+        },
+        {
+          "name": "ten",
+          "args": [
+            "10"
+          ],
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "question_id": "hard-13",
+      "function_name": "minimumMeetingRooms",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              [
+                0,
+                30
+              ],
+              [
+                5,
+                10
+              ],
+              [
+                15,
+                20
+              ]
+            ]
+          ],
+          "expected": 2
+        },
+        {
+          "name": "touching reuse",
+          "args": [
+            [
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ]
+          ],
+          "expected": 1
+        },
+        {
+          "name": "three overlap",
+          "args": [
+            [
+              [
+                1,
+                5
+              ],
+              [
+                2,
+                6
+              ],
+              [
+                3,
+                7
+              ]
+            ]
+          ],
+          "expected": 3
+        }
+      ]
+    },
+    {
+      "question_id": "hard-14",
+      "function_name": "cloneGraph",
+      "runner_tests": [
+        {
+          "name": "adjacency map shape",
+          "args": [
+            {
+              "1": [
+                "2",
+                "3"
+              ],
+              "2": [
+                "1"
+              ],
+              "3": [
+                "1"
+              ]
+            }
+          ],
+          "expected": {
+            "1": [
+              "2",
+              "3"
+            ],
+            "2": [
+              "1"
+            ],
+            "3": [
+              "1"
+            ]
+          }
+        },
+        {
+          "name": "single node",
+          "args": [
+            {
+              "A": []
+            }
+          ],
+          "expected": {
+            "A": []
+          }
+        },
+        {
+          "name": "empty graph",
+          "args": [
+            {}
+          ],
+          "expected": {}
+        }
+      ]
+    },
+    {
+      "question_id": "hard-15",
+      "function_name": "maximumSubarrayWithOneDeletion",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              1,
+              -2,
+              0,
+              3
+            ]
+          ],
+          "expected": 4
+        },
+        {
+          "name": "no deletion needed",
+          "args": [
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "expected": 6
+        },
+        {
+          "name": "all negative",
+          "args": [
+            [
+              -1,
+              -2,
+              -3
+            ]
+          ],
+          "expected": -1
+        }
+      ]
+    },
+    {
+      "question_id": "hard-16",
+      "function_name": "serializeBinaryTree",
+      "runner_tests": [
+        {
+          "name": "small tree",
+          "args": [
+            {
+              "value": 1,
+              "left": {
+                "value": 2,
+                "left": null,
+                "right": null
+              },
+              "right": {
+                "value": 3,
+                "left": null,
+                "right": null
+              }
+            }
+          ],
+          "expected": "1,2,#,#,3,#,#"
+        },
+        {
+          "name": "empty tree",
+          "args": [
+            null
+          ],
+          "expected": "#"
+        },
+        {
+          "name": "left chain",
+          "args": [
+            {
+              "value": 1,
+              "left": {
+                "value": 2,
+                "left": null,
+                "right": null
+              },
+              "right": null
+            }
+          ],
+          "expected": "1,2,#,#,#"
+        }
+      ]
+    },
+    {
+      "question_id": "hard-17",
+      "function_name": "alienDictionaryOrder",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              "wrt",
+              "wrf",
+              "er",
+              "ett",
+              "rftt"
+            ]
+          ],
+          "expected": "wertf"
+        },
+        {
+          "name": "invalid prefix",
+          "args": [
+            [
+              "abc",
+              "ab"
+            ]
+          ],
+          "expected": ""
+        },
+        {
+          "name": "simple order",
+          "args": [
+            [
+              "z",
+              "x"
+            ]
+          ],
+          "expected": "zx"
+        }
+      ]
+    },
+    {
+      "question_id": "hard-18",
+      "function_name": "subarraySumEqualsK",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            [
+              1,
+              1,
+              1
+            ],
+            2
+          ],
+          "expected": 2
+        },
+        {
+          "name": "includes negatives",
+          "args": [
+            [
+              1,
+              -1,
+              0
+            ],
+            0
+          ],
+          "expected": 3
+        },
+        {
+          "name": "none",
+          "args": [
+            [
+              2,
+              4
+            ],
+            3
+          ],
+          "expected": 0
+        }
+      ]
+    },
+    {
+      "question_id": "hard-19",
+      "function_name": "maximalSquare",
+      "runner_tests": [
+        {
+          "name": "two by two block",
+          "args": [
+            [
+              [
+                1,
+                0,
+                1,
+                0
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ],
+              [
+                1,
+                1,
+                1,
+                1
+              ]
+            ]
+          ],
+          "expected": 4
+        },
+        {
+          "name": "empty matrix",
+          "args": [
+            []
+          ],
+          "expected": 0
+        },
+        {
+          "name": "single one",
+          "args": [
+            [
+              [
+                1
+              ]
+            ]
+          ],
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "question_id": "hard-20",
+      "function_name": "rateLimiter",
+      "runner_tests": [
+        {
+          "name": "provided shape",
+          "args": [
+            2,
+            10,
+            [
+              [
+                "ada",
+                1
+              ],
+              [
+                "ada",
+                2
+              ],
+              [
+                "ada",
+                11
+              ]
+            ]
+          ],
+          "expected": [
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "name": "blocked third action",
+          "args": [
+            2,
+            10,
+            [
+              [
+                "ada",
+                1
+              ],
+              [
+                "ada",
+                2
+              ],
+              [
+                "ada",
+                3
+              ]
+            ]
+          ],
+          "expected": [
+            true,
+            true,
+            false
+          ]
+        },
+        {
+          "name": "separate users",
+          "args": [
+            1,
+            10,
+            [
+              [
+                "ada",
+                1
+              ],
+              [
+                "grace",
+                1
+              ],
+              [
+                "ada",
+                2
+              ]
+            ]
+          ],
+          "expected": [
+            true,
+            true,
+            false
+          ]
+        }
+      ]
+    }
+  ]
+}

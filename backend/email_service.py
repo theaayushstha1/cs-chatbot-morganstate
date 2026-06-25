@@ -28,12 +28,22 @@ def generate_token() -> str:
     return secrets.token_urlsafe(32)
 
 
+def is_email_configured() -> bool:
+    """Return whether SMTP is configured for real email delivery."""
+    return bool(SMTP_USER and SMTP_PASS)
+
+
+def build_verification_url(token: str) -> str:
+    return f"{API_URL}/api/verify-email?token={token}"
+
+
 def _send_email(to_email: str, subject: str, html_body: str) -> bool:
     """Send an email via SMTP. Returns True on success."""
-    if not SMTP_USER or not SMTP_PASS:
-        log.warning(f"[EMAIL] SMTP not configured. Would send to {to_email}: {subject}")
-        log.info(f"[EMAIL] Body preview: {html_body[:200]}")
-        return True  # Return True in dev so the flow continues
+    if not is_email_configured():
+        # Never log message bodies: verification and reset URLs contain bearer
+        # tokens that must not appear in local or Cloud Run logs.
+        log.warning("[EMAIL] SMTP not configured; email delivery was skipped (%s).", subject)
+        return False
 
     try:
         msg = MIMEMultipart("alternative")
@@ -56,7 +66,7 @@ def _send_email(to_email: str, subject: str, html_body: str) -> bool:
 
 def send_verification_email(to_email: str, token: str) -> bool:
     """Send email verification link."""
-    verify_url = f"{API_URL}/api/verify-email?token={token}"
+    verify_url = build_verification_url(token)
     html = f"""
     <div style="font-family: 'Google Sans', Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
         <div style="text-align: center; margin-bottom: 24px;">

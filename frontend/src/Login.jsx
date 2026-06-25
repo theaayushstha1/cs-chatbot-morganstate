@@ -41,6 +41,7 @@ export default function Login({ onLoggedIn }) {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [devVerificationUrl, setDevVerificationUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -52,12 +53,14 @@ export default function Login({ onLoggedIn }) {
     // Show success message from signup redirect
     if (location.state?.message) {
       setSuccess(location.state.message);
+      setDevVerificationUrl(location.state?.devVerificationUrl || "");
       window.history.replaceState({}, document.title);
     }
     // Show verified message from email verification redirect
     const params = new URLSearchParams(location.search);
     if (params.get("verified") === "true") {
       setSuccess("Email verified! You can now log in.");
+      setDevVerificationUrl("");
       window.history.replaceState({}, document.title, "/login");
     }
   }, [navigate, location]);
@@ -107,6 +110,7 @@ export default function Login({ onLoggedIn }) {
       });
       const data = await res.json();
       setSuccess(data.message || "Verification email sent! Check your inbox.");
+      setDevVerificationUrl(data.dev_verification_url || "");
       setError("");
       setNeedsVerification(false);
     } catch {
@@ -139,6 +143,20 @@ export default function Login({ onLoggedIn }) {
           fontSize: '0.9rem'
         }} role="status">
           {success}
+          {devVerificationUrl && (
+            <a
+              href={devVerificationUrl}
+              style={{
+                display: "block",
+                marginTop: "10px",
+                color: "inherit",
+                fontWeight: 700,
+                textDecoration: "underline",
+              }}
+            >
+              Open local verification link
+            </a>
+          )}
         </div>
       )}
 

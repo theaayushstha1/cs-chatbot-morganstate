@@ -34,7 +34,7 @@ export default function ForgotPassword() {
         const data = await res.json();
         setError(data.detail || "Something went wrong");
       }
-    } catch (err) {
+    } catch {
       setError("Failed to connect to server");
     } finally {
       setLoading(false);

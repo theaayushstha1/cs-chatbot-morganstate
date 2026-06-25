@@ -95,6 +95,12 @@ _OUTAGE_MSG = (
     "Please try again in a minute. If the problem persists, contact the CS department at (443) 885-3962."
 )
 
+# Rate-limit / transient-empty message. Contains "temporarily" so the frontend's
+# outage detector silently retries it once instead of showing a dead-end bubble.
+_BUSY_MSG = (
+    "The system is temporarily busy. Please try your question again in a moment."
+)
+
 # Grounding validation: minimum thresholds before flagging a response
 _GROUNDING_MIN_CHUNKS = 2       # At least 2 KB docs must be cited
 _GROUNDING_DISCLAIMER = (
@@ -111,6 +117,68 @@ _SKIP_GROUNDING_RE = re.compile(
 
 # Detects when Gemini self-reports a KB access failure (transient Vertex AI Search issue)
 _KB_FAIL_RE = re.compile(r"having trouble (accessing|connecting to) my knowledge base", re.IGNORECASE)
+
+# Coding Tutor code-generation requests sometimes stream a useful code block,
+# then end with a prose-only final event. Preserve the code-first contract.
+_CODE_FIRST_REQUEST_RE = re.compile(
+    r"\b(rewrite|convert|translate|refactor|generate|write|draft|implement)\b"
+    r"|Code-first mode|Rewrite mode|Detected student intent:\s*(Rewrite|Generate Code)",
+    re.IGNORECASE,
+)
+_FENCED_CODE_RE = re.compile(r"```(?:[a-zA-Z0-9_+\-.#]*)?\s*\n[\s\S]*?\n```")
+
+
+def _is_code_first_request(message: str) -> bool:
+    return bool(message and _CODE_FIRST_REQUEST_RE.search(message))
+
+
+def _extract_code_block(text: str) -> str:
+    match = _FENCED_CODE_RE.search(text or "")
+    return match.group(0).strip() if match else ""
+
+
+def _short_code_notes(text: str) -> str:
+    """Keep code-generation follow-up brief so rewrites do not become lectures."""
+    cleaned = re.sub(r"\s+", " ", (text or "")).strip()
+    if not cleaned:
+        return ""
+    sentences = re.split(r"(?<=[.!?])\s+", cleaned)
+    notes = [sentence.strip(" -") for sentence in sentences if sentence.strip(" -")]
+    return "\n".join(f"- {note}" for note in notes[:3])
+
+
+def _preserve_code_first_response(message: str, final_text: str, code_candidate: str = "") -> str:
+    if not _is_code_first_request(message) or _extract_code_block(final_text):
+        return final_text
+
+    code_block = _extract_code_block(code_candidate)
+    if not code_block:
+        return final_text
+
+    notes = _short_code_notes(final_text)
+    return f"{code_block}\n\n{notes}" if notes else code_block
+
+
+def _code_first_stream_text(message: str, text: str, code_candidate: str = "") -> str:
+    """Prevent prose-only replacement events from hiding streamed rewrite code."""
+    if not _is_code_first_request(message):
+        return text
+    if _extract_code_block(text):
+        return text
+    code_block = _extract_code_block(code_candidate)
+    if not code_block:
+        return text
+    notes = _short_code_notes(text)
+    return f"{code_block}\n\n{notes}" if notes else code_block
+
+
+def _chat_mode_for_message(message: str) -> str:
+    text = message or ""
+    if "CODING TUTOR MODE:" in text:
+        return "coding_tutor"
+    if "GENERAL TUTOR MODE:" in text:
+        return "general_tutor"
+    return "regular"
 
 # =============================================================================
 # FAITHFULNESS GATE: Entity Whitelist
@@ -153,7 +221,7 @@ def _check_faculty_faithfulness(text: str) -> list[str]:
     return hallucinated
 
 
-def _apply_grounding_gate(text: str, chunks: int, coverage: float = 0.0, has_student_data: bool = False) -> str:
+def _apply_grounding_gate(text: str, chunks: int, coverage: float = 0.0, has_student_data: bool = False, chat_mode: str = "regular") -> str:
     """Append a disclaimer when the agent answered with insufficient data sources.
 
     Checks both chunk count AND coverage ratio. A response needs either:
@@ -163,6 +231,8 @@ def _apply_grounding_gate(text: str, chunks: int, coverage: float = 0.0, has_stu
 
     This prevents responses that cite 1 chunk but are 90% hallucinated from passing.
     """
+    if chat_mode in {"coding_tutor", "general_tutor"}:
+        return text
     if not text or _SKIP_GROUNDING_RE.match(text):
         return text
     if has_student_data:
@@ -261,7 +331,7 @@ def _create_session(user_id: str, state: Optional[dict] = None) -> str:
     return ""
 
 
-def _get_valid_session(user_id: str, context: str = "", model: str = "", canvas_context: str = "") -> Optional[str]:
+def _get_valid_session(user_id: str, context: str = "", model: str = "", canvas_context: str = "", chat_mode: str = "regular") -> Optional[str]:
     """Return a cached session ID if it exists, hasn't expired, and context/model matches."""
     cached = _session_cache.get(user_id)
     if not cached:
@@ -291,11 +361,16 @@ def _get_valid_session(user_id: str, context: str = "", model: str = "", canvas_
         _session_cache.pop(user_id, None)
         return None
 
+    if cached.get("chat_mode", "regular") != chat_mode:
+        print(f"   ADK session chat mode changed ({cached.get('chat_mode', 'regular')} -> {chat_mode}), creating new")
+        _session_cache.pop(user_id, None)
+        return None
+
     print(f"   ADK session reused: {cached['session_id']} (age={age:.0f}s)")
     return cached["session_id"]
 
 
-def _cache_session(user_id: str, session_id: str, context: str = "", model: str = "", canvas_context: str = ""):
+def _cache_session(user_id: str, session_id: str, context: str = "", model: str = "", canvas_context: str = "", chat_mode: str = "regular"):
     """Store a session in the reuse cache."""
     _session_cache[user_id] = {
         "session_id": session_id,
@@ -303,6 +378,7 @@ def _cache_session(user_id: str, session_id: str, context: str = "", model: str 
         "context_hash": _compute_context_hash(context),
         "canvas_hash": _compute_context_hash(canvas_context),
         "model": model,
+        "chat_mode": chat_mode,
     }
 
 
@@ -322,7 +398,8 @@ def query_agent(query: str, user_id: str = "default", context: str = "", model: 
         memory_context: Long-term user memory (sent via state_delta, volatile)
     """
     # Session reuse: hash DegreeWorks + Canvas for invalidation
-    session_id = _get_valid_session(user_id, context, model, canvas_context=canvas_context)
+    chat_mode = _chat_mode_for_message(query)
+    session_id = _get_valid_session(user_id, context, model, canvas_context=canvas_context, chat_mode=chat_mode)
 
     if not session_id:
         state = {}
@@ -334,10 +411,11 @@ def query_agent(query: str, user_id: str = "default", context: str = "", model: 
             state["memory"] = memory_context
         if model:
             state["model_preference"] = model
+        state["chat_mode"] = chat_mode
         session_id = _create_session(user_id, state=state if state else None)
         if not session_id:
             return _OUTAGE_MSG
-        _cache_session(user_id, session_id, context, model, canvas_context=canvas_context)
+        _cache_session(user_id, session_id, context, model, canvas_context=canvas_context, chat_mode=chat_mode)
 
     return _run_query(query, user_id, session_id, context=context, model=model, canvas_context=canvas_context, memory_context=memory_context)
 
@@ -375,6 +453,8 @@ def _run_query(message: str, user_id: str, session_id: str, retried: bool = Fals
         }
         # Send volatile data via state_delta (Canvas/memory change often, model per-request)
         state_delta = {}
+        chat_mode = _chat_mode_for_message(message)
+        state_delta["chat_mode"] = chat_mode
         if model:
             state_delta["model_preference"] = model
         if canvas_context:
@@ -386,7 +466,7 @@ def _run_query(message: str, user_id: str, session_id: str, retried: bool = Fals
 
         resp = requests.post(
             f"{ADK_BASE_URL}/run_sse",
-            headers={"Content-Type": "application/json"},
+            headers=_get_auth_headers(),
             json=payload,
             stream=True,
             timeout=120,
@@ -405,9 +485,10 @@ def _run_query(message: str, user_id: str, session_id: str, retried: bool = Fals
                 state["memory"] = memory_context
             if model:
                 state["model_preference"] = model
+            state["chat_mode"] = chat_mode
             new_session_id = _create_session(user_id, state=state if state else None)
             if new_session_id:
-                _cache_session(user_id, new_session_id, context, model, canvas_context=canvas_context)
+                _cache_session(user_id, new_session_id, context, model, canvas_context=canvas_context, chat_mode=chat_mode)
                 return _run_query(message, user_id, new_session_id, retried=True, context=context, model=model, canvas_context=canvas_context, memory_context=memory_context)
             return _OUTAGE_MSG
 
@@ -415,6 +496,7 @@ def _run_query(message: str, user_id: str, session_id: str, retried: bool = Fals
 
         # Parse SSE events and extract the final text response + grounding metadata
         final_text = ""
+        code_candidate = ""
         grounding_chunks = 0
         grounding_coverage = 0.0
         for line in resp.iter_lines():
@@ -460,7 +542,10 @@ def _run_query(message: str, user_id: str, session_id: str, retried: bool = Fals
             parts = content.get("parts", [])
             for part in parts:
                 if isinstance(part, dict) and "text" in part:
-                    final_text = part["text"]  # Keep last model text (the final answer)
+                    text = part["text"]
+                    if _extract_code_block(text):
+                        code_candidate = text
+                    final_text = text  # Keep last model text (the final answer)
 
         # Store grounding signal for research_agent to read (thread-local)
         _set_grounding(grounding_chunks > 0, grounding_chunks, grounding_coverage)
@@ -468,14 +553,20 @@ def _run_query(message: str, user_id: str, session_id: str, retried: bool = Fals
         if final_text:
             # Clean up citation artifacts from Gemini grounding
             final_text = re.sub(r'\s*\[cite:\s*[^\]]*\]', '', final_text).strip()
+            final_text = _preserve_code_first_response(message, final_text, code_candidate)
 
             # Strip empty code blocks (Gemini 2.0 Flash sometimes returns ``` with nothing)
             if final_text.strip() in ("```", "``` ```", "``````"):
                 final_text = "I wasn't able to generate a proper response. Please try asking again."
 
-            # Catch 429 rate limit errors leaked into response
+            # Catch 429 rate limit errors leaked into response. Retry once with a
+            # short backoff before giving up (non-stream path has no client retry).
             if "429" in final_text and "RESOURCE_EXHAUSTED" in final_text:
-                final_text = "The system is busy right now. Please try again in a moment."
+                if not retried:
+                    print("   [RATE_LIMIT] Gemini 429, retrying once after backoff...")
+                    time_module.sleep(3)
+                    return _run_query(message, user_id, session_id, retried=True, context=context, model=model, canvas_context=canvas_context, memory_context=memory_context)
+                final_text = _BUSY_MSG
 
             # Strip self-disclosure phrases (Gemini sometimes ignores instruction)
             final_text = re.sub(r'I am programmed to be a helpful[^.]*\.', 'I can only help with Morgan State University academic questions.', final_text)
@@ -490,7 +581,7 @@ def _run_query(message: str, user_id: str, session_id: str, retried: bool = Fals
 
             # Grounding validation gate: flag low-grounded responses
             has_data = bool(context or canvas_context)
-            final_text = _apply_grounding_gate(final_text, grounding_chunks, coverage=grounding_coverage, has_student_data=has_data)
+            final_text = _apply_grounding_gate(final_text, grounding_chunks, coverage=grounding_coverage, has_student_data=has_data, chat_mode=chat_mode)
 
             # Inject procedure guide Drive links if the agent omitted them
             final_text = _inject_procedure_links(final_text)
@@ -533,7 +624,7 @@ def get_last_grounding() -> dict:
 def check_agent_health() -> dict:
     """Check if the ADK agent server is healthy."""
     try:
-        resp = requests.get(f"{ADK_BASE_URL}/list-apps", timeout=15)
+        resp = requests.get(f"{ADK_BASE_URL}/list-apps", headers=_get_auth_headers(), timeout=15)
         if resp.status_code == 200:
             apps = resp.json()
             has_navigator = any(
@@ -562,7 +653,8 @@ def query_agent_stream(query: str, user_id: str = "default", context: str = "", 
     Session reuse based on DegreeWorks (stable). Canvas + memory sent via state_delta (volatile).
     """
     # Session reuse: hash DegreeWorks + Canvas for invalidation
-    session_id = _get_valid_session(user_id, context, model, canvas_context=canvas_context)
+    chat_mode = _chat_mode_for_message(query)
+    session_id = _get_valid_session(user_id, context, model, canvas_context=canvas_context, chat_mode=chat_mode)
 
     if not session_id:
         state = {}
@@ -574,11 +666,12 @@ def query_agent_stream(query: str, user_id: str = "default", context: str = "", 
             state["memory"] = memory_context
         if model:
             state["model_preference"] = model
+        state["chat_mode"] = chat_mode
         session_id = _create_session(user_id, state=state if state else None)
         if not session_id:
             yield {"type": "error", "content": _OUTAGE_MSG}
             return
-        _cache_session(user_id, session_id, context, model, canvas_context=canvas_context)
+        _cache_session(user_id, session_id, context, model, canvas_context=canvas_context, chat_mode=chat_mode)
 
     yield from _run_query_stream(query, user_id, session_id, context=context, model=model, canvas_context=canvas_context, memory_context=memory_context)
 
@@ -601,6 +694,8 @@ def _run_query_stream(message: str, user_id: str, session_id: str, retried: bool
             },
         }
         state_delta = {}
+        chat_mode = _chat_mode_for_message(message)
+        state_delta["chat_mode"] = chat_mode
         if model:
             state_delta["model_preference"] = model
         if canvas_context:
@@ -612,7 +707,7 @@ def _run_query_stream(message: str, user_id: str, session_id: str, retried: bool
 
         resp = requests.post(
             f"{ADK_BASE_URL}/run_sse",
-            headers={"Content-Type": "application/json"},
+            headers=_get_auth_headers(),
             json=payload,
             stream=True,
             timeout=120,
@@ -631,9 +726,10 @@ def _run_query_stream(message: str, user_id: str, session_id: str, retried: bool
                 state["memory"] = memory_context
             if model:
                 state["model_preference"] = model
+            state["chat_mode"] = chat_mode
             new_session_id = _create_session(user_id, state=state if state else None)
             if new_session_id:
-                _cache_session(user_id, new_session_id, context, model, canvas_context=canvas_context)
+                _cache_session(user_id, new_session_id, context, model, canvas_context=canvas_context, chat_mode=chat_mode)
                 yield from _run_query_stream(message, user_id, new_session_id, retried=True, context=context, model=model, canvas_context=canvas_context, memory_context=memory_context)
                 return
             yield {"type": "error", "content": _OUTAGE_MSG}
@@ -649,6 +745,10 @@ def _run_query_stream(message: str, user_id: str, session_id: str, retried: bool
 
         # Stream SSE events and yield text chunks + status updates
         full_text = ""
+        # Longest substantive text ever seen, kept as a safety net so a trailing
+        # whitespace/partial replacement part from ADK can never wipe the answer.
+        best_text = ""
+        code_candidate = ""
         grounding_chunks = 0
         grounding_coverage = 0.0
         for line in resp.iter_lines():
@@ -708,15 +808,32 @@ def _run_query_stream(message: str, user_id: str, session_id: str, retried: bool
             for part in parts:
                 if isinstance(part, dict) and "text" in part:
                     text = part["text"]
+                    # Rate-limit errors from Gemini can leak into a streamed text
+                    # part. Catch them immediately and surface a clean retryable
+                    # error instead of appending the raw error onto partial text.
+                    if "429" in text and "RESOURCE_EXHAUSTED" in text:
+                        print("   [RATE_LIMIT] Gemini 429 during stream")
+                        yield {"type": "error", "content": _BUSY_MSG}
+                        return
                     text = re.sub(r'\s*\[cite:\s*[^\]]*\]', '', text)
+                    if _extract_code_block(text):
+                        code_candidate = text
+                    text = _code_first_stream_text(message, text, code_candidate)
                     if text.strip():
                         if len(text) > len(full_text):
                             chunk = text[len(full_text):]
                             full_text = text
                             yield {"type": "chunk", "content": chunk}
-                        elif text != full_text:
+                        elif text != full_text and len(text.strip()) >= len(full_text.strip()):
+                            # ADK sometimes sends a replacement/final draft rather
+                            # than an append-only delta. Only accept it when it is at
+                            # least as substantial as what we have, so a trailing
+                            # whitespace/partial part can NEVER wipe a good answer.
+                            # The final `done` event below replaces the visible text.
                             full_text = text
-                            yield {"type": "chunk", "content": text}
+                        # Remember the longest substantive text regardless of order.
+                        if len(text.strip()) > len(best_text.strip()):
+                            best_text = text
 
         # Store grounding signal for research_agent (thread-local)
         _set_grounding(grounding_chunks > 0, grounding_chunks, grounding_coverage)
@@ -728,18 +845,37 @@ def _run_query_stream(message: str, user_id: str, session_id: str, retried: bool
             yield {"type": "error", "content": _OUTAGE_MSG}
             return
 
-        # Post-process: catch 429 errors and empty code blocks in streamed text
+        # Post-process: catch 429 errors and empty code blocks in streamed text.
+        # Fall back to the longest text seen if the running buffer ended up shorter
+        # (ADK delta/replacement ordering can leave full_text truncated).
+        if len(best_text.strip()) > len(full_text.strip()):
+            full_text = best_text
         cleaned = full_text.strip()
-        if cleaned in ("```", "``` ```", "``````", ""):
-            cleaned = "I wasn't able to generate a proper response. Please try asking again."
-            yield {"type": "chunk", "content": cleaned}
+        cleaned = _preserve_code_first_response(message, cleaned, code_candidate)
+        # A leaked rate-limit error -> clean retryable error (not visible text).
         if "429" in cleaned and "RESOURCE_EXHAUSTED" in cleaned:
-            cleaned = "The system is busy right now. Please try again in a moment."
-            yield {"type": "chunk", "content": cleaned}
+            print("   [RATE_LIMIT] Gemini 429 in final stream text")
+            yield {"type": "error", "content": _BUSY_MSG}
+            return
+        # Empty/blank response -> the agent occasionally returns no text on a fresh
+        # session (most often for general/non-KB questions). Retry once with a new
+        # session before surfacing an error. Safe because no chunks were streamed.
+        if cleaned in ("```", "``` ```", "``````", ""):
+            if not retried:
+                print("   [EMPTY] No usable text, retrying once with a fresh session...")
+                _session_cache.pop(user_id, None)
+                new_sid = _create_session(user_id)
+                if new_sid:
+                    _cache_session(user_id, new_sid, context, model, canvas_context=canvas_context, chat_mode=chat_mode)
+                    yield from _run_query_stream(message, user_id, new_sid, retried=True, context=context, model=model, canvas_context=canvas_context, memory_context=memory_context)
+                    return
+            print("   [EMPTY] Stream produced no usable text")
+            yield {"type": "error", "content": _BUSY_MSG}
+            return
 
         # Grounding validation gate: append disclaimer if low-grounded
         has_data = bool(context or canvas_context)
-        final = _apply_grounding_gate(cleaned, grounding_chunks, coverage=grounding_coverage, has_student_data=has_data)
+        final = _apply_grounding_gate(cleaned, grounding_chunks, coverage=grounding_coverage, has_student_data=has_data, chat_mode=chat_mode)
         if final != cleaned:
             disclaimer = final[len(cleaned):]
             yield {"type": "chunk", "content": disclaimer}

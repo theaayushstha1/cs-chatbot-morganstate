@@ -15,6 +15,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Keep the service worker OFF during `npm run dev` so it never caches and
+      // hides live CSS/JS edits. It still builds normally for production.
+      devOptions: {
+        enabled: false,
+      },
       manifest: {
         name: 'CS Navigator',
         short_name: 'CSNav',
