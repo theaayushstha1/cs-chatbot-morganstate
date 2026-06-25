@@ -273,8 +273,10 @@ class SemanticCache:
     """
 
     def __init__(self, l2_cache: L2Cache):
-        # Each entry: (embedding_ndarray, query_text, response_text)
-        self._entries: list[tuple[np.ndarray, str, str]] = []
+        # Each entry: (embedding_ndarray, query_text, response_text, context_hash)
+        # context_hash namespaces entries so a general-tutor answer is never
+        # matched against a Morgan/personalized answer (and vice versa).
+        self._entries: list[tuple[np.ndarray, str, str, str]] = []
         self._lock = Lock()
         self._l2 = l2_cache
         self._genai_client = None
@@ -286,7 +288,17 @@ class SemanticCache:
         """Initialize Google embedding client."""
         try:
             from google import genai
-            self._genai_client = genai.Client(vertexai=True)
+            project = os.getenv("GOOGLE_CLOUD_PROJECT", "").strip()
+            location = (
+                os.getenv("GOOGLE_CLOUD_LOCATION", "")
+                or os.getenv("VERTEX_AI_LOCATION", "")
+            ).strip()
+            client_options = {"vertexai": True}
+            if project:
+                client_options["project"] = project
+            if location:
+                client_options["location"] = location
+            self._genai_client = genai.Client(**client_options)
             self._available = True
             logger.info(f"[SEMANTIC] Embedding client ready (model={SEMANTIC_EMBEDDING_MODEL}, dims={SEMANTIC_EMBEDDING_DIMS})")
         except Exception as e:
@@ -325,8 +337,8 @@ class SemanticCache:
         norm = np.linalg.norm(a) * np.linalg.norm(b)
         return float(dot / norm) if norm > 0 else 0.0
 
-    def get(self, query: str) -> Optional[str]:
-        """Find a semantically similar cached response."""
+    def get(self, query: str, context_hash: str = "") -> Optional[str]:
+        """Find a semantically similar cached response within the same context."""
         if not self._available:
             self._stats["misses"] += 1
             return None
@@ -343,13 +355,15 @@ class SemanticCache:
 
         best_sim, best_idx = 0.0, -1
         with self._lock:
-            for i, (emb, _, _) in enumerate(self._entries):
+            for i, (emb, _, _, ctx) in enumerate(self._entries):
+                if ctx != context_hash:
+                    continue
                 sim = self._cosine_sim(q_emb, emb)
                 if sim > best_sim:
                     best_sim, best_idx = sim, i
 
             if best_sim >= SEMANTIC_SIMILARITY_THRESHOLD and best_idx >= 0:
-                _, matched_q, response = self._entries[best_idx]
+                _, matched_q, response, _ = self._entries[best_idx]
                 self._stats["hits"] += 1
                 logger.info(
                     f"[SEMANTIC] HIT ({best_sim:.3f}): "
@@ -360,8 +374,8 @@ class SemanticCache:
         self._stats["misses"] += 1
         return None
 
-    def set(self, query: str, response: str) -> bool:
-        """Store a query-response pair with its embedding."""
+    def set(self, query: str, response: str, context_hash: str = "") -> bool:
+        """Store a query-response pair with its embedding, scoped to a context."""
         if not self._available:
             return False
 
@@ -370,33 +384,37 @@ class SemanticCache:
             return False
 
         with self._lock:
-            # Deduplicate: if a near-identical query exists, update it
-            for i, (emb, _, _) in enumerate(self._entries):
-                if self._cosine_sim(q_emb, emb) > 0.98:
-                    self._entries[i] = (q_emb, query, response)
-                    self._persist_entry(query, q_emb, response)
+            # Deduplicate within the same context: if a near-identical query
+            # exists, update it. Entries from other contexts are left alone.
+            for i, (emb, _, _, ctx) in enumerate(self._entries):
+                if ctx == context_hash and self._cosine_sim(q_emb, emb) > 0.98:
+                    self._entries[i] = (q_emb, query, response, context_hash)
+                    self._persist_entry(query, q_emb, response, context_hash)
                     return True
 
             # Evict oldest if at capacity
             if len(self._entries) >= SEMANTIC_MAX_ENTRIES:
                 self._entries.pop(0)
 
-            self._entries.append((q_emb, query, response))
+            self._entries.append((q_emb, query, response, context_hash))
 
-        self._persist_entry(query, q_emb, response)
+        self._persist_entry(query, q_emb, response, context_hash)
         logger.info(f"[SEMANTIC] Stored: '{query[:50]}' ({len(self._entries)} entries)")
         return True
 
-    def _persist_entry(self, query: str, embedding: np.ndarray, response: str):
+    def _persist_entry(self, query: str, embedding: np.ndarray, response: str, context_hash: str = ""):
         """Persist entry to Redis for durability across restarts."""
         if not self._l2 or not self._l2.is_connected():
             return
-        key = hashlib.md5(query.lower().strip().encode()).hexdigest()
+        # Key includes context_hash so the same question under different contexts
+        # (e.g. general vs personalized) does not overwrite the other.
+        key = hashlib.md5(f"{context_hash}:{query.lower().strip()}".encode()).hexdigest()
         try:
             data = json.dumps({
                 "q": query,
                 "e": embedding.tolist(),
                 "r": response,
+                "c": context_hash,
             })
             self._l2._client.setex(
                 f"csnavigator:sem:{key}",
@@ -418,7 +436,7 @@ class SemanticCache:
                 if raw:
                     data = json.loads(raw)
                     emb = np.array(data["e"], dtype=np.float32)
-                    self._entries.append((emb, data["q"], data["r"]))
+                    self._entries.append((emb, data["q"], data["r"], data.get("c", "")))
                     loaded += 1
             if loaded:
                 logger.info(f"[SEMANTIC] Loaded {loaded} entries from Redis")
@@ -503,10 +521,13 @@ class MultiTierCache:
 
         return True
 
-    def get(self, query: str, context_hash: str = "") -> Optional[str]:
+    def get(self, query: str, context_hash: str = "", allow_semantic: bool = True) -> Optional[str]:
         """
         Get cached response using multi-tier lookup.
-        L1 (exact) → L2 (exact) → Semantic (similar) → None
+        L1 (exact) → L2 (exact) → Semantic (similar, same context) → None
+
+        allow_semantic: enable the embedding tier. Pass False for personalized
+        (student-data) queries where similarity matching is undesirable.
         """
         if not self._should_cache(query):
             self._skipped += 1
@@ -529,9 +550,10 @@ class MultiTierCache:
             return response
 
         # L3: Semantic similarity (catches rephrased versions of the same question)
-        # 0.95 threshold = safe, only near-identical matches. Saves a full Gemini call (~4s)
-        if not context_hash:
-            response = self.semantic.get(query)
+        # 0.95 threshold = safe, only near-identical matches. Saves a full Gemini call (~4s).
+        # Namespaced by context_hash so general/Morgan/model contexts never cross-match.
+        if allow_semantic:
+            response = self.semantic.get(query, context_hash)
             if response is not None:
                 self.l1.set(key, response)
                 return response
@@ -539,7 +561,7 @@ class MultiTierCache:
         logger.info(f"[CACHE] MISS for: {query[:50]}...")
         return None
 
-    def set(self, query: str, response: str, context_hash: str = "") -> bool:
+    def set(self, query: str, response: str, context_hash: str = "", allow_semantic: bool = True) -> bool:
         """Store response in all cache tiers."""
         if not self._should_cache(query):
             return False
@@ -560,9 +582,9 @@ class MultiTierCache:
         self.l1.set(key, response)
         self.l2.set(key, response)
 
-        # L3: Store embedding for semantic similarity matching
-        if not context_hash:
-            self.semantic.set(query, response)
+        # L3: Store embedding for semantic similarity matching (scoped to context)
+        if allow_semantic:
+            self.semantic.set(query, response, context_hash)
 
         logger.info(f"[CACHE] Stored in L1+L2+SEM: {query[:50]}...")
         return True
@@ -617,7 +639,7 @@ query_cache = MultiTierCache()
 # HELPER FUNCTIONS (Backwards Compatible)
 # ============================================================================
 
-def get_context_hash(user_id: int = None, has_degreeworks: bool = False, model: str = "", has_canvas: bool = False, dw_hash: str = "") -> str:
+def get_context_hash(user_id: int = None, has_degreeworks: bool = False, model: str = "", has_canvas: bool = False, dw_hash: str = "", mode: str = "") -> str:
     """
     Generate a context hash for cache key differentiation.
     Includes model and data sources so different contexts get separate cache entries.
@@ -633,6 +655,8 @@ def get_context_hash(user_id: int = None, has_degreeworks: bool = False, model: 
         parts.append("canvas")
     if model:
         parts.append(f"m:{model}")
+    if mode and mode != "regular":
+        parts.append(f"mode:{mode}")
     if parts:
         return hashlib.md5(":".join(parts).encode()).hexdigest()[:8]
     return ""

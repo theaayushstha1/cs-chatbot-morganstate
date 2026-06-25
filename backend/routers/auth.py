@@ -21,11 +21,33 @@ ALLOWED_EMAIL_DOMAINS = ["morgan.edu"]
 _register_timestamps: dict[str, list] = {}
 
 
+def _allow_dev_verification_link() -> bool:
+    app_env = os.getenv("APP_ENV", os.getenv("ENVIRONMENT", "local")).lower()
+    return app_env not in {"production", "prod"}
+
+
+def _verification_response(message: str, token: str | None = None, request: Request | None = None) -> dict:
+    response = {"message": message}
+    if token and _allow_dev_verification_link():
+        from email_service import build_verification_url, is_email_configured
+
+        if not is_email_configured():
+            if request:
+                response["dev_verification_url"] = f"{request.url_for('verify_email')}?token={token}"
+            else:
+                response["dev_verification_url"] = build_verification_url(token)
+            response["email_delivery"] = "smtp_not_configured"
+            response["message"] = (
+                f"{message} SMTP is not configured locally, so use the development verification link."
+            )
+    return response
+
+
 # ---------------------------------------------------------------------------
 # POST /api/register
 # ---------------------------------------------------------------------------
 @router.post("/api/register", status_code=status.HTTP_201_CREATED)
-def register(req: RegisterRequest, db: Session = Depends(get_db)):
+def register(req: RegisterRequest, request: Request, db: Session = Depends(get_db)):
     from email_service import generate_token, send_verification_email
 
     email = req.email.strip().lower()
@@ -51,13 +73,13 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
 
     if len(req.password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
-    if db.query(User).filter(User.email == req.email).first():
+    if db.query(User).filter(User.email == email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
 
     hashed = hash_password(req.password)
     token = generate_token()
     student = User(
-        email=req.email,
+        email=email,
         password_hash=hashed,
         role="student",
         email_verified=False,
@@ -69,8 +91,11 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(student)
 
-    send_verification_email(req.email, token)
-    return {"message": "Account created! Check your Morgan State email to verify.", "user_id": student.id}
+    sent = send_verification_email(email, token)
+    response = _verification_response("Account created! Check your Morgan State email to verify.", token, request)
+    response["user_id"] = student.id
+    response["email_sent"] = sent
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -99,7 +124,7 @@ async def resend_verification(request: Request, db: Session = Depends(get_db)):
     from email_service import generate_token, send_verification_email
 
     body = await request.json()
-    email = body.get("email", "")
+    email = body.get("email", "").strip().lower()
     user = db.query(User).filter(User.email == email).first()
     if not user:
         return {"message": "If an account exists, a verification email has been sent."}
@@ -108,8 +133,10 @@ async def resend_verification(request: Request, db: Session = Depends(get_db)):
     token = generate_token()
     user.verification_token = token
     db.commit()
-    send_verification_email(email, token)
-    return {"message": "Verification email sent. Check your inbox."}
+    sent = send_verification_email(email, token)
+    response = _verification_response("Verification email sent. Check your inbox.", token, request)
+    response["email_sent"] = sent
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -117,16 +144,20 @@ async def resend_verification(request: Request, db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 @router.post("/api/login")
 def login(req: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == req.email).first()
+    email = req.email.strip().lower()
+    user = db.query(User).filter(User.email == email).first()
     if not user or not verify_password(req.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+    if getattr(user, "is_disabled", False):
+        raise HTTPException(status_code=403, detail="This account has been disabled. Contact an administrator.")
 
-    # Require email verification (skip for admins and existing test accounts)
-    if not getattr(user, "email_verified", True) and user.role != "admin":
-        raise HTTPException(
-            status_code=403,
-            detail="Please verify your email first. Check your inbox for the verification link.",
-        )
+    # Email verification disabled — all accounts may log in without verifying.
+    # (Previously: blocked unverified non-admin accounts. Re-enable by restoring this check.)
+    # if not getattr(user, "email_verified", True) and user.role != "admin":
+    #     raise HTTPException(
+    #         status_code=403,
+    #         detail="Please verify your email first. Check your inbox for the verification link.",
+    #     )
 
     token = create_access_token(
         {"user_id": user.id, "role": user.role, "email": user.email}

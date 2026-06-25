@@ -143,7 +143,6 @@ story.append(Paragraph(
     'The table below shows the exact overlap between student account creation, '
     'deployment revisions, and git commits. All times are Eastern Time (ET).',
     styles['Body']))
-
 timeline = [
     ['Time (ET)', 'Event', 'Category'],
     ['12:34 AM', 'Dr. Naja Mack creates test account', 'Account'],

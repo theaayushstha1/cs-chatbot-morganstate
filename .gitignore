@@ -2,6 +2,7 @@
 .env
 backend/.env
 frontend/.env
+STARTUP.local.md
 
 # Virtual environments
 .venv/
@@ -37,6 +38,7 @@ Thumbs.db
 # Build files
 frontend/dist/
 frontend/build/
+frontend/.npm-cache/
 
 # Logs
 *.log
@@ -53,12 +55,24 @@ VISUAL_DIAGRAMS_REFERENCE.md
 README_DOCUMENTATION.md
 AI_AGENTS_PLAN.md
 CLAUDE.md
+AGENTS.md
+ROADMAP.md
+
+# Presentation / talk notes (kept local, not for public repo)
+docs/aaas_talk.md
+docs/*_talk.md
+docs/presentation*.md
 
 # Text extraction service (cloned repo)
 text-extract-api/
 
 # Claude Code
 .claude/
+
+# Local deployment URL markers
+.adk-url
+.backend-url
+.frontend-url
 
 # Duplicate backend folder
 backend/backend/

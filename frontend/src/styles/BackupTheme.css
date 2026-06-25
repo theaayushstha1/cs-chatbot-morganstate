@@ -1,0 +1,161 @@
+/*
+  BackupTheme.css
+  Warm academic theme for CS Navigator.
+
+  Revert path:
+  - Remove or comment the import in frontend/src/main.jsx.
+  - Or comment this file's :root/body.dark blocks.
+*/
+
+:root {
+  --theme-paper: #fbf8f0;
+  --theme-paper-soft: #f4ecdc;
+  --theme-paper-raised: #fffdf7;
+  --theme-navy: #002d72;
+  --theme-navy-hover: #003f9e;
+  --theme-blue: #0057b8;
+  --theme-orange: #f58220;
+  --theme-orange-hover: #d96f1a;
+  --theme-orange-soft: rgba(245, 130, 32, 0.14);
+  --theme-warm-border: #ddd1c0;
+  --theme-blue-border: #b7c6d8;
+  --theme-charcoal: #172033;
+  --theme-muted: #6b7280;
+
+  --msu-blue: var(--theme-blue);
+  --msu-blue-hover: var(--theme-navy-hover);
+  --msu-blue-light: #5f91c7;
+  --msu-blue-50: rgba(31, 95, 168, 0.08);
+  --msu-blue-100: rgba(31, 95, 168, 0.14);
+  --msu-gold: var(--theme-orange);
+  --msu-gold-hover: var(--theme-orange-hover);
+  --msu-gold-50: var(--theme-orange-soft);
+
+  --bg-body: var(--theme-paper);
+  --bg-card: var(--theme-paper-raised);
+  --bg-card-hover: var(--theme-paper-soft);
+  --bg-elevated: #ffffff;
+  --bg-input: #f7f0e6;
+  --text-main: var(--theme-charcoal);
+  --text-secondary: #596273;
+  --text-tertiary: #8b8174;
+  --border-color: var(--theme-warm-border);
+  --border-subtle: #eadfce;
+  --border-focus: var(--theme-orange);
+
+  --bg-app: var(--bg-body);
+  --bg-surface: var(--bg-card);
+  --bg-surface-soft: var(--bg-input);
+  --bg-surface-raised: var(--bg-elevated);
+  /* Soft warm page wash for the chat/landing backdrop — complements the ivory
+     paper instead of the old cold blue tint. */
+  --page-wash: rgba(245, 130, 32, 0.06);
+  --text-muted: var(--text-secondary);
+  --text-soft: var(--text-tertiary);
+  --border-soft: var(--border-color);
+  --border-strong: var(--theme-blue-border);
+  --primary: var(--theme-navy);
+  --primary-hover: var(--theme-blue);
+  --primary-soft: rgba(0, 45, 114, 0.1);
+  --accent: var(--theme-orange);
+  --accent-soft: var(--theme-orange-soft);
+  --success: #2f8a4c;
+  --warning: #b76a1f;
+  --danger: #bd3b32;
+
+  --gradient-primary: linear-gradient(135deg, var(--theme-navy), var(--theme-blue));
+  --gradient-subtle: linear-gradient(180deg, #fbf7ef 0%, #f4eddf 100%);
+  --gradient-glass: linear-gradient(135deg, #fffdf8 0%, #f5efe3 100%);
+  --gradient-mesh:
+    radial-gradient(at 24% 12%, rgba(232, 135, 58, 0.08) 0px, transparent 44%),
+    radial-gradient(at 82% 0%, rgba(31, 95, 168, 0.06) 0px, transparent 50%),
+    radial-gradient(at 0% 62%, rgba(16, 35, 63, 0.04) 0px, transparent 46%);
+
+  --shadow-xs: 0 1px 2px rgba(31, 41, 55, 0.06);
+  --shadow-sm: 0 1px 3px rgba(31, 41, 55, 0.08), 0 1px 2px rgba(31, 41, 55, 0.05);
+  --shadow-md: 0 5px 12px rgba(31, 41, 55, 0.1), 0 1px 3px rgba(31, 41, 55, 0.06);
+  --shadow-lg: 0 12px 28px rgba(31, 41, 55, 0.11), 0 2px 6px rgba(31, 41, 55, 0.06);
+  --shadow-xl: 0 20px 44px rgba(31, 41, 55, 0.14);
+}
+
+body.dark {
+  --theme-paper: #101826;
+  --theme-paper-soft: #162235;
+  --theme-paper-raised: #1c2a3f;
+  --theme-navy: #6f93c4;
+  --theme-navy-hover: #8faed7;
+  --theme-blue: #789dca;
+  --theme-orange: #e7a05b;
+  --theme-orange-hover: #f1b678;
+  --theme-orange-soft: rgba(231, 160, 91, 0.18);
+  --theme-warm-border: #31415a;
+  --theme-blue-border: #435a78;
+  --theme-charcoal: #f4efe6;
+  --theme-muted: #b7c1cf;
+
+  --msu-blue: var(--theme-blue);
+  --msu-blue-hover: var(--theme-navy-hover);
+  --msu-blue-light: #a9c0dc;
+  --msu-blue-50: rgba(120, 157, 202, 0.12);
+  --msu-blue-100: rgba(120, 157, 202, 0.19);
+  --msu-gold: var(--theme-orange);
+  --msu-gold-hover: var(--theme-orange-hover);
+  --msu-gold-50: var(--theme-orange-soft);
+
+  --bg-body: #0f1724;
+  --bg-card: #172235;
+  --bg-card-hover: #1f2d43;
+  --bg-elevated: #223149;
+  --bg-input: #152033;
+  --text-main: #f4efe6;
+  --text-secondary: #b7c1cf;
+  --text-tertiary: #8794a8;
+  --border-color: #31415a;
+  --border-subtle: #26354c;
+  --border-focus: var(--theme-orange);
+
+  --bg-app: var(--bg-body);
+  --bg-surface: var(--bg-card);
+  --bg-surface-soft: var(--bg-input);
+  --bg-surface-raised: var(--bg-elevated);
+  /* Dark mode: a very faint warm wash so the backdrop isn't dead flat. */
+  --page-wash: rgba(245, 130, 32, 0.05);
+  --text-muted: var(--text-secondary);
+  --text-soft: var(--text-tertiary);
+  --border-soft: var(--border-color);
+  --border-strong: var(--theme-blue-border);
+  --primary: var(--theme-blue);
+  --primary-hover: var(--theme-navy-hover);
+  --primary-soft: rgba(120, 157, 202, 0.16);
+  --accent: var(--theme-orange);
+  --accent-soft: var(--theme-orange-soft);
+  --success: #7bcf8e;
+  --warning: #f0c56b;
+  --danger: #ff8b82;
+
+  --gradient-primary: linear-gradient(135deg, #6f93c4, #4f76aa);
+  --gradient-subtle: linear-gradient(180deg, #172235 0%, #0f1724 100%);
+  --gradient-glass: linear-gradient(135deg, #172235 0%, #223149 100%);
+  --gradient-mesh:
+    radial-gradient(at 24% 12%, rgba(231, 160, 91, 0.1) 0px, transparent 44%),
+    radial-gradient(at 82% 0%, rgba(120, 157, 202, 0.08) 0px, transparent 50%),
+    radial-gradient(at 0% 62%, rgba(244, 239, 230, 0.04) 0px, transparent 46%);
+}
+
+body {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px),
+    var(--bg-body);
+  background-size: 28px 28px, 28px 28px, auto;
+}
+
+body.dark {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    radial-gradient(circle at 20% 10%, rgba(231, 160, 91, 0.045) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.035) 0 1px, transparent 1.4px),
+    var(--bg-body);
+  background-size: 28px 28px, 28px 28px, 9px 9px, 13px 13px, auto;
+}

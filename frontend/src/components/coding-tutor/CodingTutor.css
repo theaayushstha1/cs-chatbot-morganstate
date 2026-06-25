@@ -1,0 +1,3582 @@
+.coding-app {
+  --ct-bg: var(--bg-app);
+  --ct-panel: var(--bg-surface);
+  --ct-panel-soft: var(--bg-surface-soft);
+  --ct-panel-raised: var(--bg-surface-raised);
+  --ct-border: var(--border-soft);
+  --ct-border-strong: var(--border-strong);
+  --ct-text: var(--text-main);
+  --ct-muted: var(--text-muted);
+  --ct-soft: var(--text-soft);
+  --ct-primary: var(--primary);
+  --ct-primary-hover: var(--primary-hover);
+  --ct-primary-soft: var(--primary-soft);
+  --ct-accent: var(--accent);
+  --ct-accent-soft: var(--accent-soft);
+  --ct-success: var(--success);
+  --ct-warning: var(--warning);
+  --ct-danger: var(--danger);
+  --ct-editor-bg: #0f172a;
+  --ct-editor-text: #e5e7eb;
+  --ct-terminal-bg: #090f1f;
+  --ct-terminal-text: #dbeafe;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  display: grid;
+  /* Nav is a dropdown BAR on top (row 1), content below (row 2) — on every
+     screen. The old 162px side column squished the dropdown into a thin sliver. */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  /* List pages (Home / Quiz Bank / Interview Prep / Progress) size to their
+     content — NOT a forced viewport height. The forced full height (which made a
+     tall gradient block below short content = the "gutter") is applied only in the
+     workspace, where filling the screen IS wanted (see .coding-workspace-active). */
+  min-height: 0;
+  padding: 16px 10px 12px;
+  /* A flat surface (no tall gradient band) so there's no visible block below the
+     content. The outer .chat-main provides the page backdrop. */
+  background: var(--ct-bg);
+  color: var(--ct-text);
+  gap: 10px;
+  overflow: visible;
+  transition: grid-template-columns 0.16s ease;
+}
+
+.coding-app.mini-sidebar-collapsed {
+  grid-template-columns: 50px minmax(0, 1fr);
+  gap: 8px;
+  padding-top: 18px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.coding-app *,
+.coding-app *::before,
+.coding-app *::after {
+  box-sizing: border-box;
+}
+
+.coding-app h2,
+.coding-app h3,
+.coding-app strong,
+.coding-app button,
+.coding-app .coding-kicker {
+  font-weight: 650;
+}
+
+.coding-app p,
+.coding-app li,
+.coding-app small,
+.coding-app span,
+.coding-app textarea,
+.coding-app select {
+  font-weight: 400;
+}
+
+.coding-app button,
+.coding-app select {
+  letter-spacing: 0;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.coding-app button {
+  border: 1px solid transparent;
+}
+
+.coding-app button:hover:not(:disabled),
+.coding-app select:hover,
+.coding-app textarea:hover {
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+/* ── Coding section nav: ONE dropdown on every screen ───────────────────────
+   A toggle bar (current tab name + chevron) sits at the top. The icon list is
+   hidden until the nav has .mobile-open, then drops down. List items are
+   icon-only with a hover tooltip (the bar already names the active tab). */
+/* Row 1: Back-to-Home button on the LEFT (fixed size, top-aligned), then the
+   section-nav dropdown which stretches to fill the rest of the row. */
+.coding-nav-row {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  width: 100%;
+}
+
+.coding-nav-row .coding-back-home-btn {
+  flex: 0 0 auto;
+  align-self: flex-start;
+}
+
+.coding-nav-row .coding-section-nav {
+  flex: 1 1 auto;
+}
+
+.coding-back-home-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  /* Match the nav dropdown bar EXACTLY: same fixed height + radius + top edge so
+     the two sit on the same level (min-height left them slightly uneven). */
+  height: 48px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  padding: 0 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  color: var(--ct-text);
+  font-size: 0.92rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease, transform 0.1s ease;
+}
+
+.coding-back-home-btn svg {
+  font-size: 1rem;
+  color: var(--ct-primary);
+}
+
+.coding-back-home-btn:hover {
+  border-color: color-mix(in srgb, var(--ct-accent) 45%, var(--ct-border));
+  transform: translateY(-1px);
+}
+
+.coding-back-home-btn.active {
+  background: linear-gradient(135deg, var(--ct-primary), color-mix(in srgb, var(--ct-primary) 72%, var(--ct-accent) 28%));
+  border-color: transparent;
+  color: #fff;
+}
+
+.coding-back-home-btn.active svg {
+  color: #fff;
+}
+
+/* Dark mode, NON-active tabs: the glass pill was hard to see. Make it light blue
+   so it clearly stands out as the way back Home. (Active keeps the gradient below
+   to signify the user is already on Home.) */
+body.dark .coding-back-home-btn {
+  background: #8ab4f8;
+  border-color: #8ab4f8;
+  color: #0b1322;
+}
+
+body.dark .coding-back-home-btn svg {
+  color: #0b1322;
+}
+
+body.dark .coding-back-home-btn:hover {
+  background: #aecbfa;
+  border-color: #aecbfa;
+  color: #0b1322;
+}
+
+body.dark .coding-back-home-btn:hover svg {
+  color: #0b1322;
+}
+
+body.dark .coding-back-home-btn.active {
+  background: linear-gradient(135deg, #243a67, #d89a43);
+  border-color: transparent;
+  color: #f8f1e8;
+}
+
+body.dark .coding-back-home-btn.active svg {
+  color: #f8f1e8;
+}
+
+.coding-section-nav {
+  align-self: start;
+  justify-self: start;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  /* A compact dropdown bar (not full width) — sized to its content, aligned left.
+     Opening it drops the list below. */
+  width: clamp(200px, 32%, 280px);
+  max-width: 100%;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  min-width: 0;
+  overflow: visible;
+  z-index: 30;
+}
+
+.coding-section-nav.mobile-open {
+  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.18);
+}
+
+/* The dropdown toggle bar (visible on every screen): active icon + name, then
+   the chevron pushed to the right. */
+.coding-nav-mobile-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  /* Fixed 48px to match the Back-to-Home button exactly (same top edge). */
+  height: 48px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: #1f2937;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.coding-nav-mobile-toggle .coding-nav-mobile-current {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coding-nav-current-icon {
+  flex: 0 0 auto;
+}
+
+.coding-nav-mobile-toggle .coding-nav-chevron {
+  flex: 0 0 auto;
+  color: var(--ct-primary, #002d72);
+  transition: transform 0.2s ease;
+}
+
+.coding-section-nav.mobile-open .coding-nav-chevron {
+  transform: rotate(180deg);
+}
+
+/* Section buttons = the dropdown list. Hidden until open; icon-only items. */
+.coding-section-nav > button:not(.coding-nav-mobile-toggle) {
+  display: none;
+}
+
+/* When open, the list overlays below the bar (so a narrow nav column can't clip
+   long labels) and is wide enough to read every item comfortably. */
+.coding-section-nav.mobile-open {
+  position: relative;
+}
+
+.coding-section-nav.mobile-open > button:not(.coding-nav-mobile-toggle) {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 16px;
+  background: rgba(255, 255, 255, 0.99);
+  border: 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+  color: #1f2937;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.coding-section-nav.mobile-open > button.active {
+  background: var(--ct-accent-soft, rgba(245, 130, 32, 0.14));
+  color: var(--ct-primary, #002d72);
+  font-weight: 750;
+}
+
+/* Dropdown list items show icon + text. The label claims the remaining width so
+   it is never squished to a sliver next to the icon. */
+.coding-section-nav > button .coding-nav-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coding-nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 12px;
+  background: rgba(66, 133, 244, 0.1);
+  color: #1e3a8a;
+  font-size: 0.92rem;
+  font-weight: 750;
+}
+
+.coding-nav-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* (The old .mini-sidebar-collapsed icon-column rules were removed — that toggle
+   no longer exists, the nav is a dropdown on every screen.) */
+
+.coding-nav-workspace-toggle {
+  background: rgba(66, 133, 244, 0.08) !important;
+  border-color: rgba(66, 133, 244, 0.18) !important;
+  margin-top: 4px;
+  color: #047857 !important;
+}
+
+.coding-section-nav button:hover,
+.coding-section-nav button:focus-visible {
+  background: rgba(66, 133, 244, 0.1);
+  border-color: rgba(66, 133, 244, 0.24);
+}
+
+.coding-section-nav button.active {
+  background: rgba(66, 133, 244, 0.14);
+  border-color: rgba(66, 133, 244, 0.32);
+  color: #1e3a8a;
+  box-shadow: 0 10px 22px rgba(66, 133, 244, 0.12);
+}
+
+.coding-app-content {
+  padding-bottom: 0;
+  min-height: 0;
+  width: 100%;
+}
+
+.coding-app-main {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow: visible;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
+}
+
+.coding-app.mini-sidebar-collapsed .coding-app-main {
+  padding-right: 0;
+}
+
+.coding-app.mini-sidebar-collapsed .quiz-bank-page,
+.coding-app.mini-sidebar-collapsed .progress-page,
+.coding-app.mini-sidebar-collapsed .coding-page-panel {
+  max-width: none;
+}
+
+
+.coding-workbench {
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.coding-workbench-main {
+  min-height: clamp(360px, calc(100vh - 340px), 560px);
+  display: grid;
+  grid-template-columns: minmax(280px, 0.34fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+}
+
+.coding-workbench-main > *,
+.coding-editor-center,
+.coding-problem-panel,
+.workspace-tab-body,
+.quiz-bank-layout > *,
+.quiz-library,
+.quiz-insight-panel {
+  min-width: 0;
+}
+
+.coding-page-panel,
+.daily-feature-card,
+.quiz-library,
+.quiz-insight-panel,
+.practice-progress-overview,
+.coding-problem-panel,
+.coding-editor-center,
+.quiz-problem-card {
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.coding-page-panel {
+  padding: 22px;
+}
+
+.coding-page-panel,
+.coding-problem-panel,
+.coding-editor-center,
+.quiz-library,
+.quiz-insight-panel,
+.practice-progress-overview,
+.daily-feature-card {
+  position: relative;
+}
+
+.coding-page-panel::before,
+.coding-problem-panel::before,
+.coding-editor-center::before,
+.quiz-library::before,
+.quiz-insight-panel::before,
+.practice-progress-overview::before,
+.daily-feature-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(66, 133, 244, 0.72), rgba(52, 168, 83, 0.48), rgba(251, 188, 5, 0.5));
+  pointer-events: none;
+}
+
+.practice-progress-overview {
+  display: flex !important;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  grid-template-columns: minmax(150px, 0.6fr) minmax(160px, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.coding-app .practice-progress-overview {
+  margin-bottom: 0;
+  width: 100%;
+}
+
+.coding-app .practice-progress-overview > div:first-child {
+  display: grid;
+  gap: 4px;
+  align-items: center;
+  justify-content: start;
+}
+
+.coding-app .practice-progress-overview .progress-bar {
+  flex: 1 1 320px;
+  min-width: min(320px, 100%);
+}
+
+.coding-app .progress-overview-stats {
+  flex: 0 1 auto;
+}
+
+.progress-bar {
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.16);
+  overflow: hidden;
+}
+
+.progress-bar span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #60a5fa 0%, #38bdf8 100%);
+  transition: width 0.3s ease;
+}
+
+.progress-overview-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: #475569;
+  font-size: 0.84rem;
+  white-space: nowrap;
+}
+
+.coding-dashboard {
+  display: flex !important;
+  flex-direction: column;
+  gap: 24px;
+  /* Edge-to-edge with just side padding (like the workspace) — no narrow centered
+     column. A very high cap only kicks in on ultra-wide monitors. */
+  max-width: 2200px;
+  margin: 0 auto;
+  width: 100%;
+  min-height: auto;
+  overflow: visible;
+  padding: 8px 24px 36px;
+}
+
+.topic-filter-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 12px 0 14px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--ct-accent) 34%, var(--ct-border));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ct-accent) 10%, var(--ct-panel-soft));
+  color: var(--ct-text);
+}
+
+.topic-filter-banner span {
+  color: var(--ct-text);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.topic-filter-banner button {
+  min-height: 34px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ct-primary) 38%, var(--ct-border));
+  background: var(--ct-primary);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.topic-filter-banner button:hover:not(:disabled) {
+  background: var(--ct-accent);
+  border-color: color-mix(in srgb, var(--ct-accent) 58%, var(--ct-border));
+  color: #172033;
+}
+
+.interview-prep-page {
+  display: grid;
+  gap: 20px;
+  max-width: 2200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Interview Prep is a CONTAINER for the topic-pack cards — make it transparent
+   (no panel surface, border, shadow, or accent top-bar) so the cards sit directly
+   on the page instead of inside a card with an empty bottom gutter. Scoped under
+   .coding-app to OUTRANK the `.coding-app :is(.coding-page-panel)` solid-panel
+   rule that re-applies the surface (same specificity but loads later). */
+.coding-app .interview-prep-page.coding-page-panel {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  min-height: 0 !important;
+  padding: 8px 24px 24px !important;
+}
+
+.coding-app .interview-prep-page.coding-page-panel::before {
+  display: none !important;
+}
+
+.interview-prep-hero {
+  display: grid;
+  gap: 8px;
+  max-width: 720px;
+}
+
+.interview-prep-hero h2 {
+  margin: 0;
+  color: var(--ct-text);
+  font-size: clamp(1.45rem, 2.5vw, 2.2rem);
+}
+
+.interview-prep-hero p {
+  margin: 0;
+  color: var(--ct-muted);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+.coding-dashboard-prompts {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(100%, 820px);
+}
+
+.coding-dashboard-section {
+  width: 100%;
+}
+
+/* ── Dashboard stat tiles (#3): at-a-glance momentum ─────────────────────── */
+.coding-stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+.coding-stat-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--ct-panel-soft);
+  border: 1px solid var(--ct-border);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+}
+
+.coding-stat-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.coding-stat-value {
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--ct-text);
+}
+
+.coding-stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ct-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Accent the streak + completion tiles so the row isn't monotone. */
+.coding-stat-tile.stat-streak {
+  background: color-mix(in srgb, var(--ct-accent) 12%, var(--ct-panel-soft));
+  border-color: color-mix(in srgb, var(--ct-accent) 34%, var(--ct-border));
+}
+
+.coding-stat-tile.stat-complete {
+  background: color-mix(in srgb, var(--ct-primary) 10%, var(--ct-panel-soft));
+  border-color: color-mix(in srgb, var(--ct-primary) 30%, var(--ct-border));
+}
+
+@media (max-width: 640px) {
+  .coding-stat-tiles {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .coding-stat-value {
+    font-size: 1.4rem;
+  }
+}
+
+/* ── Personal "My Snippets" panel (reuses .coding-problem-panel look) ────── */
+.personal-panel {
+  /* Breathing room at the top so the header/buttons aren't crammed under the
+     panel's accent border. */
+  padding-top: 18px;
+}
+
+.personal-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.personal-panel-head h2 {
+  margin: 3px 0 0;
+}
+
+.personal-new-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 11px 22px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ct-primary) 45%, transparent);
+  background: color-mix(in srgb, var(--ct-primary) 92%, #000);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--ct-primary) 22%, transparent);
+  transition: background 0.14s ease, transform 0.1s ease, box-shadow 0.14s ease;
+}
+
+.personal-new-btn svg {
+  font-size: 0.95rem;
+}
+
+.personal-new-btn:hover {
+  background: var(--ct-accent);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--ct-accent) 28%, transparent);
+}
+
+.personal-panel-blurb {
+  margin-top: 16px;
+}
+
+.personal-panel-blurb {
+  margin: 10px 0 14px;
+  color: var(--ct-muted);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.personal-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 28px 16px;
+  color: var(--ct-muted);
+  border: 1px dashed var(--ct-border);
+  border-radius: 14px;
+}
+
+.personal-empty svg {
+  font-size: 1.6rem;
+  opacity: 0.7;
+}
+
+.personal-snippet-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.personal-snippet-item {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--ct-border);
+  background: var(--ct-panel-soft);
+  overflow: hidden;
+  transition: border-color 0.14s ease;
+}
+
+.personal-snippet-item:hover {
+  border-color: color-mix(in srgb, var(--ct-accent) 45%, var(--ct-border));
+}
+
+.personal-snippet-item.active {
+  border-color: var(--ct-accent);
+  background: color-mix(in srgb, var(--ct-accent) 10%, var(--ct-panel-soft));
+}
+
+.personal-snippet-open {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 12px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.personal-snippet-open strong {
+  color: var(--ct-text);
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personal-snippet-meta {
+  font-size: 0.74rem;
+  color: var(--ct-muted);
+}
+
+.personal-snippet-delete {
+  flex: 0 0 auto;
+  width: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  border-left: 1px solid var(--ct-border);
+  color: var(--ct-muted);
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+.personal-snippet-delete:hover {
+  background: rgba(248, 81, 73, 0.16);
+  color: #e0413a;
+}
+
+/* ── "Continue where you left off" (#1) — compact side-by-side cards ─────── */
+.coding-recent-activity {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.coding-recent-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.coding-recent-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 132px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--ct-panel);
+  border: 1px solid var(--ct-border);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+  transition: border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+.coding-recent-card:hover {
+  border-color: color-mix(in srgb, var(--ct-accent) 45%, var(--ct-border));
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.09);
+}
+
+.coding-recent-card-top {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+/* Small label at the top of each card (Resume / Up Next / Personal). */
+.coding-recent-label {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ct-muted);
+}
+
+.coding-recent-empty {
+  color: var(--ct-muted);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.coding-recent-title {
+  color: var(--ct-text);
+  font-size: 0.98rem;
+  line-height: 1.25;
+  /* keep titles from blowing out the small card — clamp to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Up Next card — a subtle blue accent so it reads as a recommendation. */
+.coding-upnext-card {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--ct-primary) 8%, var(--ct-panel)), var(--ct-panel)) !important;
+  border-color: color-mix(in srgb, var(--ct-primary) 30%, var(--ct-border)) !important;
+}
+
+.coding-upnext-card .coding-recent-label {
+  color: color-mix(in srgb, var(--ct-primary) 70%, var(--ct-muted));
+}
+
+.upnext-start-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+body.dark .coding-upnext-card {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--ct-primary) 16%, var(--ct-panel)), var(--ct-panel)) !important;
+}
+
+.coding-recent-category {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+}
+
+.recent-diff {
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.recent-diff.easy { background: rgba(63, 185, 80, 0.16); color: #2f9e44; }
+.recent-diff.medium { background: rgba(240, 180, 41, 0.16); color: #c2870a; }
+.recent-diff.hard { background: rgba(248, 81, 73, 0.16); color: #d63a31; }
+
+.recent-topic {
+  color: var(--ct-muted);
+}
+
+.coding-recent-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.coding-recent-resume-btn {
+  flex: 0 0 auto;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ct-primary) 50%, transparent);
+  background: color-mix(in srgb, var(--ct-primary) 92%, #000);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, transform 0.1s ease;
+}
+
+.coding-recent-resume-btn:hover {
+  background: var(--ct-accent);
+  border-color: var(--ct-accent);
+  transform: translateY(-1px);
+}
+
+.recent-status {
+  flex: 0 0 auto;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.recent-status.solved { background: rgba(63, 185, 80, 0.14); color: #2f9e44; }
+.recent-status.in-progress { background: color-mix(in srgb, var(--ct-primary) 14%, transparent); color: var(--ct-primary); }
+
+/* The My Snippets card (always the 3rd card) — accented so it stands out as the
+   personal workspace, not buried among recent problems. */
+.coding-snippets-card {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--ct-accent) 12%, var(--ct-panel)), var(--ct-panel)) !important;
+  border-color: color-mix(in srgb, var(--ct-accent) 38%, var(--ct-border)) !important;
+}
+
+.coding-snippets-card .coding-recent-title {
+  color: color-mix(in srgb, var(--ct-accent) 70%, var(--ct-text));
+}
+
+.snippets-open-btn {
+  background: var(--ct-accent) !important;
+  border-color: var(--ct-accent) !important;
+}
+
+.snippets-open-btn:hover {
+  background: color-mix(in srgb, var(--ct-accent) 86%, #000) !important;
+}
+
+body.dark .coding-snippets-card {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--ct-accent) 20%, var(--ct-panel)), var(--ct-panel)) !important;
+}
+
+@media (max-width: 720px) {
+  .coding-recent-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Unsaved-changes prompt (personal workspace fallback). */
+.unsaved-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 15, 30, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+.unsaved-modal {
+  width: min(420px, calc(100vw - 40px));
+  border-radius: 16px;
+  padding: 22px 24px;
+  background: var(--ct-panel);
+  border: 1px solid var(--ct-border);
+  box-shadow: 0 24px 60px rgba(8, 15, 30, 0.4);
+  color: var(--ct-text);
+}
+
+.unsaved-modal h3 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+
+.unsaved-modal p {
+  margin: 0 0 18px;
+  color: var(--ct-muted);
+  line-height: 1.45;
+}
+
+.unsaved-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.unsaved-btn {
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+
+.unsaved-save {
+  background: var(--ct-primary);
+  color: #fff;
+  border-color: var(--ct-primary);
+}
+
+.unsaved-save:hover { background: color-mix(in srgb, var(--ct-primary) 86%, #000); }
+
+.unsaved-discard {
+  background: transparent;
+  color: var(--ct-danger, #dc2626);
+  border-color: color-mix(in srgb, var(--ct-danger, #dc2626) 45%, transparent);
+}
+
+.unsaved-discard:hover { background: color-mix(in srgb, var(--ct-danger, #dc2626) 12%, transparent); }
+
+.unsaved-cancel {
+  background: transparent;
+  color: var(--ct-muted);
+  border-color: var(--ct-border);
+}
+
+.unsaved-cancel:hover { background: var(--ct-panel-soft); }
+
+body.dark .coding-stat-tile,
+body.dark .coding-recent-card {
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+}
+
+body.dark .recent-diff.easy { color: #5bd178; }
+body.dark .recent-diff.medium { color: #f0c662; }
+body.dark .recent-diff.hard { color: #ff8a82; }
+body.dark .recent-status.solved { color: #5bd178; }
+
+.coding-blurb-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.coding-prompt-card {
+  width: 100%;
+  min-height: 76px;
+  padding: 18px 24px;
+  text-align: left;
+  color: #202124;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-left: 4px solid #5b7cfa;
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.save-quiz-pdf-btn {
+  align-self: flex-start;
+  min-height: 42px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(66, 133, 244, 0.24);
+  background: rgba(66, 133, 244, 0.08);
+  color: #1d4ed8;
+  cursor: pointer;
+}
+
+.coding-prompt-card.red {
+  border-left-color: #ef4444;
+}
+
+.coding-prompt-card.gold {
+  border-left-color: #eab308;
+}
+
+.coding-prompt-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(66, 133, 244, 0.28);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.1);
+}
+
+.daily-feature-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px;
+  min-height: 180px;
+  border-top: 4px solid transparent;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.daily-feature-card.dashboard-daily {
+  border-top-color: #4285f4;
+  min-height: 240px;
+  background:
+    linear-gradient(135deg, rgba(66, 133, 244, 0.12), rgba(52, 168, 83, 0.08)),
+    rgba(255, 255, 255, 0.96);
+}
+
+.dashboard-daily h2 {
+  font-size: clamp(1.45rem, 2.6vw, 2.4rem);
+  line-height: 1.15;
+  max-width: 760px;
+}
+
+.dashboard-daily p {
+  max-width: 760px;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.daily-feature-card:hover,
+.quiz-problem-card:hover,
+.quiz-insight-panel:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.1);
+}
+
+.daily-feature-card {
+  color: #111827;
+}
+
+/* Quiz Bank header: title on the left, difficulty/language controls on the
+   right. Wrap to a new line when space is tight so the dropdowns are never
+   clipped at tablet width. */
+.quiz-bank-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.practice-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  min-width: 0;
+}
+
+.practice-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ct-muted, #6b7280);
+}
+
+.coding-select {
+  width: 100%;
+  min-width: 130px;
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+@media (max-width: 1024px) {
+  /* On tablets the controls take the full row under the title. */
+  .quiz-bank-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .practice-controls {
+    width: 100%;
+  }
+
+  .practice-controls label {
+    flex: 1 1 140px;
+  }
+}
+
+.daily-practice-btn {
+  transition: all 0.2s ease;
+}
+
+.daily-practice-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(66, 133, 244, 0.18);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: #fff;
+  font-weight: 750;
+  box-shadow: 0 12px 26px rgba(29, 78, 216, 0.2);
+}
+
+.coding-app .dashboard-daily .daily-actions {
+  margin-top: 10px;
+}
+
+.coding-app .dashboard-daily .daily-practice-btn,
+.coding-app .dashboard-daily .daily-link {
+  min-width: 128px;
+  min-height: 46px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+}
+
+.coding-app .dashboard-daily .daily-link {
+  border-color: rgba(52, 168, 83, 0.28);
+  background: linear-gradient(135deg, rgba(52, 168, 83, 0.13), rgba(66, 133, 244, 0.08));
+  color: #166534;
+}
+
+.coding-app .dashboard-daily .daily-link::after {
+  content: ">";
+  margin-left: 8px;
+  font-size: 0.86rem;
+}
+
+.daily-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: auto;
+}
+
+.daily-meta-row,
+.problem-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.daily-meta-row {
+  margin: 12px 0 4px;
+  color: #475569;
+  font-weight: 650;
+}
+
+/* Estimated-time reads as a rounded pill to match the difficulty pill. */
+.daily-eta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.problem-navigation {
+  margin: 14px 0 12px;
+}
+
+.problem-navigation button {
+  flex: 1 1 110px;
+  min-height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(66, 133, 244, 0.24);
+  background: linear-gradient(135deg, rgba(66, 133, 244, 0.14), rgba(66, 133, 244, 0.06));
+  color: #1d4ed8;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+.problem-navigation button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-color: rgba(29, 78, 216, 0.38);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(29, 78, 216, 0.22);
+}
+
+.problem-navigation button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.starter-guidance-panel {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(66, 133, 244, 0.08);
+  border: 1px solid rgba(66, 133, 244, 0.16);
+}
+
+.starter-guidance-panel h3 {
+  margin: 0 0 6px;
+}
+
+.starter-guidance-panel p,
+.starter-guidance-panel ul {
+  margin: 0;
+}
+
+.starter-guidance-panel ul {
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+}
+
+.problem-constraints-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.problem-constraints-card h3 {
+  margin: 0;
+}
+
+.problem-constraints-card ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+}
+
+.problem-constraints-card li {
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.daily-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.94);
+  color: #1e3a8a;
+  text-decoration: none;
+  font-weight: 700;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+.daily-practice-btn.secondary {
+  background: rgba(248, 250, 252, 0.98);
+  border-color: rgba(66, 133, 244, 0.2);
+  color: #1e3a8a;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+.daily-practice-btn:hover,
+.daily-practice-btn.secondary:hover,
+.daily-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(29, 78, 216, 0.18);
+}
+
+.quiz-problem-card {
+  width: 100%;
+  text-align: left;
+  padding: 18px 18px 16px;
+  margin-bottom: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.94);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.quiz-problem-card:hover {
+  border-color: rgba(66, 133, 244, 0.24);
+}
+
+.quiz-problem-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quiz-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #60a5fa;
+}
+
+.quiz-insight-panel {
+  padding: 20px;
+  display: grid;
+  gap: 18px;
+}
+
+.quiz-bank-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 18px;
+}
+
+/* The Question Library is just a CONTAINER for the problem cards — keep it
+   transparent so the cards sit directly on the page (no "cards on a card").
+   Scoped under .coding-app to outrank the .coding-app :is(...) solid-panel rule. */
+.coding-app .quiz-bank-page .quiz-library {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.coding-app .quiz-bank-page .quiz-library::before {
+  display: none !important;
+}
+
+/* The insight panel (Topics / Objectives / Common Mistakes) IS a real card —
+   rounded with a subtle accent so it draws the eye as a helpful sidebar. */
+.quiz-bank-page .quiz-insight-panel {
+  align-self: start;
+  border-radius: 18px !important;
+  padding: 18px 20px !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ct-accent) 8%, var(--ct-panel)), var(--ct-panel)) !important;
+  border: 1px solid color-mix(in srgb, var(--ct-accent) 26%, var(--ct-border)) !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08) !important;
+}
+
+.quiz-bank-page .quiz-insight-panel::before {
+  display: none !important;
+}
+
+body.dark .quiz-bank-page .quiz-insight-panel {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ct-accent) 14%, var(--ct-panel)), var(--ct-panel)) !important;
+  border-color: color-mix(in srgb, var(--ct-accent) 38%, var(--ct-border)) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Breathing room so the library header + first card row + the insight panel are
+   not crammed up against the stat tiles above. */
+.quiz-bank-page .quiz-bank-layout {
+  margin-top: 24px;
+}
+
+.quiz-bank-page .quiz-bank-header {
+  margin-bottom: 22px;
+}
+
+/* Quiz Bank + Progress span edge-to-edge on big screens — match the dashboard so
+   there are no large empty gutters. */
+.quiz-bank-page,
+.progress-page {
+  max-width: 2200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 1180px) {
+  .quiz-bank-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.coding-problem-panel,
+.coding-editor-center {
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.coding-problem-content,
+.coding-problem-empty {
+  padding: 14px;
+}
+
+.coding-editor-center {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 12px;
+  overflow: visible;
+  min-height: 0;
+}
+
+/* Compact the workspace header so the editor gets the reclaimed vertical space,
+   especially when the terminal is open. */
+.coding-editor-center .coding-pane-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+.coding-editor-center .coding-pane-header > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  line-height: 1.1;
+}
+
+.coding-pane-header h2 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.coding-editor-center .coding-kicker {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+
+.workspace-tabs {
+  flex: 0 0 auto;
+}
+
+.workspace-tab-body {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.leetcode-editor {
+  flex: 0 0 auto;
+  min-height: clamp(260px, calc(100vh - 470px), 460px);
+  max-height: none;
+  font-family: "Cascadia Code", "Fira Code", Consolas, "Liberation Mono", monospace;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.terminal-status.passed {
+  color: #86efac;
+}
+
+.terminal-status.failed,
+.terminal-status.error {
+  color: #fca5a5;
+}
+
+.terminal-status.running {
+  color: #bfdbfe;
+}
+
+.floating-coding-chat {
+  position: fixed;
+  /* Above the docked terminal footer (z-index 1200) so the coding chat always
+     floats over everything — the terminal must never hide it. */
+  z-index: 1300;
+  touch-action: none;
+}
+
+.floating-coding-chat.closed {
+  right: 24px;
+  bottom: 24px;
+}
+
+.floating-coding-chat.open {
+  right: auto;
+  bottom: auto;
+}
+
+.floating-coding-chat.dragging {
+  cursor: grabbing;
+}
+
+.floating-chat-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 18px;
+  border: 1px solid rgba(66, 133, 244, 0.26);
+  border-radius: 999px;
+  background: #1d4ed8;
+  color: #fff;
+  box-shadow: 0 18px 44px rgba(29, 78, 216, 0.24);
+  cursor: pointer;
+  font-weight: 650;
+  user-select: none;
+  touch-action: none;
+}
+
+.floating-chat-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.floating-chat-window {
+  width: 380px;
+  height: 520px;
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  overflow: hidden;
+}
+
+.floating-chat-window.maximized {
+  width: min(900px, calc(100vw - 48px));
+  height: min(720px, calc(100vh - 48px));
+  max-height: calc(100vh - 48px);
+}
+
+.floating-chat-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.floating-chat-header strong {
+  display: block;
+  color: #111827;
+  font-size: 0.98rem;
+  line-height: 1.25;
+}
+
+.floating-chat-window-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.floating-chat-control,
+.floating-chat-icon-btn,
+.floating-chat-send,
+.floating-attachment-preview button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(248, 250, 252, 0.95);
+  color: #334155;
+  cursor: pointer;
+}
+
+.floating-chat-control {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+}
+
+.floating-chat-control.danger {
+  color: #b91c1c;
+}
+
+.floating-chat-window .ai-status-card {
+  flex: 0 0 auto;
+  min-height: 0;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(66, 133, 244, 0.14);
+  background: rgba(66, 133, 244, 0.06);
+}
+
+.floating-chat-window .ai-status-card dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+  margin: 8px 0 0;
+}
+
+.floating-chat-window .ai-status-card dt,
+.floating-chat-window .ai-status-card dd {
+  font-size: 0.78rem;
+}
+
+/* Optional shortcut chips at the TOP of the chat (Debug / Rewrite). Bigger and
+   centered. Blue by default, orange on hover. Accelerators, not a required mode. */
+.floating-focus-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 2px 8px;
+}
+
+.floating-focus-chip {
+  border-radius: 999px;
+  padding: 9px 22px;
+  white-space: nowrap;
+  border: 1px solid color-mix(in srgb, var(--ct-primary, #002d72) 45%, transparent);
+  background: color-mix(in srgb, var(--ct-primary, #002d72) 10%, transparent);
+  color: var(--ct-primary, #002d72);
+  cursor: pointer;
+  font-size: 0.92rem;
+  font-weight: 700;
+  flex: 0 0 auto;
+  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+.floating-focus-chip:hover:not(:disabled),
+.floating-focus-chip.active {
+  background: color-mix(in srgb, var(--ct-accent, #f58220) 16%, transparent);
+  border-color: color-mix(in srgb, var(--ct-accent, #f58220) 60%, transparent);
+  color: color-mix(in srgb, var(--ct-accent, #f58220) 82%, #000);
+}
+
+/* Rewrite target-language picker (appears inline when Rewrite… is tapped). */
+.floating-rewrite-langs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.floating-rewrite-lang {
+  border-radius: 999px;
+  padding: 4px 10px;
+  border: 1px dashed color-mix(in srgb, var(--ct-primary, #002d72) 40%, transparent);
+  background: transparent;
+  color: var(--ct-muted, #5b6472);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex: 0 0 auto;
+  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+.floating-rewrite-lang:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ct-accent, #f58220) 14%, transparent);
+  border-color: var(--ct-accent, #f58220);
+  border-style: solid;
+  color: color-mix(in srgb, var(--ct-accent, #f58220) 82%, #000);
+}
+
+/* Dark mode: lighten the blue so the chips read on the dark chat panel. */
+body.dark .floating-focus-chip {
+  border-color: color-mix(in srgb, var(--ct-primary, #789dca) 55%, transparent);
+  background: color-mix(in srgb, var(--ct-primary, #789dca) 18%, transparent);
+  color: color-mix(in srgb, var(--ct-primary, #789dca) 80%, #fff);
+}
+
+body.dark .floating-focus-chip:hover:not(:disabled),
+body.dark .floating-focus-chip.active {
+  background: color-mix(in srgb, var(--ct-accent, #e7a05b) 24%, transparent);
+  border-color: var(--ct-accent, #e7a05b);
+  color: color-mix(in srgb, var(--ct-accent, #e7a05b) 88%, #fff);
+}
+
+body.dark .floating-rewrite-lang {
+  color: var(--ct-muted, #b7c1cf);
+}
+
+/* Small "context attached" hint inside the input area. */
+.floating-code-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  margin: 0 0 6px 2px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--ct-success, #16a34a) 85%, var(--ct-text, #1f2937));
+  background: color-mix(in srgb, var(--ct-success, #16a34a) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ct-success, #16a34a) 32%, transparent);
+}
+
+.floating-code-indicator::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ct-success, #16a34a);
+}
+
+.floating-focus-chip:disabled,
+.floating-chat-send:disabled,
+.floating-chat-icon-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.floating-chat-messages {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(247, 248, 250, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.floating-chat-message {
+  max-width: 92%;
+  padding: 9px 11px;
+  border-radius: 14px;
+  font-size: 0.86rem;
+  line-height: 1.42;
+  overflow-wrap: anywhere;
+}
+
+.floating-chat-message.user {
+  align-self: flex-end;
+  background: rgba(66, 133, 244, 0.14);
+  color: #1e3a8a;
+}
+
+.floating-chat-message.bot {
+  align-self: flex-start;
+  background: #fff;
+  color: #111827;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.floating-chat-message.bot pre,
+.floating-chat-message.bot code,
+.floating-chat-message.bot blockquote,
+.floating-chat-message.bot table {
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: #111827;
+}
+
+.floating-chat-message.bot pre {
+  padding: 10px;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+.floating-chat-message.bot code {
+  border-radius: 6px;
+  padding: 1px 4px;
+}
+
+.floating-chat-message p {
+  margin: 0 0 0.5rem;
+}
+
+.floating-chat-message p:last-child {
+  margin-bottom: 0;
+}
+
+.floating-chat-empty {
+  margin: auto;
+  max-width: 280px;
+  color: var(--ct-muted, #64748b);
+  text-align: center;
+  font-size: 0.88rem;
+}
+
+.floating-chat-empty strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.98rem;
+  color: var(--ct-text, #1f2937);
+}
+
+.floating-chat-empty p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.floating-thinking-steps {
+  display: grid;
+  gap: 7px;
+  min-width: 220px;
+}
+
+.floating-thinking-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  font-size: 0.82rem;
+}
+
+.floating-thinking-step.active {
+  color: #1d4ed8;
+  font-weight: 650;
+}
+
+.floating-thinking-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(66, 133, 244, 0.24);
+  background: rgba(66, 133, 244, 0.08);
+  color: #1d4ed8;
+  font-size: 0.72rem;
+}
+
+.floating-thinking-step.active .floating-thinking-check {
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.floating-chat-form {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 8px;
+}
+
+.floating-attachment-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(66, 133, 244, 0.08);
+  color: #1f2937;
+  font-size: 0.82rem;
+}
+
+.floating-attachment-preview span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.floating-attachment-preview button {
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+}
+
+.floating-chat-input-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.floating-chat-icon-btn,
+.floating-chat-send {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+}
+
+.floating-chat-input-row textarea {
+  min-height: 42px;
+  max-height: 120px;
+  resize: vertical;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(255, 255, 255, 0.96);
+  padding: 10px 12px;
+  font: inherit;
+  color: #111827;
+}
+
+.floating-chat-send {
+  color: #1d4ed8;
+  font-size: 1.25rem;
+}
+
+.coding-terminal.expanded {
+  min-height: 150px;
+}
+
+.quiz-problem-card strong,
+.daily-feature-card strong {
+  font-weight: 650;
+}
+
+@media (max-width: 1180px) {
+  .coding-dashboard-prompts {
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  /* Tablet + phone: the dropdown bar spans the FULL width (vs the compact
+     left-aligned bar on desktop). The base is already single-column top-bar. */
+  .coding-section-nav,
+  .coding-app.coding-workspace-active .coding-section-nav {
+    width: 100% !important;
+    justify-self: stretch !important;
+  }
+
+  /* Closed dropdown shows only the bar; list buttons hidden until opened. */
+  .coding-section-nav > button:not(.coding-nav-mobile-toggle) {
+    display: none !important;
+  }
+
+  .coding-section-nav.mobile-open > button:not(.coding-nav-mobile-toggle) {
+    display: flex !important;
+    width: 100% !important;
+    border-radius: 0 !important;
+    border: 0 !important;
+    border-top: 1px solid rgba(148, 163, 184, 0.16) !important;
+    background: transparent !important;
+  }
+
+  .coding-section-nav.mobile-open > button.active {
+    background: var(--ct-accent-soft, rgba(245, 130, 32, 0.14)) !important;
+  }
+
+  body.dark .coding-section-nav.mobile-open > button:not(.coding-nav-mobile-toggle) {
+    border-top-color: rgba(148, 163, 184, 0.18);
+    color: var(--ct-text, #e5e7eb);
+  }
+
+  .coding-app-content {
+    grid-row: 2;
+  }
+
+  .coding-workbench {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  .leetcode-editor {
+    min-height: clamp(280px, calc(100vh - 500px), 480px);
+    max-height: none;
+  }
+
+  .practice-progress-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-overview-stats {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 700px) {
+  .coding-workbench-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Phones: hard guard against horizontal overflow and force everything to a
+   single column. The 2-column workbench, fixed minmax widths, and side panels
+   are what push content off-screen on mobile. */
+@media (max-width: 640px) {
+  .coding-app,
+  .coding-app.coding-workspace-active,
+  .coding-app.mini-sidebar-collapsed {
+    grid-template-columns: 1fr !important;
+    padding: 12px 8px !important;
+    gap: 8px !important;
+    overflow-x: hidden !important;
+  }
+
+  .coding-app-main,
+  .coding-app-content,
+  .coding-workbench,
+  .coding-workbench-main,
+  .quiz-bank-layout {
+    grid-template-columns: 1fr !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Nav dropdown behavior is inherited from the ≤900px block above. Phone only
+     needs the overflow guard and a dark-mode toggle color. */
+  .coding-app * {
+    max-width: 100%;
+  }
+
+  .coding-workbench-main {
+    min-height: 0 !important;
+  }
+
+  body.dark .coding-nav-mobile-toggle {
+    color: var(--ct-text, #e5e7eb);
+  }
+}
+
+/* Coding Tutor dark mode lives here so regular Chatbox styles stay cleaner. */
+body.dark .coding-app {
+  --ct-bg: #0b1120;
+  --ct-surface: rgba(17, 24, 39, 0.94);
+  --ct-surface-strong: rgba(15, 23, 42, 0.98);
+  --ct-surface-soft: rgba(30, 41, 59, 0.72);
+  --ct-border: rgba(148, 163, 184, 0.22);
+  --ct-border-strong: rgba(96, 165, 250, 0.36);
+  --ct-text: #e5e7eb;
+  --ct-muted: #a7b3c6;
+  --ct-faint: #7c8aa3;
+  --ct-blue: #8ab4f8;
+  --ct-blue-strong: #60a5fa;
+  --ct-green: #86efac;
+  --ct-red: #fca5a5;
+  --ct-gold: #facc15;
+  /* Flat dark surface (was a blue radial + gradient that tinted the page). */
+  background: var(--ct-bg);
+  color: var(--ct-text);
+}
+
+body.dark .coding-app h1,
+body.dark .coding-app h2,
+body.dark .coding-app h3,
+body.dark .coding-app strong,
+body.dark .coding-app p,
+body.dark .coding-app li,
+body.dark .coding-app span,
+body.dark .coding-app small,
+body.dark .coding-app label {
+  color: inherit;
+}
+
+body.dark .coding-app small,
+body.dark .coding-app .coding-kicker {
+  color: var(--ct-muted);
+}
+
+body.dark .coding-section-nav,
+body.dark .practice-progress-overview,
+body.dark .daily-feature-card,
+body.dark .coding-page-panel,
+body.dark .quiz-library,
+body.dark .quiz-insight-panel,
+body.dark .quiz-problem-card,
+body.dark .coding-problem-panel,
+body.dark .coding-editor-center,
+body.dark .workspace-hints-panel,
+body.dark .workspace-discussion-panel,
+body.dark .workspace-hidden-panel,
+body.dark .ai-status-card,
+body.dark .floating-chat-window,
+body.dark .floating-chat-message.bot {
+  background: var(--ct-surface);
+  border-color: var(--ct-border);
+  color: var(--ct-text);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
+}
+
+body.dark .coding-editor-center,
+body.dark .coding-problem-panel,
+body.dark .quiz-library,
+body.dark .coding-page-panel {
+  background: var(--ct-surface-strong);
+}
+
+body.dark .coding-section-nav button {
+  color: var(--ct-text);
+}
+
+body.dark .coding-nav-icon,
+body.dark .daily-meta-row span,
+body.dark .workspace-tabs button,
+body.dark .floating-chat-action {
+  background: rgba(96, 165, 250, 0.12);
+  border-color: rgba(96, 165, 250, 0.24);
+  color: var(--ct-blue);
+}
+
+body.dark .coding-section-nav button:hover,
+body.dark .coding-section-nav button:focus-visible,
+body.dark .coding-section-nav button.active,
+body.dark .workspace-tabs button.active,
+body.dark .floating-chat-action:hover:not(:disabled) {
+  background: rgba(96, 165, 250, 0.2);
+  border-color: var(--ct-border-strong);
+  color: #dbeafe;
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.18);
+}
+
+body.dark .coding-nav-workspace-toggle {
+  color: var(--ct-green) !important;
+}
+
+body.dark .coding-select,
+body.dark .coding-app textarea,
+body.dark .floating-chat-input-row textarea,
+body.dark .leetcode-editor {
+  background: rgba(2, 6, 23, 0.72);
+  border-color: var(--ct-border);
+  color: var(--ct-text);
+  caret-color: var(--ct-blue);
+}
+
+body.dark .coding-select {
+  color-scheme: dark;
+}
+
+body.dark .coding-app textarea::placeholder,
+body.dark .floating-chat-input-row textarea::placeholder {
+  color: var(--ct-faint);
+}
+
+body.dark .coding-prompt-card,
+body.dark .save-quiz-pdf-btn,
+body.dark .daily-practice-btn,
+body.dark .daily-link,
+body.dark .coding-progress-stats div,
+body.dark .problem-example,
+body.dark .problem-constraints-card,
+body.dark .floating-chat-control,
+body.dark .floating-chat-send,
+body.dark .floating-chat-button {
+  background: var(--ct-surface-soft);
+  border-color: var(--ct-border);
+  color: var(--ct-text);
+}
+
+body.dark .coding-prompt-card.blue,
+body.dark .coding-prompt-card.red,
+body.dark .coding-prompt-card.gold {
+  background:
+    linear-gradient(90deg, rgba(96, 165, 250, 0.28) 0 4px, transparent 4px),
+    var(--ct-surface);
+}
+
+body.dark .coding-prompt-card.red {
+  background:
+    linear-gradient(90deg, rgba(248, 113, 113, 0.3) 0 4px, transparent 4px),
+    var(--ct-surface);
+}
+
+body.dark .coding-prompt-card.gold {
+  background:
+    linear-gradient(90deg, rgba(250, 204, 21, 0.32) 0 4px, transparent 4px),
+    var(--ct-surface);
+}
+
+body.dark .daily-feature-card.dashboard-daily {
+  background:
+    linear-gradient(90deg, var(--ct-gold) 0 3px, transparent 3px),
+    linear-gradient(180deg, rgba(96, 165, 250, 0.16), transparent 38%),
+    var(--ct-surface-strong);
+}
+
+body.dark .progress-bar {
+  background: rgba(148, 163, 184, 0.18);
+}
+
+body.dark .progress-bar span {
+  background: linear-gradient(90deg, #8ab4f8 0%, #22d3ee 100%);
+}
+
+body.dark .terminal-status.passed {
+  color: var(--ct-green);
+}
+
+body.dark .terminal-status.running {
+  color: var(--ct-gold);
+}
+
+body.dark .terminal-status.failed,
+body.dark .terminal-status.error {
+  color: var(--ct-red);
+}
+
+body.dark .floating-chat-action:disabled {
+  background: rgba(51, 65, 85, 0.62);
+  border-color: rgba(100, 116, 139, 0.28);
+  color: #7c8aa3;
+}
+
+body.dark .floating-chat-button,
+body.dark .floating-chat-send,
+body.dark .daily-practice-btn {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-color: rgba(147, 197, 253, 0.32);
+  color: #fff;
+}
+
+body.dark .coding-app .dashboard-daily .daily-link {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.24), rgba(59, 130, 246, 0.16));
+  border-color: rgba(134, 239, 172, 0.34);
+  color: #dcfce7;
+}
+
+body.dark .problem-constraints-card {
+  background: rgba(15, 23, 42, 0.72);
+  border-color: rgba(148, 163, 184, 0.24);
+  color: var(--ct-text);
+}
+
+body.dark .daily-practice-btn.secondary,
+body.dark .daily-link,
+body.dark .problem-navigation button {
+  background: rgba(30, 41, 59, 0.88);
+  border-color: rgba(148, 163, 184, 0.28);
+  color: #dbeafe;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+body.dark .problem-navigation button:hover:not(:disabled),
+body.dark .daily-practice-btn.secondary:hover,
+body.dark .daily-link:hover {
+  background: rgba(96, 165, 250, 0.2);
+  border-color: rgba(147, 197, 253, 0.38);
+  color: #fff;
+}
+
+body.dark .floating-chat-message.user {
+  background: rgba(37, 99, 235, 0.82);
+  color: #fff;
+}
+
+body.dark .floating-chat-window .ai-status-card,
+body.dark .floating-chat-message.bot {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(148, 163, 184, 0.28);
+  color: #e5e7eb;
+}
+
+body.dark .floating-chat-message.bot pre,
+body.dark .floating-chat-message.bot code,
+body.dark .floating-chat-message.bot blockquote,
+body.dark .floating-chat-message.bot table {
+  background: rgba(2, 6, 23, 0.94);
+  border-color: rgba(96, 165, 250, 0.24);
+  color: #dbeafe;
+}
+
+body.dark .floating-chat-message.bot a {
+  color: #93c5fd;
+}
+
+body.dark .floating-chat-messages {
+  background: rgba(2, 6, 23, 0.58);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+/* Token-based theme polish */
+.coding-section-nav,
+.coding-page-panel,
+.daily-feature-card,
+.quiz-library,
+.quiz-insight-panel,
+.practice-progress-overview,
+.coding-problem-panel,
+.coding-editor-center,
+.quiz-problem-card,
+.workspace-hints-panel,
+.workspace-discussion-panel,
+.workspace-hidden-panel,
+.floating-chat-window,
+.floating-chat-message.bot {
+  background: color-mix(in srgb, var(--ct-panel) 94%, transparent) !important;
+  border-color: var(--ct-border) !important;
+  color: var(--ct-text) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.coding-app h1,
+.coding-app h2,
+.coding-app h3,
+.coding-app strong,
+.coding-app .coding-kicker {
+  color: var(--ct-text);
+}
+
+.coding-app p,
+.coding-app li,
+.coding-app small,
+.coding-app label,
+.daily-meta-row span {
+  color: var(--ct-muted);
+}
+
+.coding-section-nav button,
+.workspace-tabs button,
+.floating-chat-action,
+.problem-navigation button,
+.daily-link,
+.daily-practice-btn.secondary,
+.save-quiz-pdf-btn {
+  background: color-mix(in srgb, var(--ct-panel-soft) 82%, transparent) !important;
+  border-color: var(--ct-border) !important;
+  color: var(--ct-text) !important;
+}
+
+.coding-section-nav button:hover,
+.coding-section-nav button:focus-visible,
+.workspace-tabs button:hover,
+.floating-chat-action:hover:not(:disabled),
+.problem-navigation button:hover:not(:disabled),
+.daily-link:hover,
+.daily-practice-btn.secondary:hover,
+.save-quiz-pdf-btn:hover {
+  background: var(--ct-primary-soft) !important;
+  border-color: color-mix(in srgb, var(--ct-primary) 42%, var(--ct-border)) !important;
+  color: var(--ct-primary) !important;
+}
+
+.coding-section-nav button.active,
+.workspace-tabs button.active {
+  background: linear-gradient(135deg, var(--ct-primary-soft), var(--ct-accent-soft)) !important;
+  border-color: color-mix(in srgb, var(--ct-primary) 52%, var(--ct-border)) !important;
+  color: var(--ct-primary) !important;
+}
+
+.coding-nav-icon {
+  background: var(--ct-primary-soft) !important;
+  color: var(--ct-primary) !important;
+}
+
+.coding-prompt-card {
+  background: color-mix(in srgb, var(--ct-panel) 96%, transparent) !important;
+  border-color: var(--ct-border) !important;
+  color: var(--ct-text) !important;
+}
+
+.coding-prompt-card.blue {
+  border-left-color: var(--ct-primary) !important;
+  color: var(--ct-primary) !important;
+}
+
+.coding-prompt-card.red {
+  border-left-color: var(--ct-danger) !important;
+}
+
+.coding-prompt-card.gold {
+  border-left-color: var(--ct-warning) !important;
+}
+
+.daily-feature-card.dashboard-daily {
+  background:
+    linear-gradient(135deg, var(--ct-primary-soft), var(--ct-accent-soft)),
+    var(--ct-panel) !important;
+  border-top-color: var(--ct-primary) !important;
+}
+
+.daily-practice-btn,
+.floating-chat-button,
+.floating-chat-send {
+  background: linear-gradient(135deg, var(--ct-primary), var(--ct-primary-hover)) !important;
+  border-color: color-mix(in srgb, var(--ct-primary) 72%, transparent) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--ct-primary) 24%, transparent) !important;
+}
+
+.coding-select,
+.coding-app textarea,
+.floating-chat-input-row textarea {
+  background: var(--ct-panel-soft) !important;
+  border-color: var(--ct-border) !important;
+  color: var(--ct-text) !important;
+}
+
+.leetcode-editor {
+  background: var(--ct-editor-bg) !important;
+  color: var(--ct-editor-text) !important;
+  border-color: color-mix(in srgb, var(--ct-primary) 22%, var(--ct-border)) !important;
+}
+
+.problem-example,
+.problem-constraints-card,
+.coding-progress-stats div {
+  background: color-mix(in srgb, var(--ct-panel-soft) 88%, transparent) !important;
+  border-color: var(--ct-border) !important;
+  color: var(--ct-text) !important;
+}
+
+.terminal-status.passed {
+  color: var(--ct-success) !important;
+}
+
+.terminal-status.running {
+  color: var(--ct-warning) !important;
+}
+
+.terminal-status.failed,
+.terminal-status.error {
+  color: var(--ct-danger) !important;
+}
+
+body.dark .coding-app {
+  --ct-editor-bg: #020617;
+  --ct-editor-text: #e5edf7;
+  --ct-terminal-bg: #050816;
+  --ct-terminal-text: #dbeafe;
+}
+
+body.dark .floating-chat-window {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--ct-panel) 88%, transparent), color-mix(in srgb, var(--ct-panel-raised) 88%, transparent)) !important;
+}
+
+body.dark .floating-chat-message.user {
+  background: linear-gradient(135deg, var(--ct-primary), var(--ct-accent)) !important;
+  color: #07111f !important;
+}
+
+/* Warm theme opaque surface pass */
+.coding-app {
+  --ct-primary: var(--primary);
+  --ct-primary-hover: var(--primary-hover);
+  --ct-primary-soft: var(--primary-soft);
+  --ct-accent: var(--accent);
+  --ct-accent-soft: var(--accent-soft);
+  /* FLAT ivory — the old gradient-mesh + warm linear-gradient added the orange
+     wash that made the section cards look like "cards on a card". The page should
+     be a single clean ivory surface. */
+  background: var(--bg-body);
+}
+
+.coding-section-nav,
+.coding-page-panel,
+.daily-feature-card,
+.quiz-library,
+.quiz-insight-panel,
+.practice-progress-overview,
+.coding-problem-panel,
+.coding-editor-center,
+.quiz-problem-card,
+.workspace-hints-panel,
+.workspace-discussion-panel,
+.workspace-hidden-panel,
+.floating-chat-window,
+.floating-chat-message.bot,
+.floating-chat-window .ai-status-card {
+  background: var(--ct-panel) !important;
+  border-color: var(--ct-border) !important;
+  color: var(--ct-text) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.coding-section-nav,
+.coding-editor-center,
+.coding-problem-panel,
+.floating-chat-window {
+  background: var(--ct-panel-raised) !important;
+}
+
+.coding-page-panel::before,
+.coding-problem-panel::before,
+.coding-editor-center::before,
+.quiz-library::before,
+.quiz-insight-panel::before,
+.practice-progress-overview::before,
+.daily-feature-card::before {
+  background: linear-gradient(90deg, var(--ct-accent), var(--ct-primary)) !important;
+}
+
+.coding-section-nav button.active,
+.workspace-tabs button.active {
+  background: var(--ct-accent-soft) !important;
+  border-color: color-mix(in srgb, var(--ct-accent) 54%, var(--ct-border)) !important;
+  color: var(--ct-accent) !important;
+}
+
+.coding-section-nav button:hover,
+.coding-section-nav button:focus-visible,
+.workspace-tabs button:hover,
+.floating-chat-action:hover:not(:disabled),
+.problem-navigation button:hover:not(:disabled),
+.daily-link:hover,
+.daily-practice-btn.secondary:hover,
+.save-quiz-pdf-btn:hover {
+  background: var(--ct-accent-soft) !important;
+  border-color: color-mix(in srgb, var(--ct-accent) 46%, var(--ct-border)) !important;
+  color: var(--ct-accent) !important;
+}
+
+.coding-prompt-card.blue,
+.coding-prompt-card.red,
+.coding-prompt-card.gold {
+  border-left-color: var(--ct-accent) !important;
+}
+
+.daily-feature-card.dashboard-daily {
+  background:
+    linear-gradient(135deg, var(--ct-accent-soft), transparent 60%),
+    var(--ct-panel-raised) !important;
+  border-top-color: var(--ct-accent) !important;
+}
+
+.daily-practice-btn,
+.floating-chat-button,
+.floating-chat-send {
+  background: linear-gradient(135deg, var(--ct-primary), var(--ct-primary-hover)) !important;
+}
+
+.daily-link,
+.daily-practice-btn.secondary,
+.problem-navigation button {
+  background: var(--ct-panel-soft) !important;
+}
+
+body.dark .coding-app {
+  background: var(--bg-body);
+}
+
+body.dark .floating-chat-window {
+  background: var(--ct-panel-raised) !important;
+}
+
+/* Force Coding Tutor to use solid academic surfaces, not glass panels. */
+.coding-app,
+body.dark .coding-app {
+  --ct-panel: var(--bg-surface) !important;
+  --ct-panel-soft: var(--bg-surface-soft) !important;
+  --ct-panel-raised: var(--bg-surface-raised) !important;
+  --ct-surface: var(--bg-surface) !important;
+  --ct-surface-strong: var(--bg-surface-raised) !important;
+  --ct-surface-soft: var(--bg-surface-soft) !important;
+}
+
+.coding-section-nav,
+.practice-progress-overview,
+.daily-feature-card,
+.coding-page-panel,
+.quiz-library,
+.quiz-insight-panel,
+.quiz-problem-card,
+.coding-problem-panel,
+.coding-editor-center,
+.workspace-hints-panel,
+.workspace-discussion-panel,
+.workspace-hidden-panel,
+.ai-status-card,
+.floating-chat-window,
+.floating-chat-message.bot,
+.floating-chat-window .ai-status-card {
+  background-color: var(--ct-panel) !important;
+  background-image: none !important;
+  border-color: var(--ct-border) !important;
+  color: var(--ct-text) !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+}
+
+.coding-editor-center,
+.coding-problem-panel,
+.coding-section-nav,
+.floating-chat-window {
+  background-color: var(--ct-panel-raised) !important;
+}
+
+.coding-prompt-card,
+.coding-progress-stats div,
+.problem-example,
+.problem-constraints-card,
+.floating-chat-control,
+.floating-chat-send,
+.floating-chat-button {
+  background-color: var(--ct-panel-soft) !important;
+  background-image: none !important;
+  opacity: 1 !important;
+}
+
+.daily-feature-card.dashboard-daily {
+  background-image: linear-gradient(180deg, var(--ct-accent-soft), transparent 48%) !important;
+  background-color: var(--ct-panel-raised) !important;
+}
+
+.daily-practice-btn,
+.floating-chat-send,
+.floating-chat-button {
+  background: var(--ct-primary) !important;
+  color: #ffffff !important;
+}
+
+/* Solid floating chat and themed chips in both modes. */
+.floating-chat-window,
+.floating-chat-window .ai-status-card,
+.floating-chat-messages,
+.floating-chat-form {
+  background: var(--ct-panel-raised) !important;
+  background-color: var(--ct-panel-raised) !important;
+  background-image: none !important;
+  border-color: var(--ct-border) !important;
+  color: var(--ct-text) !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.floating-chat-window {
+  overflow: hidden;
+}
+
+.floating-chat-header {
+  background: var(--ct-panel-raised) !important;
+  border-bottom: 1px solid var(--ct-border) !important;
+}
+
+.floating-chat-window .ai-status-card {
+  overflow: hidden;
+  box-shadow: none !important;
+}
+
+.floating-chat-window .ai-status-card dl {
+  grid-template-columns: minmax(72px, max-content) minmax(0, 1fr);
+  gap: 8px 12px;
+}
+
+.floating-chat-window .ai-status-card dt,
+.floating-chat-window .ai-status-card dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.floating-chat-messages {
+  background: var(--ct-panel-soft) !important;
+}
+
+.floating-chat-message,
+.floating-chat-message p {
+  overflow-wrap: anywhere;
+}
+
+.floating-chat-empty {
+  background: var(--ct-panel-raised) !important;
+  border: 1px solid var(--ct-border) !important;
+}
+
+.coding-nav-icon,
+.daily-meta-row span {
+  background: linear-gradient(135deg, var(--ct-primary-soft), var(--ct-accent-soft)) !important;
+  border: 1px solid color-mix(in srgb, var(--ct-accent) 28%, var(--ct-border)) !important;
+  color: var(--ct-primary) !important;
+}
+
+.floating-chat-action:hover:not(:disabled),
+.coding-section-nav button:hover:not(:disabled),
+.workspace-tabs button:hover:not(:disabled),
+.problem-navigation button:hover:not(:disabled),
+.daily-link:hover,
+.daily-practice-btn.secondary:hover,
+.save-quiz-pdf-btn:hover,
+.floating-chat-control:hover,
+.floating-chat-icon-btn:hover:not(:disabled) {
+  background: var(--ct-accent-soft) !important;
+  border-color: color-mix(in srgb, var(--ct-accent) 42%, var(--ct-border)) !important;
+  color: var(--ct-accent) !important;
+}
+
+body.dark .daily-practice-btn,
+body.dark .floating-chat-send,
+body.dark .floating-chat-button {
+  color: #07111f !important;
+}
+
+/* Dark mode solid Morgan theme pass. Keep Coding Tutor opaque and readable. */
+body.dark .coding-app {
+  --ct-primary: #789dca;
+  --ct-primary-hover: #8faed7;
+  --ct-primary-soft: rgba(120, 157, 202, 0.18);
+  --ct-accent: #e7a05b;
+  --ct-accent-soft: rgba(231, 160, 91, 0.18);
+  --ct-panel: #172235 !important;
+  --ct-panel-soft: #152033 !important;
+  --ct-panel-raised: #1c2a3f !important;
+  --ct-surface: #172235 !important;
+  --ct-surface-soft: #152033 !important;
+  --ct-surface-strong: #1c2a3f !important;
+  --ct-text: #f4efe6;
+  --ct-muted: #b7c1cf;
+  --ct-faint: #8d9aac;
+  --ct-border: #31415a;
+  --ct-border-strong: #435a78;
+  --ct-editor-bg: #101826;
+  --ct-editor-text: #f1eadf;
+  --ct-terminal-bg: #111a2a;
+  --ct-terminal-text: #f1eadf;
+}
+
+body.dark .coding-app {
+  color: var(--ct-text) !important;
+}
+
+body.dark .coding-section-nav,
+body.dark .practice-progress-overview,
+body.dark .daily-feature-card,
+body.dark .coding-page-panel,
+body.dark .quiz-library,
+body.dark .quiz-insight-panel,
+body.dark .quiz-problem-card,
+body.dark .coding-problem-panel,
+body.dark .coding-editor-center,
+body.dark .workspace-hints-panel,
+body.dark .workspace-discussion-panel,
+body.dark .workspace-hidden-panel,
+body.dark .ai-status-card,
+body.dark .floating-chat-window,
+body.dark .floating-chat-window .ai-status-card,
+body.dark .floating-chat-messages,
+body.dark .floating-chat-form {
+  background: var(--ct-panel) !important;
+  background-color: var(--ct-panel) !important;
+  background-image: none !important;
+  border-color: var(--ct-border) !important;
+  color: var(--ct-text) !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.dark .coding-section-nav,
+body.dark .coding-editor-center,
+body.dark .coding-problem-panel,
+body.dark .floating-chat-window {
+  background: var(--ct-panel-raised) !important;
+}
+
+body.dark .floating-chat-window {
+  border: 1px solid var(--ct-border-strong) !important;
+  box-shadow: 0 24px 56px rgba(5, 10, 18, 0.58) !important;
+  overflow: hidden;
+}
+
+body.dark .floating-chat-header {
+  background: var(--ct-panel-raised) !important;
+  border-bottom: 1px solid var(--ct-border) !important;
+  color: var(--ct-text) !important;
+}
+
+body.dark .floating-chat-header strong,
+body.dark .floating-chat-window h3,
+body.dark .floating-chat-window h4,
+body.dark .floating-chat-window strong,
+body.dark .coding-app h1,
+body.dark .coding-app h2,
+body.dark .coding-app h3,
+body.dark .coding-app strong {
+  color: #f8f1e8 !important;
+}
+
+body.dark .floating-chat-window .ai-status-card {
+  display: block;
+  overflow: hidden;
+  border-radius: 14px;
+  box-shadow: none !important;
+}
+
+body.dark .floating-chat-window .ai-status-card dl {
+  grid-template-columns: minmax(72px, max-content) minmax(0, 1fr);
+  gap: 8px 12px;
+}
+
+body.dark .floating-chat-window .ai-status-card dt,
+body.dark .floating-chat-window .ai-status-card dd {
+  color: var(--ct-text) !important;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+body.dark .floating-chat-messages {
+  background: var(--ct-panel-soft) !important;
+  border-color: var(--ct-border) !important;
+}
+
+body.dark .floating-chat-message {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+body.dark .floating-chat-message.user {
+  background: linear-gradient(135deg, #5f7fae, #466995) !important;
+  color: #f8f3ea !important;
+  border: 1px solid rgba(143, 174, 215, 0.26) !important;
+}
+
+body.dark .floating-chat-message.bot {
+  background: var(--ct-panel-raised) !important;
+  color: var(--ct-text) !important;
+  border: 1px solid var(--ct-border) !important;
+}
+
+body.dark .floating-chat-message.bot pre,
+body.dark .floating-chat-message.bot code,
+body.dark .floating-chat-message.bot blockquote,
+body.dark .floating-chat-message.bot table {
+  background: #101826 !important;
+  border-color: var(--ct-border) !important;
+  color: #f1eadf !important;
+}
+
+body.dark .floating-chat-empty {
+  background: var(--ct-panel-raised) !important;
+  color: var(--ct-muted) !important;
+  border: 1px solid var(--ct-border) !important;
+}
+
+body.dark .floating-chat-input-row,
+body.dark .floating-chat-input-row textarea,
+body.dark .coding-select,
+body.dark .coding-app textarea {
+  background: var(--ct-panel-soft) !important;
+  border-color: var(--ct-border) !important;
+  color: var(--ct-text) !important;
+}
+
+body.dark .floating-chat-input-row textarea::placeholder,
+body.dark .coding-app textarea::placeholder {
+  color: #98a4b5 !important;
+}
+
+body.dark .floating-chat-action,
+body.dark .coding-section-nav button,
+body.dark .workspace-tabs button,
+body.dark .problem-navigation button,
+body.dark .daily-link,
+body.dark .daily-practice-btn.secondary,
+body.dark .save-quiz-pdf-btn,
+body.dark .floating-chat-control,
+body.dark .floating-chat-icon-btn {
+  background: var(--ct-panel-soft) !important;
+  border-color: var(--ct-border) !important;
+  color: var(--ct-text) !important;
+}
+
+body.dark .floating-chat-action:hover:not(:disabled),
+body.dark .coding-section-nav button:hover:not(:disabled),
+body.dark .workspace-tabs button:hover:not(:disabled),
+body.dark .problem-navigation button:hover:not(:disabled),
+body.dark .daily-link:hover,
+body.dark .daily-practice-btn.secondary:hover,
+body.dark .save-quiz-pdf-btn:hover,
+body.dark .floating-chat-control:hover,
+body.dark .floating-chat-icon-btn:hover:not(:disabled) {
+  background: rgba(231, 160, 91, 0.17) !important;
+  border-color: rgba(231, 160, 91, 0.42) !important;
+  color: #f5c58e !important;
+}
+
+body.dark .coding-section-nav button.active,
+body.dark .workspace-tabs button.active,
+body.dark .floating-chat-action.active {
+  background: linear-gradient(135deg, rgba(120, 157, 202, 0.24), rgba(231, 160, 91, 0.16)) !important;
+  border-color: rgba(231, 160, 91, 0.36) !important;
+  color: #f7efe3 !important;
+}
+
+body.dark .daily-practice-btn,
+body.dark .floating-chat-send,
+body.dark .floating-chat-button {
+  background: #5f7fae !important;
+  border-color: rgba(143, 174, 215, 0.36) !important;
+  color: #f8f3ea !important;
+}
+
+body.dark .daily-practice-btn:hover:not(:disabled),
+body.dark .floating-chat-send:hover:not(:disabled),
+body.dark .floating-chat-button:hover {
+  background: #e7a05b !important;
+  border-color: rgba(241, 182, 120, 0.46) !important;
+  color: #182033 !important;
+}
+
+body.dark .coding-nav-icon,
+body.dark .daily-meta-row span {
+  background: linear-gradient(135deg, rgba(120, 157, 202, 0.24), rgba(231, 160, 91, 0.14)) !important;
+  border: 1px solid rgba(231, 160, 91, 0.26) !important;
+  color: #f3dcc2 !important;
+}
+
+body.dark .coding-prompt-card,
+body.dark .problem-example,
+body.dark .problem-constraints-card,
+body.dark .coding-progress-stats div,
+body.dark .topic-filter-banner {
+  background: var(--ct-panel-soft) !important;
+  border-color: var(--ct-border) !important;
+  color: var(--ct-text) !important;
+}
+
+body.dark .coding-prompt-card:hover {
+  background: rgba(231, 160, 91, 0.13) !important;
+  border-color: rgba(231, 160, 91, 0.36) !important;
+}
+
+@media (max-width: 640px) {
+  .floating-coding-chat {
+    max-width: calc(100vw - 32px);
+  }
+
+  .floating-coding-chat.closed {
+    right: 16px;
+    bottom: 16px;
+  }
+
+  .floating-chat-window {
+    width: calc(100vw - 32px);
+    height: min(560px, calc(100vh - 32px));
+    max-height: calc(100vh - 32px);
+  }
+
+  .floating-chat-button span {
+    display: none;
+  }
+
+  .floating-chat-button {
+    width: 54px;
+    min-height: 54px;
+    justify-content: center;
+    padding: 0;
+  }
+}
+
+/* Final cascade lock: remove remaining glass overrides and make hover states visible. */
+.coding-app {
+  --ct-solid-panel: var(--ct-panel);
+  --ct-solid-soft: var(--ct-panel-soft);
+  --ct-solid-raised: var(--ct-panel-raised);
+  --ct-hover-bg: var(--ct-accent-soft);
+  --ct-hover-border: color-mix(in srgb, var(--ct-accent) 48%, var(--ct-border));
+  --ct-hover-text: var(--ct-accent);
+}
+
+body.dark .coding-app {
+  --ct-solid-panel: #172235;
+  --ct-solid-soft: #152033;
+  --ct-solid-raised: #1c2a3f;
+  --ct-hover-bg: rgba(231, 160, 91, 0.18);
+  --ct-hover-border: rgba(231, 160, 91, 0.44);
+  --ct-hover-text: #f2bd83;
+}
+
+.coding-app :is(
+  .coding-section-nav,
+  .practice-progress-overview,
+  .daily-feature-card,
+  .coding-page-panel,
+  .quiz-library,
+  .quiz-insight-panel,
+  .quiz-problem-card,
+  .coding-problem-panel,
+  .coding-editor-center,
+  .workspace-hints-panel,
+  .workspace-discussion-panel,
+  .workspace-hidden-panel,
+  .ai-status-card,
+  .floating-chat-window,
+  .floating-chat-window .ai-status-card,
+  .floating-chat-messages,
+  .floating-chat-form,
+  .floating-chat-message.bot
+) {
+  background: var(--ct-solid-panel) !important;
+  background-color: var(--ct-solid-panel) !important;
+  background-image: none !important;
+  border-color: var(--ct-border) !important;
+  color: var(--ct-text) !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.coding-app :is(
+  .coding-section-nav,
+  .coding-problem-panel,
+  .coding-editor-center,
+  .floating-chat-window,
+  .daily-feature-card.dashboard-daily
+) {
+  background: var(--ct-solid-raised) !important;
+  background-color: var(--ct-solid-raised) !important;
+}
+
+.coding-app :is(
+  .coding-prompt-card,
+  .coding-progress-stats div,
+  .problem-example,
+  .problem-constraints-card,
+  .floating-chat-empty
+) {
+  background: var(--ct-solid-soft) !important;
+  background-color: var(--ct-solid-soft) !important;
+  background-image: none !important;
+  border-color: var(--ct-border) !important;
+  color: var(--ct-text) !important;
+}
+
+.coding-app :is(
+  button,
+  .daily-practice-btn,
+  .daily-link,
+  .save-quiz-pdf-btn,
+  .coding-prompt-card,
+  .quiz-problem-card,
+  .floating-chat-action,
+  .floating-chat-control,
+  .floating-chat-icon-btn,
+  .floating-chat-send,
+  .problem-navigation button,
+  .workspace-tabs button
+) {
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease !important;
+}
+
+.coding-app :is(
+  button,
+  .daily-practice-btn,
+  .daily-link,
+  .save-quiz-pdf-btn,
+  .coding-prompt-card,
+  .quiz-problem-card,
+  .floating-chat-action,
+  .floating-chat-control,
+  .floating-chat-icon-btn,
+  .problem-navigation button,
+  .workspace-tabs button
+):hover:not(:disabled) {
+  background: var(--ct-hover-bg) !important;
+  background-color: var(--ct-hover-bg) !important;
+  border-color: var(--ct-hover-border) !important;
+  color: var(--ct-hover-text) !important;
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--ct-accent) 18%, transparent) !important;
+  transform: translateY(-1px);
+}
+
+.coding-app :is(
+  .daily-practice-btn,
+  .floating-chat-send,
+  .floating-chat-button
+) {
+  background: var(--ct-primary) !important;
+  border-color: color-mix(in srgb, var(--ct-primary) 64%, var(--ct-border)) !important;
+  color: #ffffff !important;
+}
+
+.coding-app :is(
+  .daily-practice-btn,
+  .floating-chat-send,
+  .floating-chat-button
+):hover:not(:disabled) {
+  background: var(--ct-accent) !important;
+  border-color: var(--ct-hover-border) !important;
+  color: #182033 !important;
+}
+
+body.dark .coding-app :is(
+  .daily-practice-btn,
+  .floating-chat-send,
+  .floating-chat-button
+) {
+  background: #5f7fae !important;
+  color: #f8f3ea !important;
+}
+
+body.dark .coding-app :is(
+  .daily-practice-btn,
+  .floating-chat-send,
+  .floating-chat-button
+):hover:not(:disabled) {
+  background: #e7a05b !important;
+  color: #172033 !important;
+}
+
+.coding-app :is(
+  .coding-nav-icon,
+  .daily-meta-row span
+) {
+  background: linear-gradient(135deg, var(--ct-primary-soft), var(--ct-accent-soft)) !important;
+  border: 1px solid color-mix(in srgb, var(--ct-accent) 32%, var(--ct-border)) !important;
+  color: var(--ct-primary) !important;
+}
+
+body.dark .coding-app :is(
+  .coding-nav-icon,
+  .daily-meta-row span
+) {
+  color: #f3dcc2 !important;
+}
+
+.coding-app .floating-chat-window {
+  width: min(430px, calc(100vw - 32px));
+  border: 1px solid var(--ct-border-strong) !important;
+  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.18) !important;
+  overflow: hidden;
+}
+
+body.dark .coding-app .floating-chat-window {
+  box-shadow: 0 24px 60px rgba(5, 10, 18, 0.6) !important;
+}
+
+.coding-app .floating-chat-header {
+  background: var(--ct-solid-raised) !important;
+  border-bottom: 1px solid var(--ct-border) !important;
+}
+
+.coding-app .floating-chat-window .ai-status-card {
+  padding: 12px !important;
+  border-radius: 14px !important;
+  overflow: hidden;
+  box-shadow: none !important;
+}
+
+.coding-app .floating-chat-window .ai-status-card dl {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 8px 12px;
+  margin: 0;
+}
+
+.coding-app .floating-chat-window .ai-status-card dt,
+.coding-app .floating-chat-window .ai-status-card dd,
+.coding-app .floating-chat-message,
+.coding-app .floating-chat-message p {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.coding-app .floating-chat-messages {
+  background: var(--ct-solid-soft) !important;
+  border-color: var(--ct-border) !important;
+}
+
+.coding-app .floating-chat-input-row,
+.coding-app .floating-chat-input-row textarea {
+  background: var(--ct-solid-soft) !important;
+  border-color: var(--ct-border) !important;
+  color: var(--ct-text) !important;
+}
+
+@media (max-width: 640px) {
+  .coding-app .floating-chat-window {
+    width: calc(100vw - 32px);
+  }
+
+  .coding-app .floating-chat-window .ai-status-card dl {
+    grid-template-columns: 78px minmax(0, 1fr);
+  }
+}
+
+/* Floating chat is rendered outside .coding-app, so lock it by its own root. */
+.floating-coding-chat {
+  --ct-float-panel: var(--bg-surface-raised, #fffdf7);
+  --ct-float-panel-soft: var(--bg-surface-soft, #f7f0e6);
+  --ct-float-panel-base: var(--bg-surface, #fffdf7);
+  --ct-float-text: var(--text-main, #172033);
+  --ct-float-muted: var(--text-secondary, #596273);
+  --ct-float-border: var(--border-color, #ddd1c0);
+  --ct-float-border-strong: var(--border-strong, #b7c6d8);
+  --ct-float-primary: var(--primary, #002d72);
+  --ct-float-accent: var(--accent, #f58220);
+  --ct-float-accent-soft: var(--accent-soft, rgba(245, 130, 32, 0.14));
+}
+
+body.dark .floating-coding-chat {
+  --ct-float-panel: #1c2a3f;
+  --ct-float-panel-soft: #152033;
+  --ct-float-panel-base: #172235;
+  --ct-float-text: #f4efe6;
+  --ct-float-muted: #b7c1cf;
+  --ct-float-border: #31415a;
+  --ct-float-border-strong: #435a78;
+  --ct-float-primary: #5f7fae;
+  --ct-float-accent: #e7a05b;
+  --ct-float-accent-soft: rgba(231, 160, 91, 0.18);
+}
+
+.floating-coding-chat :is(
+  .floating-chat-window,
+  .floating-chat-header,
+  .floating-chat-window .ai-status-card,
+  .floating-chat-messages,
+  .floating-chat-form,
+  .floating-chat-message.bot
+) {
+  background: var(--ct-float-panel-base) !important;
+  background-color: var(--ct-float-panel-base) !important;
+  background-image: none !important;
+  border-color: var(--ct-float-border) !important;
+  color: var(--ct-float-text) !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.floating-coding-chat .floating-chat-window {
+  background: var(--ct-float-panel) !important;
+  background-color: var(--ct-float-panel) !important;
+  border: 1px solid var(--ct-float-border-strong) !important;
+  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.22) !important;
+  overflow: hidden !important;
+}
+
+body.dark .floating-coding-chat .floating-chat-window {
+  box-shadow: 0 24px 60px rgba(5, 10, 18, 0.62) !important;
+}
+
+.floating-coding-chat .floating-chat-header {
+  background: var(--ct-float-panel) !important;
+  border-bottom: 1px solid var(--ct-float-border) !important;
+}
+
+.floating-coding-chat .floating-chat-header strong,
+.floating-coding-chat .floating-chat-window strong,
+.floating-coding-chat .floating-chat-window h3,
+.floating-coding-chat .floating-chat-window h4 {
+  color: var(--ct-float-text) !important;
+}
+
+.floating-coding-chat .floating-chat-messages,
+.floating-coding-chat .floating-chat-input-row,
+.floating-coding-chat .floating-chat-input-row textarea {
+  background: var(--ct-float-panel-soft) !important;
+  background-color: var(--ct-float-panel-soft) !important;
+  border-color: var(--ct-float-border) !important;
+  color: var(--ct-float-text) !important;
+}
+
+.floating-coding-chat .floating-chat-window .ai-status-card {
+  background: var(--ct-float-panel-base) !important;
+  border: 1px solid var(--ct-float-border) !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  box-shadow: none !important;
+}
+
+.floating-coding-chat .floating-chat-window .ai-status-card dl {
+  display: grid !important;
+  grid-template-columns: 88px minmax(0, 1fr) !important;
+  gap: 8px 12px !important;
+  margin: 0 !important;
+}
+
+.floating-coding-chat .floating-chat-window .ai-status-card dt,
+.floating-coding-chat .floating-chat-window .ai-status-card dd,
+.floating-coding-chat .floating-chat-message,
+.floating-coding-chat .floating-chat-message p {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+}
+
+.floating-coding-chat .floating-chat-action,
+.floating-coding-chat .floating-chat-control,
+.floating-coding-chat .floating-chat-icon-btn {
+  background: var(--ct-float-panel-soft) !important;
+  border: 1px solid var(--ct-float-border) !important;
+  color: var(--ct-float-text) !important;
+}
+
+.floating-coding-chat .floating-chat-action:hover:not(:disabled),
+.floating-coding-chat .floating-chat-control:hover,
+.floating-coding-chat .floating-chat-icon-btn:hover:not(:disabled) {
+  background: var(--ct-float-accent-soft) !important;
+  border-color: color-mix(in srgb, var(--ct-float-accent) 48%, var(--ct-float-border)) !important;
+  color: var(--ct-float-accent) !important;
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--ct-float-accent) 18%, transparent) !important;
+}
+
+.floating-coding-chat .floating-chat-send,
+.floating-coding-chat .floating-chat-button {
+  background: var(--ct-float-primary) !important;
+  border-color: color-mix(in srgb, var(--ct-float-primary) 60%, var(--ct-float-border)) !important;
+  color: #ffffff !important;
+}
+
+.floating-coding-chat .floating-chat-send:hover:not(:disabled),
+.floating-coding-chat .floating-chat-button:hover {
+  background: var(--ct-float-accent) !important;
+  border-color: color-mix(in srgb, var(--ct-float-accent) 58%, var(--ct-float-border)) !important;
+  color: #182033 !important;
+}
+
+body.dark .floating-coding-chat .floating-chat-send,
+body.dark .floating-coding-chat .floating-chat-button {
+  color: #f8f3ea !important;
+}
+
+body.dark .floating-coding-chat .floating-chat-send:hover:not(:disabled),
+body.dark .floating-coding-chat .floating-chat-button:hover {
+  color: #172033 !important;
+}
+
+/* Floating chat layout repair: visible status, actions, messages, and input. */
+.floating-coding-chat .floating-chat-window {
+  width: min(470px, calc(100vw - 32px)) !important;
+  height: min(680px, calc(100vh - 36px)) !important;
+  max-height: calc(100vh - 36px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.floating-coding-chat .floating-chat-window.maximized {
+  width: min(920px, calc(100vw - 48px)) !important;
+  height: min(760px, calc(100vh - 48px)) !important;
+}
+
+.floating-coding-chat .floating-chat-header {
+  flex: 0 0 auto !important;
+  gap: 12px !important;
+  padding: 14px 16px 10px !important;
+}
+
+.floating-coding-chat .floating-chat-window-controls {
+  flex: 0 0 auto !important;
+  display: flex !important;
+  gap: 8px !important;
+}
+
+.floating-coding-chat .floating-chat-window .ai-status-card {
+  flex: 0 0 auto !important;
+  margin: 12px 14px 10px !important;
+  padding: 12px 14px !important;
+}
+
+.floating-coding-chat .floating-chat-window .ai-status-card dl {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px 16px !important;
+  margin: 8px 0 0 !important;
+}
+
+.floating-coding-chat .floating-chat-window .ai-status-card dl div {
+  display: grid !important;
+  grid-template-columns: minmax(72px, max-content) minmax(0, 1fr) !important;
+  align-items: start !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+
+.floating-coding-chat .floating-chat-window .ai-status-card dt,
+.floating-coding-chat .floating-chat-window .ai-status-card dd {
+  line-height: 1.25 !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
+.floating-coding-chat .floating-chat-window .ai-status-card dd {
+  overflow-wrap: anywhere !important;
+}
+
+.floating-coding-chat .floating-chat-actions {
+  flex: 0 0 auto !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  padding: 0 14px 10px !important;
+}
+
+.floating-coding-chat .floating-chat-action {
+  min-width: 0 !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+}
+
+.floating-coding-chat .floating-chat-action:not(:disabled) {
+  background: linear-gradient(135deg, var(--ct-float-primary), color-mix(in srgb, var(--ct-float-primary) 76%, var(--ct-float-accent))) !important;
+  border-color: color-mix(in srgb, var(--ct-float-primary) 62%, var(--ct-float-border)) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--ct-float-primary) 16%, transparent) !important;
+}
+
+.floating-coding-chat .floating-chat-action:not(:disabled):hover {
+  background: var(--ct-float-accent) !important;
+  border-color: color-mix(in srgb, var(--ct-float-accent) 58%, var(--ct-float-border)) !important;
+  color: #182033 !important;
+}
+
+.floating-coding-chat .floating-chat-action:disabled {
+  background: transparent !important;
+  border-color: var(--ct-float-border) !important;
+  color: var(--ct-float-muted) !important;
+  opacity: 0.62 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+}
+
+.floating-coding-chat .floating-chat-messages {
+  flex: 1 1 190px !important;
+  min-height: 150px !important;
+  margin: 0 14px 10px !important;
+  padding: 12px !important;
+  overflow-y: auto !important;
+}
+
+.floating-coding-chat .floating-chat-form {
+  flex: 0 0 auto !important;
+  padding: 0 14px 14px !important;
+  gap: 8px !important;
+}
+
+.floating-coding-chat .floating-chat-input-row {
+  display: grid !important;
+  grid-template-columns: 40px 40px minmax(0, 1fr) 40px !important;
+  align-items: end !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+
+.floating-coding-chat .floating-chat-icon-btn,
+.floating-coding-chat .floating-chat-send {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  flex: 0 0 40px !important;
+}
+
+.floating-coding-chat .floating-chat-voice-btn.listening {
+  background: var(--ct-float-accent) !important;
+  color: #182033 !important;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ct-float-accent) 22%, transparent) !important;
+}
+
+.floating-coding-chat .floating-chat-input-row textarea {
+  width: 100% !important;
+  min-height: 48px !important;
+  max-height: 128px !important;
+  resize: vertical !important;
+}
+
+@media (max-width: 520px) {
+  .floating-coding-chat .floating-chat-window {
+    width: calc(100vw - 24px) !important;
+    height: min(660px, calc(100vh - 24px)) !important;
+  }
+
+  .floating-coding-chat .floating-chat-window .ai-status-card dl {
+    grid-template-columns: 1fr !important;
+  }
+
+  .floating-coding-chat .floating-chat-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}

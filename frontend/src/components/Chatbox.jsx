@@ -1,29 +1,45 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { FaMicrophone } from "@react-icons/all-files/fa/FaMicrophone";
 import { FaPaperclip } from "@react-icons/all-files/fa/FaPaperclip";
 import { FaVolumeUp } from "@react-icons/all-files/fa/FaVolumeUp";
-import { FaTimes } from "@react-icons/all-files/fa/FaTimes";
 import { FaStop } from "@react-icons/all-files/fa/FaStop";
 import { FaEllipsisV } from "@react-icons/all-files/fa/FaEllipsisV";
 import { FaThumbsUp } from "@react-icons/all-files/fa/FaThumbsUp";
 import { FaThumbsDown } from "@react-icons/all-files/fa/FaThumbsDown";
 import { FaFlag } from "@react-icons/all-files/fa/FaFlag";
-import { BsSoundwave, BsArrowUpCircleFill } from "react-icons/bs";
 
-// 🔥 Icons for File Cards
-import { FaFile } from "@react-icons/all-files/fa/FaFile";
-import { FaFilePdf } from "@react-icons/all-files/fa/FaFilePdf";
-import { FaFileWord } from "@react-icons/all-files/fa/FaFileWord";
-import { FaFileImage } from "@react-icons/all-files/fa/FaFileImage";
-
+import CodingTutor from "./coding-tutor/CodingTutor";
+import FloatingCodingChat from "./coding-tutor/FloatingCodingChat";
+import ChatHeader from "./chatbox/ChatHeader";
+import ChatInput from "./chatbox/ChatInput";
+import CodeBlock from "./chatbox/CodeBlock";
+import { getFileIcon } from "./chatbox/FileIcon";
+import ReportModal from "./chatbox/ReportModal";
+import WelcomePanel from "./chatbox/WelcomePanel";
+import YouTubeEmbed from "./chatbox/YouTubeEmbed";
+import { getYouTubeVideoId } from "../lib/youtube";
 import "./Chatbox.css";
+import "./chatbox/ChatHeader.css";
+
+const REMARK_PLUGINS = [remarkGfm];
+
+// Memoized message body. Re-renders only when the message text or the markdown
+// components change — NOT on every keystroke in the chat input. This keeps the
+// YouTube iframes mounted and stable instead of flashing/black-screening while
+// the user types a follow-up question.
+const MessageMarkdown = React.memo(function MessageMarkdown({ text, components }) {
+  return (
+    <ReactMarkdown remarkPlugins={REMARK_PLUGINS} components={components}>
+      {text}
+    </ReactMarkdown>
+  );
+});
 
 // Featured questions that showcase chatbot capabilities
 const FEATURED_QUESTIONS = [
@@ -37,24 +53,71 @@ const FEATURED_QUESTIONS = [
   "What scholarships are available for CS majors at Morgan State?",
 ];
 
+// General (non-Morgan) starter questions for General mode.
+const GENERAL_SUGGESTIONS = [
+  "What is a solar eclipse?",
+  "Explain Big O notation simply",
+  "How does photosynthesis work?",
+  "What's the difference between HTTP and HTTPS?",
+  "Give me study tips for exams",
+  "Explain recursion with an example",
+  "What caused the French Revolution?",
+  "How do I write a strong thesis statement?",
+];
+
+const REGULAR_THINKING_MESSAGES = [
+  "Understanding your question",
+  "Searching knowledge base",
+  "Analyzing results",
+  "Preparing response"
+];
+
+const CODING_THINKING_MESSAGES = [
+  "Reading the code or prompt",
+  "Checking logic and edge cases",
+  "Planning hints and tests",
+  "Preparing coding feedback"
+];
+
+// General (non-Morgan) questions never search the knowledge base, so this set
+// has no "Searching knowledge base" step.
+const GENERAL_THINKING_MESSAGES = [
+  "Understanding your question",
+  "Thinking it through",
+  "Preparing response"
+];
+
 import { getApiBase } from "../lib/apiBase";
 const API_BASE = getApiBase();
+const MotionDiv = motion.div;
 
-// Helper for icons
-const getFileIcon = (filename) => {
-  if (!filename) return <FaFile className="file-icon generic" />;
-  const ext = filename.split('.').pop().toLowerCase();
-  
-  if (ext === 'pdf') return <FaFilePdf className="file-icon pdf" />;
-  if (['doc', 'docx'].includes(ext)) return <FaFileWord className="file-icon word" />;
-  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return <FaFileImage className="file-icon image" />;
-  
-  return <FaFile className="file-icon generic" />;
+const getDisplayMessageText = (text) => {
+  if (typeof text !== "string") return text;
+  const marker = "Student message:";
+  if (text.includes("Current coding workspace context:") && text.includes(marker)) {
+    return text.slice(text.lastIndexOf(marker) + marker.length).trim();
+  }
+  return text;
 };
 
-export default function Chatbox({ initialMessages = [], onSessionChange, sessionId }) {
+export default function Chatbox({
+  initialMessages = [],
+  onSessionChange,
+  onCreateSession,
+  pendingChatAction,
+  onPendingChatActionHandled,
+  sessionId,
+  initialChatMode,
+}) {
   // --- STATE ---
-  const [messages, setMessages] = useState(initialMessages);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const messageIdRef = useRef(0);
+  const [messages, setMessages] = useState(() =>
+    (initialMessages || []).map((m) =>
+      m && m.id ? m : { ...m, id: `m${(messageIdRef.current += 1)}` }
+    )
+  );
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -66,7 +129,6 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
   // 🔥 Dynamic Suggestions State
   const [suggestions, setSuggestions] = useState(FEATURED_QUESTIONS);
   const [suggestionsLoading, setSuggestionsLoading] = useState(true);
-
   // 🔥 Voice Mode State
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -82,6 +144,22 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
     { id: "inav-2.0", name: "iNav Pro", desc: "Deeper thinking, may take longer" },
   ];
 
+  const [chatMode, setChatMode] = useState(initialChatMode || "regular");
+  const [codingTutorContext, setCodingTutorContext] = useState(null);
+  const [floatingCodingChatOpen, setFloatingCodingChatOpen] = useState(false);
+  const [floatingCodingChatMaximized, setFloatingCodingChatMaximized] = useState(false);
+  const [codingWidgetSessionId, setCodingWidgetSessionId] = useState(() => `coding-widget-${Date.now()}`);
+  const [codingWidgetStartIndex, setCodingWidgetStartIndex] = useState(0);
+  const [activeCodingPage, setActiveCodingPage] = useState("dashboard");
+  const isCodingWorkspaceRoute = location.pathname === "/coding";
+  const isCodingChatRoute = location.pathname === "/chat/coding";
+  const hasStartedChat = messages.length > 0;
+  const showChatHeader = !isCodingWorkspaceRoute;
+  const showTutorModeToggle = hasStartedChat || isCodingChatRoute;
+  const showFloatingCodingChat = isCodingWorkspaceRoute
+    && chatMode === "coding_tutor"
+    && ["dashboard", "workspace"].includes(activeCodingPage);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -92,6 +170,185 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (initialChatMode) {
+      setChatMode(initialChatMode);
+    }
+  }, [initialChatMode]);
+
+  useEffect(() => {
+    if (isCodingWorkspaceRoute && chatMode !== "coding_tutor") {
+      setChatMode("coding_tutor");
+    }
+  }, [chatMode, isCodingWorkspaceRoute]);
+
+  useEffect(() => {
+    if (!isCodingWorkspaceRoute || !String(sessionId || "").startsWith("coding-")) return;
+
+    setChatMode("coding_tutor");
+    setCodingWidgetSessionId(sessionId);
+    // Start the widget's view at the END of the current history so regular-chat
+    // messages from before entering the Coding Tutor are NOT shown in the widget.
+    setCodingWidgetStartIndex(messages.length);
+    setFloatingCodingChatMaximized(false);
+    // The widget stays CLOSED on load — just the launcher button. The user opens
+    // it when they want it (so reloading the page doesn't force it open).
+    // Intentionally NOT depending on messages.length: we snapshot it once when the
+    // coding session begins; re-running on every new message would reset the
+    // session boundary and re-show prior history.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCodingWorkspaceRoute, sessionId]);
+
+  useEffect(() => {
+    if (isCodingWorkspaceRoute || isCodingChatRoute || hasStartedChat || chatMode !== "coding_tutor") return;
+    setChatMode("regular");
+  }, [isCodingWorkspaceRoute, isCodingChatRoute, hasStartedChat, chatMode]);
+
+  const inferCodingTutorIntent = useCallback((text = "") => {
+    const normalized = text.toLowerCase();
+    if (/\b(rewrite|convert|translate|refactor)\b/.test(normalized)) return { mode: "Rewriting", action: "Rewrite" };
+    if (/\b(generate|write|create|draft|starter|template|implement)\b.*\b(code|function|solution|method|class|snippet)\b/.test(normalized)) return { mode: "Code Generation", action: "Generate Code" };
+    if (/\b(code|function|solution|method|class|snippet)\b.*\b(generate|write|create|draft|implement)\b/.test(normalized)) return { mode: "Code Generation", action: "Generate Code" };
+    if (/\b(hint|clue|nudge)\b/.test(normalized)) return { mode: "Hinting", action: "Hint" };
+    if (/\b(debug|bug|error|fix|traceback|exception|wrong)\b/.test(normalized)) return { mode: "Debugging", action: "Debug" };
+    if (/\b(review|check my code|critique)\b/.test(normalized)) return { mode: "Reviewing", action: "Review" };
+    if (/\b(complexity|big o|runtime|space)\b/.test(normalized)) return { mode: "Complexity", action: "Complexity" };
+    if (/\b(edge case|edge cases|test cases|corner case)\b/.test(normalized)) return { mode: "Testing", action: "Edge Cases" };
+    return null;
+  }, []);
+
+  const buildCodingTutorQuery = useCallback((studentMessage, mode = chatMode) => {
+    if (mode !== "coding_tutor") return studentMessage;
+    const context = codingTutorContext || {};
+    const problem = context.activeProblem || {};
+    const inferredIntent = inferCodingTutorIntent(studentMessage);
+    const effectiveTutorMode = inferredIntent?.mode || context.tutorMode || "Guided Tutor";
+    const shouldReturnCodeFirst = ["Rewriting", "Code Generation"].includes(effectiveTutorMode);
+    const codeFirstInstruction = shouldReturnCodeFirst
+      ? "Code-first mode: this is a code generation/transformation request, not an explanation request. Your first visible output MUST be a fenced code block containing the requested code in the selected language. Do not start with prose. Do not only explain. You may provide code because the student is asking about their own workspace code or a focused starter/snippet. After the code block, add no more than 3 concise bullets about the changes or usage."
+      : "";
+    const debugInstruction = effectiveTutorMode === "Debugging"
+      ? "Debug mode: respond in small chunks. Give the first likely issue, why it matters, and one quick check or test to run. Avoid long paragraphs."
+      : "";
+    return [
+      "You are a coding tutor. Adapt to the student's intent. For hint/debug/review requests, teach and guide. For rewrite/convert/refactor/generate-code requests, behave like a coding assistant and return usable code first.",
+      "Do not write a full unknown homework solution from scratch when the student only provides an assignment prompt. If the student provides workspace code, starter code, or a partial attempt, you may generate, rewrite, convert, or complete focused code blocks that build on it.",
+      "",
+      "Current coding workspace context:",
+      `Problem: ${problem.title || "No practice problem selected"}`,
+      `Description: ${problem.prompt || "The student may be asking about pasted personal code."}`,
+      `Language: ${context.selectedLanguage || "Not selected"}`,
+      `Attempts: ${context.attempts ?? 0}`,
+      `Tutor mode: ${effectiveTutorMode}`,
+      inferredIntent?.action ? `Detected student intent: ${inferredIntent.action}` : "",
+      `Active tab: ${context.workspaceTab || "Unknown"}`,
+      context.note ? `Student note: ${context.note}` : "",
+      context.code?.trim() ? `Current code:\n\`\`\`\n${context.code}\n\`\`\`` : "Current code: none provided yet.",
+      context.runnerSummary ? `Latest runner output:\n${context.runnerSummary}` : "",
+      context.workspaceSnapshots?.starter ? `Starter code snapshot:\n\`\`\`\n${context.workspaceSnapshots.starter}\n\`\`\`` : "",
+      context.workspaceSnapshots?.lastPassing ? `Last passing solution snapshot:\n\`\`\`\n${context.workspaceSnapshots.lastPassing}\n\`\`\`` : "",
+      context.workspaceSnapshots?.aiRewrite ? `Latest AI rewrite snapshot:\n\`\`\`\n${context.workspaceSnapshots.aiRewrite}\n\`\`\`` : "",
+      codeFirstInstruction,
+      debugInstruction,
+      "",
+      "Student message:",
+      studentMessage,
+    ].filter(Boolean).join("\n");
+  }, [chatMode, codingTutorContext, inferCodingTutorIntent]);
+
+  const switchTutorMode = (mode) => {
+    setChatMode(mode);
+  };
+
+  const goBackHome = () => {
+    setChatMode("regular");
+    navigate("/chat");
+  };
+
+  const prefillSharedChat = (text) => {
+    setInput(text);
+    if (isCodingWorkspaceRoute) setFloatingCodingChatOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const startFreshCodingWidgetSession = useCallback((action = {}) => {
+    const nextSessionId = `coding-${Date.now()}`;
+    if (action.type === "closed") {
+      setChatMode("coding_tutor");
+      setCodingWidgetStartIndex(messages.length);
+      setCodingWidgetSessionId(nextSessionId);
+      setFloatingCodingChatOpen(false);
+      setFloatingCodingChatMaximized(false);
+      setInput("");
+      setPendingFile(null);
+      return nextSessionId;
+    }
+    if (onCreateSession) {
+      onCreateSession({
+        id: nextSessionId,
+        mode: "coding_tutor",
+        title: action.title || "Coding Tutor",
+        route: "/coding",
+        pendingAction: {
+          type: action.type || "open",
+          text: action.text || "",
+          title: action.title || "Coding Tutor",
+        },
+      });
+      return nextSessionId;
+    }
+    setChatMode("coding_tutor");
+    setCodingWidgetStartIndex(0);
+    setCodingWidgetSessionId(nextSessionId);
+    setFloatingCodingChatOpen(action.type !== "closed");
+    setFloatingCodingChatMaximized(false);
+    setInput("");
+    setPendingFile(null);
+    return nextSessionId;
+  }, [messages.length, onCreateSession]);
+
+  // Optional shortcuts. Debug sends a debug request immediately; Rewrite sends a
+  // rewrite request in the chosen target language. The tutor infers the mode and
+  // auto-attaches the workspace code, so no "pick a mode first" step is needed.
+  const sendFloatingQuickAction = (action, language = null) => {
+    if (isLoading) return;
+    let messageToSend;
+    let nextTutorMode;
+    if (action === "Rewrite") {
+      nextTutorMode = "Rewriting";
+      const target = language && language !== "Same language"
+        ? `into ${language}`
+        : "in the same language";
+      messageToSend = `Rewrite my current code ${target}, keeping my overall approach. Return the code first, then a few short notes on what changed.`;
+    } else {
+      // Debug (default)
+      nextTutorMode = "Debugging";
+      messageToSend = "Help me debug my current code. What's the most likely issue, why does it matter, and one quick check I can run?";
+    }
+
+    setChatMode("coding_tutor");
+    setCodingTutorContext(prev => ({ ...(prev || {}), tutorMode: nextTutorMode }));
+    setFloatingCodingChatOpen(true);
+    setInput("");
+    handleSend(null, messageToSend, false, "coding_tutor", codingWidgetSessionId);
+  };
+
+  const closeCodingWidgetSession = () => {
+    const confirmed = window.confirm("Close this Coding Tutor chat session? Reopening starts a fresh widget session. Your main saved chat history is not deleted.");
+    if (!confirmed) return;
+    setFloatingCodingChatOpen(false);
+    setFloatingCodingChatMaximized(false);
+    setInput("");
+    setPendingFile(null);
+    startFreshCodingWidgetSession({ type: "closed", title: "Coding Tutor" });
+  };
+
+  useEffect(() => {
+    if (isCodingWorkspaceRoute) return;
+    setFloatingCodingChatOpen(false);
+    setFloatingCodingChatMaximized(false);
+  }, [isCodingWorkspaceRoute]);
 
   // 🔥 Feedback State
   const [feedbackMenuOpen, setFeedbackMenuOpen] = useState(null); // index of message with open menu
@@ -105,15 +362,20 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
   // Thinking status - step index drives everything
   const [thinkingStepIndex, setThinkingStepIndex] = useState(0);
   const [thinkingTimer, setThinkingTimer] = useState(0);
-  const thinkingMessages = [
-    "Understanding your question",
-    "Searching knowledge base",
-    "Analyzing results",
-    "Preparing response"
-  ];
-  // Derived: completed steps are all before current index, active is current
-  const thinkingStatus = thinkingMessages[thinkingStepIndex] || thinkingMessages[0];
-
+  // The backend tells us the real track per request ("regular" = uses KB,
+  // "general" = non-Morgan no-KB, "coding"). Until it does, fall back to the
+  // current chat mode. This is what removes the misleading "Searching knowledge
+  // base" step for non-Morgan questions.
+  const [thinkingTrack, setThinkingTrack] = useState(null);
+  const getThinkingMessagesForTrack = useCallback((track, mode) => {
+    const modeDefault =
+      mode === "coding_tutor" ? "coding" : mode === "general_tutor" ? "general" : "regular";
+    const resolved = track || modeDefault;
+    if (resolved === "coding") return CODING_THINKING_MESSAGES;
+    if (resolved === "general") return GENERAL_THINKING_MESSAGES;
+    return REGULAR_THINKING_MESSAGES;
+  }, []);
+  const thinkingMessages = getThinkingMessagesForTrack(thinkingTrack, chatMode);
   // Map status text to contextual SVG icon
   const getStatusIcon = (status) => {
     const s = (status || "").toLowerCase();
@@ -159,6 +421,8 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
   const audioRef = useRef(null);
   const recognitionRef = useRef(null);
   const isVoiceModeRef = useRef(false); // 🔥 Ref to track voice mode for callbacks
+  const handledPendingActionRef = useRef(null);
+  const handleSendRef = useRef(null);
 
   // --- EFFECTS ---
 
@@ -172,10 +436,17 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
 
   // 2. Sync Messages FROM Parent (Database Load)
   useEffect(() => {
-    if (JSON.stringify(initialMessages) !== JSON.stringify(messages)) {
+    setMessages((currentMessages) => {
+      if (JSON.stringify(initialMessages) === JSON.stringify(currentMessages)) {
+        return currentMessages;
+      }
       isRemoteUpdate.current = true;
-      setMessages(initialMessages);
-    }
+      return initialMessages.map((message) => (
+        message?.sender === "user"
+          ? { ...message, text: getDisplayMessageText(message.text) }
+          : message
+      ));
+    });
   }, [initialMessages]);
 
   // 3. Sync Messages TO Parent (User typed something)
@@ -207,7 +478,13 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
           if (data.profilePicture) {
              // Handle base64 data URLs, full URLs, and relative paths
              let picUrl = data.profilePicture;
-             if (picUrl.startsWith("data:")) {
+             // Legacy default avatars are bundled in the frontend's /public, not
+             // served by the backend. Normalize the old .jpg default to the
+             // existing .webp and load it from the app origin (avoids a 404 to
+             // the API for /user_icon.jpg on every render).
+             if (picUrl === "/user_icon.jpg" || picUrl === "/user_icon.webp") {
+                setUserProfilePicture("/user_icon.webp");
+             } else if (picUrl.startsWith("data:")) {
                 // Base64 data URL - use directly
                 setUserProfilePicture(picUrl);
              } else if (picUrl.startsWith("http")) {
@@ -226,13 +503,28 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
     fetchUserProfile();
   }, []);
 
-  // 6. Fetch randomized featured questions from backend
+  // 6. Fetch mode-specific welcome content
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (messages.length > 0) {
+      if (chatMode === "coding_tutor") {
+        setSuggestions([]);
         setSuggestionsLoading(false);
         return;
       }
+
+      if (chatMode === "general_tutor") {
+        setSuggestions(GENERAL_SUGGESTIONS);
+        setSuggestionsLoading(false);
+        return;
+      }
+
+      if (messages.length > 0) {
+        setSuggestions(FEATURED_QUESTIONS);
+        setSuggestionsLoading(false);
+        return;
+      }
+
+      setSuggestionsLoading(true);
       try {
         const response = await fetch(`${API_BASE}/api/popular-questions`);
         if (response.ok) {
@@ -243,21 +535,23 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
         }
       } catch (error) {
         console.error("Failed to fetch suggestions:", error);
+        setSuggestions(FEATURED_QUESTIONS);
       } finally {
         setSuggestionsLoading(false);
       }
     };
     fetchSuggestions();
-  }, []);
+  }, [chatMode, messages.length]);
 
   // 7. Cleanup voice mode on unmount
   useEffect(() => {
+    const audio = audioRef.current;
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.abort();
       }
-      if (audioRef.current) {
-        audioRef.current.pause();
+      if (audio) {
+        audio.pause();
       }
       window.speechSynthesis?.cancel();
     };
@@ -292,14 +586,23 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
       clearInterval(statusInterval);
       clearInterval(timerInterval);
     };
-  }, [showThinking]);
+  }, [showThinking, chatMode, thinkingMessages.length]);
 
   // --- HANDLERS ---
+
+  // Stable, monotonic id for each message so React keys never depend on the
+  // array index. Index keys remount the streaming bubble on every chunk (the
+  // YouTube iframe flashes and won't play) and can mismatch a bot bubble to the
+  // user sender when the list shifts.
+  const nextMessageId = () => {
+    messageIdRef.current += 1;
+    return `m${messageIdRef.current}`;
+  };
 
   // Helper to add message to local state
   const addMessage = (text, sender) => {
     const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    setMessages((prev) => [...prev, { text, sender, time }]);
+    setMessages((prev) => [...prev, { id: nextMessageId(), text, sender, time }]);
   };
 
   // 🔥 Enhanced TTS using OpenAI API
@@ -524,7 +827,8 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
         body: JSON.stringify({
           query: transcript,
           session_id: sessionId || "default",
-          model: selectedModel
+          model: selectedModel,
+          mode: chatMode
         })
       });
 
@@ -720,10 +1024,11 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
   }, []);
 
   // 🔥 MAIN SEND LOGIC - With Streaming Support
-  const handleSend = async (e, overrideText = null, skipCache = false) => {
+  const handleSend = async (e, overrideText = null, skipCache = false, modeOverride = null, sessionIdOverride = null) => {
     if (e) e.preventDefault();
     const sendText = overrideText || input.trim();
     if ((!sendText && !pendingFile) || isLoading) return;
+    const effectiveMode = modeOverride || chatMode;
 
     setIsLoading(true);
     setInput("");  // Clear input immediately to prevent concatenation with next typed message
@@ -768,11 +1073,21 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
             if (inputRef.current) inputRef.current.style.height = 'auto';
         }
 
+        // Verified video requests are handled server-side: the backend injects
+        // real, checked YouTube links (curated + YouTube Data API) into the agent
+        // context and the AI weaves the embedded link into its reply.
+        const apiMessage = buildCodingTutorQuery(finalMessage, effectiveMode);
+
         // 3. Add placeholder bot message for streaming
-        const botMessageIndex = messages.length + 1; // Index after user message
         const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
         setThinkingStepIndex(0);
-        setMessages((prev) => [...prev, { text: "", sender: "bot", time, isStreaming: true }]);
+        // Reset to the mode default; the backend's thinking_track event refines it.
+        setThinkingTrack(
+          effectiveMode === "coding_tutor" ? "coding"
+          : effectiveMode === "general_tutor" ? "general"
+          : null
+        );
+        setMessages((prev) => [...prev, { id: nextMessageId(), text: "", sender: "bot", time, isStreaming: true, mode: effectiveMode }]);
 
         // 4. Stream from Chat API using fetch with ReadableStream
         const res = await fetch(`${API_BASE}/chat/stream`, {
@@ -782,10 +1097,12 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
                 "Authorization": `Bearer ${token}`
             },
             body: JSON.stringify({
-                query: finalMessage,
-                session_id: sessionId || "default",
+                query: apiMessage,
+                display_query: finalMessage,
+                session_id: sessionIdOverride || sessionId || "default",
                 skip_cache: skipCache,
-                model: selectedModel
+                model: selectedModel,
+                mode: effectiveMode
             }),
         });
 
@@ -824,7 +1141,12 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
                     try {
                         const event = JSON.parse(line.slice(6));
 
-                        if (event.type === "status") {
+                        if (event.type === "thinking_track") {
+                            // Backend tells us whether this request hits the KB.
+                            // Switch the animation so non-Morgan questions don't
+                            // show a "Searching knowledge base" step.
+                            setThinkingTrack(event.content);
+                        } else if (event.type === "status") {
                             // Real-time status from ADK tool calls - advance step
                             setThinkingStepIndex(prev => Math.min(prev + 1, thinkingMessages.length - 1));
                         } else if (event.type === "chunk") {
@@ -973,7 +1295,7 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
                         isStreaming: false
                     };
                 } else {
-                    newMessages.push({ text: "Something went wrong. Please try again.", sender: "bot", time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) });
+                    newMessages.push({ id: nextMessageId(), text: "Something went wrong. Please try again.", sender: "bot", time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) });
                 }
                 return newMessages;
             });
@@ -984,6 +1306,39 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
         setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
+  handleSendRef.current = handleSend;
+
+  useEffect(() => {
+    if (!pendingChatAction || pendingChatAction.sessionId !== sessionId) return;
+    if (handledPendingActionRef.current === pendingChatAction.id) return;
+
+    handledPendingActionRef.current = pendingChatAction.id;
+    setChatMode(pendingChatAction.mode || "coding_tutor");
+    setCodingWidgetSessionId(sessionId);
+    setCodingWidgetStartIndex(0);
+    setFloatingCodingChatMaximized(false);
+    setPendingFile(null);
+
+    if (pendingChatAction.type === "closed") {
+      setFloatingCodingChatOpen(false);
+      setInput("");
+    } else if (pendingChatAction.type === "prefill") {
+      setFloatingCodingChatOpen(true);
+      setInput((pendingChatAction.text || "").slice(0, 2000));
+      setTimeout(() => inputRef.current?.focus(), 0);
+    } else if (pendingChatAction.type === "send" && pendingChatAction.text) {
+      setFloatingCodingChatOpen(true);
+      setInput("");
+      setTimeout(() => {
+        handleSendRef.current?.(null, pendingChatAction.text, true, "coding_tutor", sessionId);
+      }, 0);
+    } else {
+      setFloatingCodingChatOpen(true);
+      setInput("");
+    }
+
+    onPendingChatActionHandled?.(pendingChatAction.id);
+  }, [pendingChatAction, sessionId, onPendingChatActionHandled]);
 
   // Regenerate last response
   const handleRegenerate = () => {
@@ -1028,85 +1383,76 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
     visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.34, 1.56, 0.64, 1] } },
   };
 
-  // Code block renderer for ReactMarkdown
-  const codeRenderer = ({ node, className, children, ...props }) => {
-    const match = /language-(\w+)/.exec(className || '');
-    const codeString = String(children).replace(/\n$/, '');
-    const isBlock = match || codeString.includes('\n');
-
-    if (isBlock) {
-      const language = match ? match[1] : 'text';
-      return (
-        <div className="code-block-wrapper">
-          <div className="code-block-header">
-            <span className="code-lang">{language}</span>
-            <button
-              className="code-copy-btn"
-              onClick={() => {
-                navigator.clipboard.writeText(codeString);
-                toast.success("Copied to clipboard");
-              }}
-            >
-              Copy
-            </button>
-          </div>
-          <SyntaxHighlighter
-            style={oneDark}
-            language={language}
-            PreTag="div"
-            customStyle={{ margin: 0, borderRadius: '0 0 8px 8px', fontSize: '0.85rem' }}
-          >
-            {codeString}
-          </SyntaxHighlighter>
-        </div>
+  const codeRenderer = CodeBlock;
+  // Memoized so ReactMarkdown receives a STABLE components object. Recreating it
+  // every render (e.g. on each keystroke in the input) makes ReactMarkdown rebuild
+  // the whole tree and remount YouTube iframes — that is what caused the chat to
+  // flash/black-screen while typing. Deps are all module-level/stable, so [].
+  const markdownComponents = useMemo(() => ({
+    code: codeRenderer,
+    // A YouTube embed renders an <iframe>, which is INVALID inside a <p>. The
+    // browser auto-closes the <p>, orphaning the iframe so it never plays. When a
+    // paragraph contains a YouTube link, render a <div> wrapper instead of <p>.
+    p: ({ node, children, ...props }) => {
+      const hasYouTube = (node?.children || []).some(
+        (child) =>
+          child?.tagName === "a" &&
+          child?.properties?.href &&
+          getYouTubeVideoId(child.properties.href)
       );
-    }
-    return <code className={className} {...props}>{children}</code>;
-  };
+      if (hasYouTube) {
+        return <div className="message-para-with-video" {...props}>{children}</div>;
+      }
+      return <p {...props}>{children}</p>;
+    },
+    a: ({ node: _node, href, children, ...props }) => {
+      if (href && getYouTubeVideoId(href)) {
+        return <YouTubeEmbed href={href}>{children}</YouTubeEmbed>;
+      }
+      const isFile = href && (href.includes("uploads/chat_files") || href.includes("uploads/profile_pictures"));
+
+      if (isFile) {
+        return (
+          <a href={href} target="_blank" rel="noopener noreferrer" className="file-card">
+            <div className="file-icon-wrapper">
+              {getFileIcon(children[0])}
+            </div>
+            <div className="file-info">
+              <span className="file-name">{children}</span>
+              <span className="file-action">Click to view file</span>
+            </div>
+          </a>
+        );
+      }
+      return <a href={href} target="_blank" rel="noopener noreferrer" className="message-link" {...props}>{children}</a>;
+    },
+  }), [codeRenderer]);
 
   return (
     <div
-      className={`chat-main ${isDragging ? 'drag-active' : ''}`}
+      className={`chat-main ${isCodingWorkspaceRoute ? "coding-chat-main" : ""} ${isDragging ? 'drag-active' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Model selector dropdown */}
-      <div className="model-selector-header" ref={modelDropdownRef}>
-        <button
-          className="model-selector-trigger"
-          onClick={() => setModelDropdownOpen(prev => !prev)}
-          disabled={isLoading}
-        >
-          <span className="model-selector-name">
-            {MODEL_OPTIONS.find(m => m.id === selectedModel)?.name || "iNav"}
-          </span>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ opacity: 0.5, marginLeft: 4 }}>
-            <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-        {modelDropdownOpen && (
-          <div className="model-dropdown">
-            {MODEL_OPTIONS.map(model => (
-              <button
-                key={model.id}
-                className={`model-dropdown-item ${selectedModel === model.id ? 'active' : ''}`}
-                onClick={() => { setSelectedModel(model.id); setModelDropdownOpen(false); }}
-              >
-                <div className="model-dropdown-info">
-                  <span className="model-dropdown-name">{model.name}</span>
-                  <span className="model-dropdown-desc">{model.desc}</span>
-                </div>
-                {selectedModel === model.id && (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="model-dropdown-check">
-                    <path d="M6.5 12.5L2 8l1.5-1.5L6.5 9.5 12.5 3.5 14 5z"/>
-                  </svg>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      {showChatHeader && (
+        <ChatHeader
+          modelDropdownRef={modelDropdownRef}
+          modelDropdownOpen={modelDropdownOpen}
+          setModelDropdownOpen={setModelDropdownOpen}
+          modelOptions={MODEL_OPTIONS}
+          selectedModel={selectedModel}
+          setSelectedModel={setSelectedModel}
+          isLoading={isLoading}
+          showTutorModeToggle={showTutorModeToggle}
+          chatMode={chatMode}
+          onTutorModeChange={switchTutorMode}
+          isCodingWorkspaceRoute={isCodingWorkspaceRoute}
+          isCodingChatRoute={isCodingChatRoute}
+          onBackHome={goBackHome}
+          onOpenCodingWorkspace={() => navigate("/coding?page=workspace")}
+        />
+      )}
 
       {/* Hidden audio element for TTS playback */}
       <audio ref={audioRef} style={{ display: 'none' }} />
@@ -1121,38 +1467,77 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
         </div>
       )}
 
-      <div className="chat-messages">
+      {isCodingWorkspaceRoute && (
+        <CodingTutor
+          apiBase={API_BASE}
+          codeRenderer={codeRenderer}
+          messages={messages}
+          onContextChange={setCodingTutorContext}
+          onActivePageChange={setActiveCodingPage}
+          onPrefillChat={prefillSharedChat}
+          onStartFreshChat={startFreshCodingWidgetSession}
+          onSendToChat={(text, skipCache = true, widgetSessionId = codingWidgetSessionId) => handleSend(null, text, skipCache, "coding_tutor", widgetSessionId)}
+        />
+      )}
+
+      {showFloatingCodingChat && (
+        <FloatingCodingChat
+          isOpen={floatingCodingChatOpen}
+          isMaximized={floatingCodingChatMaximized}
+          messages={messages.slice(codingWidgetStartIndex)}
+          input={input}
+          isLoading={isLoading}
+          pendingFile={pendingFile}
+          accept=".py,.java,.cpp,.c,.h,.hpp,.js,.jsx,.ts,.tsx,.json,.txt,.md"
+          inputRef={inputRef}
+          fileInputRef={fileInputRef}
+          context={codingTutorContext}
+          codeRenderer={codeRenderer}
+          markdownComponents={markdownComponents}
+          getFileIcon={getFileIcon}
+          hasCode={Boolean(codingTutorContext?.code?.trim())}
+          suggestedCodeBlock={codingTutorContext?.suggestedCodeBlock || ""}
+          thinkingMessages={thinkingMessages}
+          onApplyAICode={codingTutorContext?.onApplyAICode || null}
+          onOpen={() => setFloatingCodingChatOpen(true)}
+          onMinimize={() => setFloatingCodingChatOpen(false)}
+          onMaximizeToggle={() => {
+            setFloatingCodingChatOpen(true);
+            setFloatingCodingChatMaximized(prev => !prev);
+          }}
+          onOpenFullChat={() => navigate("/chat/coding")}
+          onClose={closeCodingWidgetSession}
+          onInputChange={(event) => {
+            setInput(event.target.value.slice(0, 2000));
+            resizeTextarea();
+          }}
+          onVoiceInput={handleVoiceInput}
+          isListening={isListening}
+          isSpeaking={isSpeaking}
+          isVoiceMode={isVoiceMode}
+          onFileChange={handleFileSelect}
+          onClearFile={clearFile}
+          onSend={(event) => {
+            setChatMode("coding_tutor");
+            handleSend(event, null, false, "coding_tutor", codingWidgetSessionId);
+          }}
+          onQuickAction={sendFloatingQuickAction}
+        />
+      )}
+
+      <div className={`chat-messages ${isCodingWorkspaceRoute ? "regular-chat-hidden" : ""}`}>
         <AnimatePresence initial={false}>
-        {messages.length === 0 ? (
-          <motion.div
-            className="welcome-container"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
-          >
-            <img src="/msu_logo.webp" alt="MSU Logo" className="welcome-logo" />
-            <h1 className="welcome-title">Morgan State CS Navigator</h1>
-            <p className="welcome-subtitle">How can I assist with your academic journey today?</p>
-            <div className="suggestions">
-              {suggestionsLoading ? (
-                <>
-                  <div className="suggestion-skeleton"></div>
-                  <div className="suggestion-skeleton"></div>
-                  <div className="suggestion-skeleton"></div>
-                </>
-              ) : (
-                suggestions.map((s, i) => (
-                  <button key={i} className="suggestion-btn" onClick={() => handleSuggestion(s)} disabled={isLoading}>
-                    {s}
-                  </button>
-                ))
-              )}
-            </div>
-          </motion.div>
-        ) : (
-          messages.map((msg, i) => (
-            <motion.div
-              key={i}
+        {!isCodingWorkspaceRoute && !isCodingChatRoute && messages.length === 0 && (
+          <WelcomePanel
+            suggestionsLoading={suggestionsLoading}
+            suggestions={suggestions}
+            isLoading={isLoading}
+            onSuggestion={handleSuggestion}
+          />
+        )}
+        {messages.length > 0 && messages.map((msg, i) => (
+            <MotionDiv
+              key={msg.id ?? i}
               className={`message ${msg.sender}`}
               variants={messageVariants}
               initial="hidden"
@@ -1168,32 +1553,10 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
                 <div className="message-bubble-wrapper">
                   <div className="message-bubble">
 
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={{
-                          code: codeRenderer,
-                          a: ({node, href, children, ...props}) => {
-                              const isFile = href && (href.includes("uploads/chat_files") || href.includes("uploads/profile_pictures"));
-
-                              if (isFile) {
-                                  return (
-                                      <a href={href} target="_blank" rel="noopener noreferrer" className="file-card">
-                                          <div className="file-icon-wrapper">
-                                              {getFileIcon(children[0])}
-                                          </div>
-                                          <div className="file-info">
-                                              <span className="file-name">{children}</span>
-                                              <span className="file-action">Click to view file</span>
-                                          </div>
-                                      </a>
-                                  );
-                              }
-                              return <a href={href} target="_blank" rel="noopener noreferrer" className="message-link" {...props}>{children}</a>;
-                          }
-                      }}
-                    >
-                      {msg.text}
-                    </ReactMarkdown>
+                    <MessageMarkdown
+                      text={msg.sender === "user" ? getDisplayMessageText(msg.text) : msg.text}
+                      components={markdownComponents}
+                    />
 
                     {/* Streaming indicator - show steps when no text, cursor when text is streaming */}
                     {msg.isStreaming && !msg.text && (
@@ -1299,9 +1662,8 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
                 </div>
                 <div className="timestamp">{msg.time}</div>
               </div>
-            </motion.div>
-          ))
-        )}
+            </MotionDiv>
+          ))}
         </AnimatePresence>
 
         {/* Old regenerate button removed - now inline with bot message actions */}
@@ -1364,133 +1726,55 @@ export default function Chatbox({ initialMessages = [], onSessionChange, session
           </div>
         )}
 
-        {/* 🔥 REPORT MODAL */}
-        {reportModal !== null && (
-          <div className="report-modal-overlay" onClick={closeReportModal}>
-            <div className="report-modal" onClick={(e) => e.stopPropagation()}>
-              <div className="report-modal-header">
-                <h3>Report an Issue</h3>
-                <button className="report-modal-close" onClick={closeReportModal}>
-                  <FaTimes size={16} />
-                </button>
-              </div>
-              <div className="report-modal-body">
-                <p>Help us improve! What was wrong with this response?</p>
-                <textarea
-                  className="report-textarea"
-                  placeholder="Describe the issue (e.g., incorrect information, unhelpful response, inappropriate content...)"
-                  value={reportText}
-                  onChange={(e) => setReportText(e.target.value)}
-                  rows={4}
-                />
-              </div>
-              <div className="report-modal-footer">
-                <button className="report-cancel-btn" onClick={closeReportModal}>
-                  Cancel
-                </button>
-                <button
-                  className="report-submit-btn"
-                  onClick={() => handleFeedback(reportModal, 'report', messages[reportModal]?.text)}
-                  disabled={!reportText.trim()}
-                >
-                  Submit Report
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ReportModal
+          isOpen={reportModal !== null}
+          reportText={reportText}
+          onReportTextChange={setReportText}
+          onClose={closeReportModal}
+          onSubmit={() => handleFeedback(reportModal, 'report', messages[reportModal]?.text)}
+        />
       </div>
 
-      <div className="chat-input-container">
-
-        <form onSubmit={handleSend} className="chat-input-wrapper">
-
-          {/* 🔥 STAGING AREA: Shows file before sending */}
-          {pendingFile && (
-            <div className="attachment-preview">
-              {getFileIcon(pendingFile.name)}
-              <span className="file-name-preview">{pendingFile.name}</span>
-              <button
-                type="button"
-                className="remove-attachment-btn"
-                onClick={clearFile}
-                title="Remove file"
-              >
-                <FaTimes />
-              </button>
-            </div>
-          )}
-
-          <div className="input-row">
-            <button
-                type="button"
-                className="action-btn-icon"
-                onClick={() => fileInputRef.current.click()}
-                title="Attach a file"
-                disabled={isLoading || isVoiceMode}
-            >
-                <FaPaperclip size={18} />
-            </button>
-
-            <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-                accept=".png,.jpg,.jpeg,.gif,.pdf,.txt,.doc,.docx"
-                onChange={handleFileSelect}
-            />
-
-            <button
-                type="button"
-                className={`action-btn-icon voice-btn ${isListening ? 'listening' : ''}`}
-                onClick={handleVoiceInput}
-                title="Voice input"
-                disabled={isLoading || isSpeaking || isVoiceMode}
-            >
-                <FaMicrophone size={18} />
-            </button>
-
-            <textarea
-                rows={1}
-                ref={inputRef}
-                className="chat-input-field"
-                value={input}
-                maxLength={2000}
-                onChange={(e) => { setInput(e.target.value.slice(0, 2000)); resizeTextarea(); }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend(e);
-                  }
-                }}
-                placeholder={isVoiceMode ? (voiceStatus === "listening" ? "Listening..." : voiceStatus === "speaking" ? "Speaking..." : "Speak now...") : pendingFile ? "Add a message..." : "Type your message..."}
-                disabled={isLoading || isVoiceMode}
-            />
-
-            <button
-                type="submit"
-                className="action-btn-icon send-btn"
-                title="Send message"
-                disabled={isLoading || (!input.trim() && !pendingFile) || isVoiceMode}
-            >
-                <BsArrowUpCircleFill size={24} />
-            </button>
-
-            {/* Model toggle removed - now in header dropdown */}
-
-            {/* Live Voice Mode Button */}
-            <button
-                type="button"
-                className={`live-mode-btn ${isVoiceMode ? 'active' : ''}`}
-                onClick={toggleVoiceMode}
-                title={isVoiceMode ? "Exit Live Mode" : "Enter Live Mode"}
-                disabled={isLoading}
-            >
-                <BsSoundwave size={18} />
-            </button>
-          </div>
-        </form>
-      </div>
+      {!isCodingWorkspaceRoute && (
+        <ChatInput
+          onSubmit={handleSend}
+          pendingFile={pendingFile}
+          getFileIcon={getFileIcon}
+          onClearFile={clearFile}
+          fileInputRef={fileInputRef}
+          onFileSelect={handleFileSelect}
+          accept={chatMode === "coding_tutor" ? ".py,.java,.cpp,.c,.h,.hpp,.js,.jsx,.ts,.tsx,.json,.txt,.md" : ".png,.jpg,.jpeg,.gif,.pdf,.txt,.doc,.docx"}
+          isLoading={isLoading}
+          isVoiceMode={isVoiceMode}
+          isListening={isListening}
+          isSpeaking={isSpeaking}
+          inputRef={inputRef}
+          input={input}
+          onInputChange={(e) => {
+            setInput(e.target.value.slice(0, 2000));
+            resizeTextarea();
+          }}
+          onEnterSubmit={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSend(e);
+            }
+          }}
+          placeholder={
+            isVoiceMode
+              ? (voiceStatus === "listening" ? "Listening..." : voiceStatus === "speaking" ? "Speaking..." : "Speak now...")
+              : pendingFile
+                ? "Add a message..."
+                : chatMode === "coding_tutor"
+                  ? "Paste code, an error, or ask for a review..."
+                  : chatMode === "general_tutor"
+                    ? "Ask any academic or general question..."
+                    : "Ask about Morgan State CS — courses, advising, requirements..."
+          }
+          onVoiceInput={handleVoiceInput}
+          onToggleVoiceMode={toggleVoiceMode}
+        />
+      )}
     </div>
   );
 }

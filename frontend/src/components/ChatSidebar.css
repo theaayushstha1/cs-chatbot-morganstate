@@ -1,18 +1,24 @@
+/* Mobile drawer backdrop (hidden on larger screens) */
+.sidebar-backdrop {
+  display: none;
+}
+
 /* Chat Sidebar - Theme-aware */
 .chat-sidebar {
   position: fixed;
-  top: 70px;
+  top: var(--nav-h, 70px);
   left: 0;
   width: 280px;
-  height: calc(100vh - 70px);
-  background: var(--bg-card);
-  border-right: 1px solid var(--border-color);
+  height: calc(100vh - var(--nav-h, 70px));
+  background: var(--bg-surface, var(--bg-card));
+  border-right: 1px solid var(--border-soft, var(--border-color));
   display: flex;
   flex-direction: column;
-  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.32s cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 500;
   color: var(--text-main);
   overflow: hidden;
+  contain: layout paint style;
 }
 
 /* ─── COLLAPSED STATE ─── */
@@ -20,23 +26,68 @@ body.sidebar-collapsed .chat-sidebar {
   width: 64px;
 }
 
-/* Hide everything except icons */
-body.sidebar-collapsed .sidebar-action-btn span,
-body.sidebar-collapsed .search-container,
-body.sidebar-collapsed .chat-history-list,
-body.sidebar-collapsed .chat-history-section,
-body.sidebar-collapsed .section-header,
-body.sidebar-collapsed .empty-state,
-body.sidebar-collapsed .sidebar-settings-wrapper,
-body.sidebar-collapsed .user-info,
-body.sidebar-collapsed .logout-icon-btn,
-body.sidebar-collapsed .sidebar-opensource-badge,
-body.sidebar-collapsed .archived-toggle,
-body.sidebar-collapsed .sidebar-middle,
-body.sidebar-collapsed .context-menu,
-body.sidebar-collapsed .setting-btn span,
-body.sidebar-collapsed .support-btn span {
+body.sidebar-custom-width:not(.sidebar-collapsed) .chat-sidebar {
+  width: var(--sidebar-width, 280px);
+}
+
+/* Collapsed state keeps labels measurable so resize preview can reveal them smoothly. */
+body.sidebar-collapsed:not(.sidebar-resizing) .search-container,
+body.sidebar-collapsed:not(.sidebar-resizing) .chat-history-list,
+body.sidebar-collapsed:not(.sidebar-resizing) .chat-history-section,
+body.sidebar-collapsed:not(.sidebar-resizing) .section-header,
+body.sidebar-collapsed:not(.sidebar-resizing) .empty-state,
+body.sidebar-collapsed:not(.sidebar-resizing) .sidebar-settings-wrapper,
+body.sidebar-collapsed:not(.sidebar-resizing) .user-info,
+body.sidebar-collapsed:not(.sidebar-resizing) .logout-icon-btn,
+body.sidebar-collapsed:not(.sidebar-resizing) .sidebar-opensource-badge,
+body.sidebar-collapsed:not(.sidebar-resizing) .sidebar-middle,
+body.sidebar-collapsed:not(.sidebar-resizing) .context-menu {
   display: none !important;
+}
+
+body.sidebar-collapsed:not(.sidebar-resizing) .sidebar-action-btn span,
+body.sidebar-collapsed:not(.sidebar-resizing) .setting-btn span,
+body.sidebar-collapsed:not(.sidebar-resizing) .support-btn span {
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transform: none;
+  transition: opacity 0.18s ease, max-width 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.chat-sidebar .sidebar-action-btn span,
+.chat-sidebar .setting-btn span,
+.chat-sidebar .support-btn span,
+.chat-sidebar .user-info,
+.chat-sidebar .search-container,
+.chat-sidebar .sidebar-middle,
+.chat-sidebar .sidebar-settings-wrapper,
+.chat-sidebar .sidebar-opensource-badge {
+  transition: opacity 0.18s ease, max-width 0.18s ease, transform 0.18s ease;
+}
+
+body.sidebar-resizing .chat-sidebar .sidebar-action-btn span,
+body.sidebar-resizing .chat-sidebar .setting-btn span,
+body.sidebar-resizing .chat-sidebar .support-btn span,
+body.sidebar-resizing .chat-sidebar .user-info,
+body.sidebar-resizing .chat-sidebar .sidebar-opensource-badge {
+  display: inline-flex !important;
+  opacity: 1;
+  max-width: calc(var(--sidebar-preview-width, 64px) - 72px);
+  overflow: hidden;
+  white-space: nowrap;
+  transform: none;
+  transition: none;
+}
+
+body.sidebar-resizing .chat-sidebar .search-container,
+body.sidebar-resizing .chat-sidebar .sidebar-middle,
+body.sidebar-resizing .chat-sidebar .sidebar-settings-wrapper {
+  display: flex !important;
+  opacity: 1;
+  pointer-events: none;
+  transition: none;
 }
 
 /* Top section */
@@ -134,6 +185,7 @@ body.sidebar-collapsed .user-avatar img {
   cursor: pointer;
   transition: background 0.15s;
   width: 100%;
+  overflow: hidden;
 }
 
 .sidebar-action-btn:hover {
@@ -142,6 +194,169 @@ body.sidebar-collapsed .user-avatar img {
 
 body.dark .sidebar-action-btn:hover {
   background: rgba(255, 255, 255, 0.08);
+}
+
+/* Token theme polish */
+.sidebar-top {
+  border-bottom-color: var(--border-subtle);
+}
+
+.sidebar-action-btn,
+.setting-btn,
+.support-btn,
+.chat-history-item {
+  color: var(--text-main);
+}
+
+.sidebar-action-btn:hover,
+.setting-btn:hover,
+.support-btn:hover,
+.chat-history-item:hover {
+  background: var(--primary-soft, var(--msu-blue-100)) !important;
+  color: var(--primary, var(--msu-blue)) !important;
+}
+
+.sidebar-action-btn.new-chat,
+.chat-history-item.active {
+  background: linear-gradient(135deg, var(--primary, var(--msu-blue)), var(--primary-hover, var(--msu-blue-hover))) !important;
+  color: #ffffff !important;
+}
+
+.chat-history-item.active {
+  border-left: 4px solid var(--accent, var(--msu-gold)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent, var(--msu-gold)) 28%, transparent);
+}
+
+.sidebar-action-btn.curriculum-link.active,
+.sidebar-action-btn.curriculum-link:hover {
+  color: var(--accent, var(--msu-gold)) !important;
+  background: var(--accent-soft, var(--msu-gold-50)) !important;
+}
+
+.chat-history-item.active *,
+.chat-history-item.active .chat-title {
+  color: #ffffff !important;
+}
+
+.search-input {
+  background: var(--bg-surface-soft, var(--bg-input)) !important;
+  border-color: var(--border-soft, var(--border-color)) !important;
+  color: var(--text-main) !important;
+}
+
+body.dark .chat-sidebar {
+  background: color-mix(in srgb, var(--bg-surface, var(--bg-card)) 94%, transparent);
+  border-right-color: var(--border-soft, var(--border-color));
+}
+
+body.dark .sidebar-action-btn:hover,
+body.dark .setting-btn:hover,
+body.dark .support-btn:hover,
+body.dark .chat-history-item:hover {
+  background: var(--primary-soft, var(--msu-blue-100)) !important;
+  color: var(--primary, var(--msu-blue)) !important;
+}
+
+/* Smaller-screen sidebar history ergonomics */
+.sidebar-middle {
+  flex: 1 1 auto;
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
+.chat-history-section {
+  min-height: 0;
+}
+
+.chat-history-list {
+  min-height: 0;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong, var(--border-color)) transparent;
+}
+
+.chat-history-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-history-list::-webkit-scrollbar-thumb {
+  background: var(--border-strong, var(--border-color));
+  border-radius: 999px;
+}
+
+@media (max-height: 760px), (max-width: 900px) {
+  .chat-sidebar {
+    height: calc(100dvh - var(--nav-h, 70px));
+  }
+
+  .sidebar-top {
+    flex: 0 0 auto;
+    padding: 10px 12px;
+    gap: 6px;
+  }
+
+  .sidebar-middle {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding-bottom: 8px;
+  }
+
+  .chat-history-list {
+    max-height: none;
+    overflow-y: visible;
+    padding-right: 3px;
+  }
+
+  .chat-history-item {
+    min-height: 42px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .sidebar-bottom {
+    flex: 0 0 auto;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+}
+
+/* ─── MOBILE OFF-CANVAS DRAWER ─── */
+/* On phones the chat is full-width; the sidebar slides in over it as a drawer
+   with a tap-to-close backdrop, so opening it never hides the chat for good. */
+@media (max-width: 767px) {
+  .chat-sidebar {
+    width: min(86vw, 320px) !important;
+    transform: translateX(0);
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 6px 0 32px rgba(15, 23, 42, 0.32);
+    z-index: 1200;
+  }
+
+  body.sidebar-collapsed .chat-sidebar {
+    width: min(86vw, 320px) !important;
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+
+  /* Touch drawers should not be drag-resized. */
+  .chat-sidebar .sidebar-drag-handle {
+    display: none;
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: var(--nav-h, 70px) 0 0 0;
+    background: rgba(15, 23, 42, 0.45);
+    z-index: 1100;
+    opacity: 1;
+    transition: opacity 0.24s ease;
+  }
+
+  body.sidebar-collapsed .sidebar-backdrop {
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
 .sidebar-action-btn.new-chat {
@@ -166,6 +381,26 @@ body.dark .sidebar-action-btn:hover {
   color: var(--text-secondary, #666);
   font-size: 0.85rem;
   padding: 9px 12px;
+}
+
+.sidebar-action-btn.curriculum-link.active,
+.sidebar-action-btn.curriculum-link:hover {
+  background: rgba(66, 133, 244, 0.1);
+  color: var(--text-primary, #111);
+}
+
+body.dark .sidebar-action-btn.curriculum-link.active,
+body.dark .sidebar-action-btn.curriculum-link:hover {
+  background: rgba(138, 180, 248, 0.16);
+  color: #e5e7eb;
+  border-color: rgba(138, 180, 248, 0.28);
+}
+
+body.dark .sidebar-action-btn.curriculum-link.active svg,
+body.dark .sidebar-action-btn.curriculum-link:hover svg,
+body.dark .sidebar-action-btn.curriculum-link.active span,
+body.dark .sidebar-action-btn.curriculum-link:hover span {
+  color: #e5e7eb;
 }
 
 /* Search Container */
@@ -462,14 +697,6 @@ body.dark .sidebar-action-btn:hover {
   gap: 8px;
 }
 
-/* Legacy - keep for compatibility */
-.sidebar-settings {
-  display: flex;
-  gap: 8px;
-  padding: 12px;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
 .setting-btn {
   flex: 1;
   display: flex;
@@ -485,6 +712,7 @@ body.dark .sidebar-action-btn:hover {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  overflow: hidden;
 }
 
 .setting-btn:hover {
@@ -606,18 +834,6 @@ body.dark .sidebar-action-btn:hover {
 
 .chat-history-list::-webkit-scrollbar-thumb:hover {
   background: var(--text-tertiary);
-}
-
-/* Documentation Button Style */
-.setting-btn.doc-btn {
-  border-color: var(--msu-blue);
-  color: var(--text-secondary);
-}
-
-.setting-btn.doc-btn:hover {
-  background: var(--msu-blue-50);
-  border-color: var(--msu-blue);
-  color: var(--msu-blue);
 }
 
 /* Support Button Style */
@@ -919,7 +1135,25 @@ body.dark .chat-history-item.active {
   border-left-color: #8ab4f8;
 }
 
+body.dark .chat-history-item.active *,
+body.dark .chat-history-item.active .chat-title {
+  color: inherit;
+}
+
 /* Mobile - Tablet */
+/* Tablet: a narrower sidebar so pushing the content still leaves the workspace
+   a balanced amount of room (the full 280px is too much at this width). The
+   matching content offsets in Chatbox.css use this same width. */
+@media (max-width: 1023px) and (min-width: 769px) {
+  .chat-sidebar {
+    width: 220px;
+  }
+
+  body.sidebar-custom-width:not(.sidebar-collapsed) .chat-sidebar {
+    width: 220px;
+  }
+}
+
 @media (max-width: 768px) {
   .chat-sidebar {
     transform: translateX(-280px);
@@ -927,11 +1161,6 @@ body.dark .chat-history-item.active {
 
   body:not(.sidebar-collapsed) .chat-sidebar {
     transform: translateX(0);
-  }
-
-  .sidebar-settings {
-    flex-direction: column;
-    gap: 6px;
   }
 
   .setting-btn {
@@ -1175,4 +1404,91 @@ body.dark .sidebar-toggle-btn:hover {
 }
 [data-theme="dark"] .sidebar-opensource-badge {
   color: var(--text-tertiary, #555);
+}
+
+.sidebar-drag-handle {
+  position: absolute;
+  top: 0;
+  right: -6px;
+  width: 12px;
+  height: 100%;
+  cursor: ew-resize;
+  z-index: 20;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+.sidebar-drag-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  width: 3px;
+  height: 54px;
+  border-radius: 999px;
+  background: var(--border-color, #d8dee8);
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.chat-sidebar:hover .sidebar-drag-handle::after,
+.sidebar-drag-handle:focus-visible::after {
+  opacity: 1;
+}
+
+.sidebar-drag-handle:hover::after {
+  background: var(--msu-blue, #4285f4);
+  opacity: 1;
+}
+
+body.sidebar-collapsed .sidebar-drag-handle {
+  right: -10px;
+  width: 20px;
+}
+
+body.sidebar-resizing,
+body.sidebar-resizing * {
+  cursor: ew-resize !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+body.sidebar-resizing .chat-sidebar {
+  width: var(--sidebar-preview-width, 280px);
+  transition: width 80ms linear;
+  will-change: width;
+}
+
+body.sidebar-resizing .chat-sidebar * {
+  animation-play-state: paused;
+}
+
+body.sidebar-resizing .chat-sidebar .sidebar-drag-handle::after {
+  opacity: 1;
+  background: var(--msu-blue, #4285f4);
+}
+
+body.sidebar-resizing .sidebar-top-row {
+  flex-direction: row;
+  align-items: center;
+}
+
+body.sidebar-resizing .sidebar-action-btn,
+body.sidebar-resizing .sidebar-action-btn.new-chat {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 10px 12px;
+  gap: 12px;
+}
+
+body.sidebar-resizing .sidebar-top {
+  padding: 16px;
+  align-items: stretch;
+  gap: 8px;
+}
+
+body.sidebar-resizing .sidebar-toggle-btn {
+  flex-shrink: 0;
 }

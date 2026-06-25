@@ -4,14 +4,41 @@
   top: 0;
   z-index: 1000;
   width: 100%;
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  /* Solid surface so chat content never shows through the navbar. */
+  background: var(--bg-surface, #ffffff);
+  border-bottom: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.06));
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: 70px;
   display: flex;
   align-items: center;
+}
+
+/* Token theme polish */
+.navbar {
+  color: var(--text-main);
+}
+
+.profile-icon-btn,
+.admin-nav-btn {
+  color: var(--text-main);
+}
+
+.profile-icon-btn:hover,
+.admin-nav-btn:hover {
+  background: var(--primary-soft, rgba(29, 78, 216, 0.1)) !important;
+  color: var(--primary, var(--msu-blue)) !important;
+}
+
+body.dark .navbar {
+  background: var(--bg-surface, #111827) !important;
+  border-bottom-color: var(--border-soft, var(--border-color)) !important;
+}
+
+body.dark .profile-icon-btn,
+body.dark .admin-nav-btn {
+  background: var(--bg-surface-soft, var(--bg-input)) !important;
+  border-color: var(--border-soft, var(--border-color)) !important;
+  color: var(--text-main) !important;
 }
 
 .navbar.scrolled {
@@ -24,8 +51,54 @@
   width: 100%;
   padding: 0 24px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
+  gap: 10px;
+}
+
+/* Always-visible sidebar toggle button. Bordered + filled so users can see it
+   without hovering. */
+.sidebar-menu-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong, #b7c6d8);
+  background: var(--primary-soft, rgba(0, 45, 114, 0.08));
+  color: var(--primary, #002d72);
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+}
+
+.sidebar-menu-btn:hover {
+  background: var(--primary, #002d72);
+  border-color: var(--primary, #002d72);
+  color: #fff;
+}
+
+.sidebar-menu-btn:active {
+  transform: scale(0.94);
+}
+
+body.dark .sidebar-menu-btn {
+  border-color: rgba(143, 174, 215, 0.4);
+  background: rgba(143, 174, 215, 0.14);
+  color: #cfe0f5;
+}
+
+body.dark .sidebar-menu-btn:hover {
+  background: rgba(143, 174, 215, 0.28);
+  border-color: rgba(143, 174, 215, 0.6);
+  color: #fff;
+}
+
+/* The navbar-left no longer needs to be the only left element; push the
+   right-side actions to the end. */
+.navbar-right {
+  margin-left: auto;
 }
 
 /* ========== Left Side - Logo and Title - CLICKABLE ========== */
@@ -47,60 +120,6 @@
 
 .navbar-left:active {
   opacity: 0.75;
-}
-
-/* Logo that morphs into hamburger on hover (Chat page) */
-.logo-hamburger-toggle {
-  position: relative;
-  width: 50px;
-  height: 50px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  overflow: hidden;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.logo-hamburger-toggle:hover {
-  background: rgba(66, 133, 244, 0.08);
-}
-
-/* Logo image - visible by default */
-.nav-logo-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  opacity: 1;
-}
-
-/* Hamburger overlay - hidden by default */
-.hamburger-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--msu-blue);
-  opacity: 0;
-  transform: scale(0.8);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-/* On hover: hide logo, show hamburger */
-.logo-hamburger-toggle:hover .nav-logo-image {
-  opacity: 0;
-  transform: scale(1.2);
-}
-
-.logo-hamburger-toggle:hover .hamburger-overlay {
-  opacity: 1;
-  transform: scale(1);
 }
 
 /* Regular logo (when not authenticated) */
@@ -277,9 +296,7 @@
 
 /* ========== DARK MODE SUPPORT ========== */
 .dark .navbar {
-  background: rgba(31, 31, 31, 0.88);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--bg-surface, #1f1f1f);
   border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
@@ -292,9 +309,6 @@
   background: rgba(138, 180, 248, 0.08);
 }
 
-.dark .hamburger-overlay {
-  color: #8ab4f8;
-}
 
 .dark .profile-icon-btn {
   background: #3c4043;
@@ -339,11 +353,6 @@
     height: 75px;
   }
 
-  .logo-hamburger-toggle {
-    width: 55px;
-    height: 55px;
-  }
-
   .nav-logo {
     height: 55px;
   }
@@ -381,11 +390,6 @@
 
   .navbar {
     height: 65px;
-  }
-
-  .logo-hamburger-toggle {
-    width: 45px;
-    height: 45px;
   }
 
   .nav-logo {
@@ -432,11 +436,6 @@
 
   .navbar-left {
     gap: 8px;
-  }
-
-  .logo-hamburger-toggle {
-    width: 40px;
-    height: 40px;
   }
 
   .nav-logo {
@@ -492,11 +491,6 @@
     height: 56px;
   }
 
-  .logo-hamburger-toggle {
-    width: 36px;
-    height: 36px;
-  }
-
   .nav-logo {
     height: 36px;
   }
@@ -538,11 +532,6 @@
     height: 52px;
   }
 
-  .logo-hamburger-toggle {
-    width: 32px;
-    height: 32px;
-  }
-
   .nav-logo {
     height: 32px;
   }
@@ -551,4 +540,28 @@
     width: 32px;
     height: 32px;
   }
+}
+
+/* ============================================================
+   --nav-h MUST MATCH the navbar height at EVERY breakpoint so the
+   sidebar and page content stay flush with the header (no gap).
+   These mirror the .navbar { height } values above.
+   ============================================================ */
+:root { --nav-h: 70px; }
+@media (min-width: 1440px) { :root { --nav-h: 75px; } }
+@media (max-width: 1023px) and (min-width: 768px) { :root { --nav-h: 65px; } }
+@media (max-width: 767px) { :root { --nav-h: 60px; } }
+@media (max-width: 480px) { :root { --nav-h: 56px; } }
+@media (max-width: 374px) { :root { --nav-h: 52px; } }
+
+/* Sidebar toggle button shrinks with the navbar on smaller screens. */
+@media (max-width: 767px) {
+  .sidebar-menu-btn { width: 38px; height: 38px; border-radius: 9px; }
+  .nav-container { padding: 0 12px; gap: 8px; }
+}
+@media (max-width: 480px) {
+  .sidebar-menu-btn { width: 34px; height: 34px; }
+}
+@media (max-width: 374px) {
+  .sidebar-menu-btn { width: 32px; height: 32px; }
 }
